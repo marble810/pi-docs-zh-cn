@@ -1,0 +1,43 @@
+version: 1
+
+preserve:
+  - Pi
+  - SvelteKit
+  - Svelte
+  - Bits UI
+  - GitHub
+  - GitHub Actions
+  - GitHub Pages
+  - OpenRouter
+  - Markdown
+  - TypeScript
+  - Node.js
+  - npm
+  - pnpm
+  - API
+  - CLI
+  - TUI
+  - JSON
+  - RPC
+  - SDK
+  - UI
+  - URL
+  - HTML
+
+terms:
+  coding agent: 编程代理
+  agent: 代理
+  agent harness: 代理运行框架
+  extension: 扩展
+  skill: 技能
+  prompt template: 提示词模板
+  provider: 模型提供商
+  tool call: 工具调用
+  session: 会话
+  compaction: 上下文压缩
+  context window: 上下文窗口
+  system prompt: 系统提示词
+  working directory: 工作目录
+  terminal: 终端
+  configuration: 配置
+  command-line interface: 命令行界面

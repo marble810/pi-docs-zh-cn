@@ -1,0 +1,28 @@
+version: 1
+
+maxSegmentsPerBatch: 24
+maxInputCharactersPerBatch: 20000
+maxFilesPerBatch: 2
+maxRequestsPerRun: 35
+maxConcurrency: 1
+minimumRequestIntervalMs: 3200
+
+maxContextLength: 32768
+minContextLength: 32768
+
+priceValidation:
+  prompt: 0
+  completion: 0
+  request: 0
+  internalReasoning: 0
+
+modelFilters:
+  inputModalities: ["text"]
+  outputModalities: ["text"]
+  supportedParameters: ["response_format"]
+  excludeExpiringWithinDays: 14
+
+fallback:
+  finalRouter: openrouter/free
+  maxRetriesPerModel: 1
+  circuitBreakerFailures: 3

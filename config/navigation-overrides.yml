@@ -1,0 +1,9 @@
+groups:
+  getting-started:
+    title: 开始使用
+  customization:
+    title: 自定义
+  reference:
+    title: 参考
+  development:
+    title: 开发

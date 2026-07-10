@@ -1,0 +1,9 @@
+.pi-subagents
+node_modules
+/.svelte-kit
+/build
+.work
+.DS_Store
+*.log
+coverage
+pnpm-lock.yaml

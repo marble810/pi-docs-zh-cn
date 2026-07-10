@@ -1,0 +1,219 @@
+name: Site
+
+on:
+  push:
+    branches: ["main"]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: Force re-sync even if upstream unchanged
+        type: boolean
+        default: false
+      force_retranslate:
+        description: Force re-translation of all segments
+        type: boolean
+        default: false
+      force_deploy:
+        description: Force deploy even without content changes
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pi-docs-site
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      run_sync: ${{ steps.decide.outputs.run_sync }}
+      translation_required: ${{ steps.decide.outputs.translation_required }}
+      target_commit: ${{ steps.decide.outputs.target_commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66dd77 # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check upstream
+        id: decide
+        run: |
+          echo "Checking upstream for changes..."
+          # Capture sync-check output
+          OUTPUT=$(pnpm sync:check 2>&1) || true
+          echo "$OUTPUT"
+
+          NEEDS_SYNC="false"
+          TRANS_NEEDED="false"
+          TARGET_COMMIT=""
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.event.inputs.force_sync }}" == "true" ]]; then
+              NEEDS_SYNC="true"
+            fi
+            if [[ "${{ github.event.inputs.force_retranslate }}" == "true" ]]; then
+              TRANS_NEEDED="true"
+            fi
+          fi
+
+          # Only create a sync job when the check found a docs change. This
+          # keeps the OpenRouter secret out of no-change scheduled runs.
+          if echo "$OUTPUT" | grep -q "Has changes:    true"; then
+            NEEDS_SYNC="true"
+            TRANS_NEEDED="true"
+          fi
+
+          # Extract target commit from output if present
+          if echo "$OUTPUT" | grep -qoE '[0-9a-f]{40}'; then
+            TARGET_COMMIT=$(echo "$OUTPUT" | grep -oE '[0-9a-f]{40}' | head -1)
+          fi
+
+          echo "run_sync=$NEEDS_SYNC" >> "$GITHUB_OUTPUT"
+          echo "translation_required=$TRANS_NEEDED" >> "$GITHUB_OUTPUT"
+          echo "target_commit=$TARGET_COMMIT" >> "$GITHUB_OUTPUT"
+
+  sync:
+    needs: [plan]
+    if: needs.plan.outputs.run_sync == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66dd77 # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run sync
+        run: pnpm sync:run ${{ github.event.inputs.force_sync == 'true' && '--force' || '' }} ${{ github.event.inputs.force_retranslate == 'true' && '--retranslate' || '' }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
+          OPENROUTER_SITE_URL: ${{ vars.OPENROUTER_SITE_URL }}
+          OPENROUTER_APP_NAME: ${{ vars.OPENROUTER_APP_NAME }}
+          OPENROUTER_MAX_REQUESTS_PER_RUN: ${{ vars.OPENROUTER_MAX_REQUESTS_PER_RUN || '35' }}
+          FORCE_RETRANSLATE: ${{ needs.plan.outputs.translation_required }}
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
+        with:
+          commit_message: |
+            sync: upstream content update [skip ci]
+
+            Upstream commit: ${{ needs.plan.outputs.target_commit }}
+          commit_user_name: pi-docs-bot
+          commit_user_email: bot@pi-docs-zh-cn.dev
+          push_options: ""
+
+  build:
+    needs: [sync, plan]
+    if: |
+      always() && (
+        github.event_name == 'push' ||
+        (needs.sync.result == 'success') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.force_deploy == 'true')
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66dd77 # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Generate site data
+        run: pnpm generate:site
+
+      - name: Build
+        run: pnpm build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}
+
+      - name: Link check
+        run: test -f build/index.html
+
+      - name: Secret scan
+        run: pnpm security:scan
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: build
+
+  deploy:
+    needs: [build]
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9fc83ae0ebf258a214bbd8e479a21eb # v5.0.0
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db9016429d0efb6581f9e90c0e2edcade4ae80 # v4.0.5

@@ -1,0 +1,57 @@
+import js from "@eslint/js";
+import prettier from "eslint-config-prettier";
+import svelte from "eslint-plugin-svelte";
+import globals from "globals";
+import ts from "typescript-eslint";
+
+/** @type {import('eslint').Linter.Config[]} */
+export default [
+  js.configs.recommended,
+  ...ts.configs.recommended,
+  ...svelte.configs["flat/recommended"],
+  prettier,
+  ...svelte.configs["flat/prettier"],
+  {
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node }
+    }
+  },
+  {
+    files: ["**/*.svelte"],
+    languageOptions: {
+      parserOptions: { parser: ts.parser }
+    },
+    rules: {
+      "svelte/no-navigation-without-resolve": "off",
+      "svelte/require-each-key": "off",
+      "svelte/no-at-html-tags": "off"
+    }
+  },
+  {
+    files: ["src/lib/components/**/*.svelte"],
+    ignores: ["src/lib/components/ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "bits-ui",
+              message: "Import Bits UI through src/lib/components/ui wrappers."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    ignores: [
+      "build/",
+      ".svelte-kit/",
+      "node_modules/",
+      ".work/",
+      ".pi-subagents/",
+      "src/lib/generated/"
+    ]
+  }
+];

@@ -1,0 +1,17 @@
+node_modules
+/.svelte-kit
+/build
+.env
+.env.local
+.work
+.DS_Store
+*.log
+state/pending-sync.json
+state/model-history.json
+state/translation-memory.jsonl
+coverage
+playwright-report
+test-results
+.vscode
+.idea
+.pi-subagents

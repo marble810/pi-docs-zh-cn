@@ -1,0 +1,5 @@
+repository: earendil-works/pi
+branch: main
+docsPath: packages/coding-agent/docs
+sourceSite: https://pi.dev/docs/latest
+targetLocale: zh-CN
