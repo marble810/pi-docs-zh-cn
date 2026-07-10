@@ -32,43 +32,32 @@ export function fetchUpstream(): FetchResult {
 
   const commit = execSync("git rev-parse HEAD", { cwd: UPSTREAM_DIR, encoding: "utf-8" }).trim();
 
-  // Copy to staging
+  // Copy to staging — upstream docs are flat .md + images/
   const srcDir = path.join(UPSTREAM_DIR, cfg.docsPath);
 
-  if (fs.existsSync(STAGING_EN_DIR)) {
-    fs.rmSync(STAGING_EN_DIR, { recursive: true });
-  }
-  if (fs.existsSync(STAGING_ASSETS_DIR)) {
-    fs.rmSync(STAGING_ASSETS_DIR, { recursive: true });
-  }
+  if (fs.existsSync(STAGING_EN_DIR)) fs.rmSync(STAGING_EN_DIR, { recursive: true });
+  if (fs.existsSync(STAGING_ASSETS_DIR)) fs.rmSync(STAGING_ASSETS_DIR, { recursive: true });
   fs.mkdirSync(STAGING_EN_DIR, { recursive: true });
   fs.mkdirSync(STAGING_ASSETS_DIR, { recursive: true });
 
   let files = 0;
   let assets = 0;
 
-  function copyDir(src: string, dest: string, isAssets: boolean): void {
-    if (!fs.existsSync(src)) return;
-    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-      const s = path.join(src, entry.name);
-      const d = path.join(dest, entry.name);
-      if (entry.isDirectory()) {
-        fs.mkdirSync(d, { recursive: true });
-        copyDir(s, d, isAssets);
-      } else {
-        fs.copyFileSync(s, d);
-        if (isAssets) assets++;
-        else files++;
-      }
+  for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
+    const s = path.join(srcDir, entry.name);
+    if (entry.isDirectory()) {
+      // Copy asset directories (images/, etc.) to staging assets
+      fs.cpSync(s, path.join(STAGING_ASSETS_DIR, entry.name), { recursive: true });
+      assets++;
+    } else if (
+      entry.name.endsWith(".md") ||
+      entry.name.endsWith(".mdx") ||
+      entry.name.endsWith(".json")
+    ) {
+      fs.copyFileSync(s, path.join(STAGING_EN_DIR, entry.name));
+      files++;
     }
   }
-
-  // Copy content/en docs
-  const contentSrc = path.join(srcDir, "content", "en");
-  const docsAssetsSrc = path.join(srcDir, "static", "docs-assets");
-
-  copyDir(contentSrc, STAGING_EN_DIR, false);
-  copyDir(docsAssetsSrc, STAGING_ASSETS_DIR, true);
 
   return { commit, files, assets };
 }
