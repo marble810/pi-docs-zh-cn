@@ -7,3 +7,5 @@ node_modules
 *.log
 coverage
 pnpm-lock.yaml
+src/lib/generated/
+static/search-index.json
