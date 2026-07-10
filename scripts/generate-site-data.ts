@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { CONTENT_ZH_DIR, GENERATED_DIR, STATIC_DIR } from "./lib/paths.js";
+import { CONTENT_ZH_DIR, GENERATED_DIR, STATIC_DIR, STATE_DIR } from "./lib/paths.js";
 import type {
   DocsManifest,
   DocsManifestPage,
@@ -140,10 +140,20 @@ export function generateSiteData(): void {
   fs.writeFileSync(path.join(GENERATED_DIR, "search-index.json"), searchIndexJson, "utf-8");
   fs.writeFileSync(path.join(STATIC_DIR, "search-index.json"), searchIndexJson, "utf-8");
 
-  // Generate sync-metadata.json
+  // Generate sync-metadata.json from the published state. Never use the
+  // current time here: a no-op build must not dirty generated source files.
+  let published: { publishedCommit?: string; publishedAt?: string } = {};
+  const publishedPath = path.join(STATE_DIR, "published-upstream.json");
+  if (fs.existsSync(publishedPath)) {
+    try {
+      published = JSON.parse(fs.readFileSync(publishedPath, "utf-8")) as typeof published;
+    } catch {
+      // Bootstrap state remains empty until the first complete promotion.
+    }
+  }
   const syncMeta: SyncMetadata = {
-    upstreamCommit: "",
-    publishedAt: new Date().toISOString(),
+    upstreamCommit: published.publishedCommit ?? "",
+    publishedAt: published.publishedAt ?? "",
     sourceSite: "https://pi.dev/docs/latest",
     targetLocale: "zh-CN"
   };
