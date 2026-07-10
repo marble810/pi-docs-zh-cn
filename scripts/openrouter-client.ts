@@ -66,12 +66,17 @@ export class OpenRouterClient {
     for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
       try {
         if (attempt > 0) {
-          await new Promise((r) => setTimeout(r, attempt * 2000));
+          const delay = attempt * 2000;
+          console.log(`      ⏳ Retry ${attempt} after ${delay}ms...`);
+          await new Promise((r) => setTimeout(r, delay));
         }
 
         const response = await this.rawRequest(req);
         const latencyMs = Date.now() - start;
         const content = response.choices?.[0]?.message?.content ?? "";
+        const tokens = response.usage?.prompt_tokens ?? 0;
+        const compTokens = response.usage?.completion_tokens ?? 0;
+        console.log(`      ⚡ ${req.model}: ${latencyMs}ms, ${tokens}+${compTokens} tokens`);
 
         return {
           content,
@@ -82,8 +87,10 @@ export class OpenRouterClient {
       } catch (err) {
         lastError = err as Error;
         if (err instanceof RateLimitError) {
-          // Wait for retry-after
+          console.log(`      ⚠ Rate limited, waiting ${err.retryAfter}s`);
           await new Promise((r) => setTimeout(r, err.retryAfter * 1000));
+        } else {
+          console.log(`      ⚠ Transport error: ${(err as Error).message}`);
         }
       }
     }

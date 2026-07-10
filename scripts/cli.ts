@@ -1,4 +1,11 @@
 #!/usr/bin/env tsx
+// Load .env from project root for local development (Node 21.7+)
+import { existsSync as _envExists } from "node:fs";
+import { resolve as _resolveRoot } from "node:path";
+import { fileURLToPath as _toPath } from "node:url";
+const __envPath = _resolveRoot(_toPath(import.meta.url), "../../.env");
+if (_envExists(__envPath)) process.loadEnvFile(__envPath);
+
 import fs from "node:fs";
 import path from "node:path";
 import { checkUpstream } from "./check-upstream.js";

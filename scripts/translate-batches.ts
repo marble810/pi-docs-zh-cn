@@ -154,20 +154,35 @@ export async function translateBatches(
   const limited = Math.min(maxRequestsPerRun, policy.maxRequestsPerRun);
   const batches = groupIntoBatches(segments, policy);
 
+  console.log(
+    `   📊 ${segments.length} segments → ${batches.length} batches (max ${limited} requests)`
+  );
+
   let requestsUsed = 0;
   const translated: TranslatedSegment[] = [];
   const modelHistory = loadModelHistory() ?? { models: {} };
 
   // Discover and rank models
+  console.log("   🌐 Discovering free models...");
   const { models: discoveredModels, freeFallback } = await discoverModels(apiKey);
+  console.log(`   ✅ Found ${discoveredModels.length} eligible free models`);
   const allModels: OpenRouterModel[] = [...discoveredModels, freeFallback];
   const ranked: RankedModel[] = rankModels(allModels, modelHistory);
+  const top3 = ranked
+    .slice(0, 3)
+    .map((m) => m.model.id)
+    .join(", ");
+  console.log(`   📋 Ranked models (top 3): ${top3} ... + fallback ${freeFallback.id}`);
 
   const client = new OpenRouterClient(apiKey, policy.fallback.maxRetriesPerModel);
 
   // Process batches
+  let batchIndex = 0;
   for (const batch of batches) {
+    batchIndex++;
+
     if (requestsUsed >= limited) {
+      console.log(`   ⚠ Budget exhausted (${requestsUsed}/${limited} requests used).`);
       // Save checkpoint
       const remaining = segments.filter((s) => !translated.find((t) => t.segmentId === s.id));
       savePendingSync({
@@ -200,6 +215,11 @@ export async function translateBatches(
       }
     }
 
+    if (cachedResults.length > 0) {
+      console.log(
+        `   💾 Batch ${batchIndex}/${batches.length}: ${cachedResults.length} cache-hit, ${uncached.length} need translation`
+      );
+    }
     translated.push(...cachedResults);
 
     if (uncached.length === 0) continue;
@@ -212,13 +232,20 @@ export async function translateBatches(
 
     // Try each ranked model in order
     let batchResult: TranslatedSegment[] | null = null;
+    let modelAttempt = 0;
 
     for (const rankedModel of ranked) {
       if (requestsUsed >= limited) break;
+      modelAttempt++;
       requestsUsed++;
+
+      console.log(
+        `   🔄 Batch ${batchIndex} attempt ${modelAttempt}: trying ${rankedModel.model.id}...`
+      );
 
       const schema = buildSchemaForBatch(uncachedBatch);
 
+      const t0 = Date.now();
       const content = await client.complete({
         model: rankedModel.model.id,
         messages: [
@@ -263,6 +290,7 @@ export async function translateBatches(
       modelHistory.models[rankedModel.model.id] = mh;
 
       if (content.error) {
+        console.log(`   ❌ ${rankedModel.model.id}: transport error (${content.error})`);
         mh.transportFailures++;
         mh.lastFailureAt = new Date().toISOString();
         continue; // Try next model
@@ -273,6 +301,7 @@ export async function translateBatches(
       try {
         parsed = JSON.parse(content.content);
       } catch {
+        console.log(`   ❌ ${rankedModel.model.id}: invalid JSON response`);
         mh.schemaFailures++;
         mh.lastFailureAt = new Date().toISOString();
         continue;
@@ -281,6 +310,8 @@ export async function translateBatches(
       // Validate all segments present
       const allPresent = uncached.every((s) => parsed[s.id] !== undefined);
       if (!allPresent) {
+        const missing = uncached.filter((s) => !parsed[s.id]).map((s) => s.id.slice(0, 12));
+        console.log(`   ❌ ${rankedModel.model.id}: missing segments (${missing.join(", ")}...)`);
         mh.schemaFailures++;
         mh.lastFailureAt = new Date().toISOString();
         continue;
@@ -295,12 +326,15 @@ export async function translateBatches(
       });
 
       if (!placeholderOk) {
+        console.log(`   ❌ ${rankedModel.model.id}: placeholder mismatch`);
         mh.placeholderFailures++;
         mh.lastFailureAt = new Date().toISOString();
         continue;
       }
 
       // Success
+      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      console.log(`   ✅ ${rankedModel.model.id}: ${uncached.length} segments in ${elapsed}s`);
       mh.successes++;
       mh.lastSuccessAt = new Date().toISOString();
 
@@ -331,6 +365,8 @@ export async function translateBatches(
 
     if (batchResult) {
       translated.push(...batchResult);
+    } else {
+      console.log(`   🚫 Batch ${batchIndex}: all ${modelAttempt} models failed`);
     }
   }
 
