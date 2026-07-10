@@ -14,15 +14,20 @@ import type {
   TranslationMemoryEntry,
   PendingSync
 } from "./lib/types.js";
-import { OpenRouterClient } from "./openrouter-client.js";
-import { rankModels, type RankedModel } from "./rank-models.js";
-import { discoverModels } from "./discover-models.js";
-import type { OpenRouterModel, ModelHistory } from "./lib/types.js";
+import {
+  type TranslationProvider,
+  type TranslationBatchRequest,
+  type TranslationBatchResult,
+  type ModelCandidate,
+  type TranslationSegmentRequest,
+  toTranslationSegmentRequest
+} from "./providers/provider.js";
+import { AllModelsFailedError } from "./providers/errors.js";
+import { createTranslationProvider } from "./providers/provider-factory.js";
+import { maxBatchConfig } from "./providers/nvidia/nvidia-protocol.js";
 
 interface TranslateBatchesOptions {
   segments: TranslationSegment[];
-  apiKey: string;
-  maxRequestsPerRun?: number;
   onProgress?: (done: number, total: number) => void;
 }
 
@@ -79,7 +84,6 @@ function groupIntoBatches(
   let currentFile: string | null = null;
 
   for (const seg of segments) {
-    // Start new batch if needed
     if (
       current.length >= policy.maxSegmentsPerBatch ||
       charCount + seg.source.length > policy.maxInputCharactersPerBatch ||
@@ -88,10 +92,7 @@ function groupIntoBatches(
         fileSet.size >= policy.maxFilesPerBatch)
     ) {
       if (current.length > 0) {
-        batches.push({
-          segments: [...current],
-          estimatedChars: charCount
-        });
+        batches.push({ segments: [...current], estimatedChars: charCount });
       }
       current = [];
       charCount = 0;
@@ -112,92 +113,199 @@ function groupIntoBatches(
   return batches;
 }
 
-function loadModelHistory(): ModelHistory | null {
-  const p = path.join(STATE_DIR, "model-history.json");
-  if (!fs.existsSync(p)) return null;
-  return JSON.parse(fs.readFileSync(p, "utf-8")) as ModelHistory;
-}
+function splitSegmentsForProtocol(
+  segments: TranslationSegment[],
+  maxPerBatch: number,
+  maxChars: number
+): TranslationSegment[][] {
+  const result: TranslationSegment[][] = [];
+  let current: TranslationSegment[] = [];
+  let charCount = 0;
 
-function saveModelHistory(history: ModelHistory): void {
-  const p = path.join(STATE_DIR, "model-history.json");
-  const dir = path.dirname(p);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(p, JSON.stringify(history, null, 2), "utf-8");
-}
-
-function buildSchemaForBatch(batch: SegmentBatch): Record<string, unknown> {
-  const props: Record<string, unknown> = {};
-  for (const seg of batch.segments) {
-    props[seg.id] = {
-      type: "string",
-      description: `Translate to zh-CN: ${seg.source.slice(0, 100)}${seg.source.length > 100 ? "..." : ""}`
-    };
+  for (const seg of segments) {
+    if (current.length >= maxPerBatch || charCount + seg.source.length > maxChars) {
+      result.push([...current]);
+      current = [];
+      charCount = 0;
+    }
+    current.push(seg);
+    charCount += seg.source.length;
   }
-  return {
-    type: "object",
-    properties: props,
-    required: batch.segments.map((s) => s.id),
-    additionalProperties: false
-  };
+  if (current.length > 0) result.push([...current]);
+  return result;
+}
+
+export async function translateWithFallback(
+  provider: TranslationProvider,
+  batchData: {
+    segments: TranslationSegment[];
+    glossary: Record<string, string>;
+    preserve: string[];
+    prompt: string;
+  },
+  candidates: ModelCandidate[]
+): Promise<TranslationBatchResult> {
+  const failures: string[] = [];
+
+  for (const candidate of candidates) {
+    if (candidate.available === false) {
+      console.log(`   ⏭  ${candidate.id}: unavailable, skipping`);
+      continue;
+    }
+
+    const protocolConfig = maxBatchConfig(candidate.protocol);
+    const segsForThisModel = batchData.segments;
+
+    // If we need to split (e.g., Riva handles smaller batches)
+    const needsSplit = segsForThisModel.length > protocolConfig.maxSegmentsPerBatch;
+
+    if (needsSplit) {
+      const subBatches = splitSegmentsForProtocol(
+        segsForThisModel,
+        protocolConfig.maxSegmentsPerBatch,
+        protocolConfig.maxInputCharactersPerBatch
+      );
+
+      console.log(
+        `   ✂️  ${candidate.id}: splitting ${segsForThisModel.length} segments → ${subBatches.length} sub-batches`
+      );
+
+      const subResults: TranslationBatchResult[] = [];
+      for (const subSegs of subBatches) {
+        const reqSegments: TranslationSegmentRequest[] = subSegs.map(toTranslationSegmentRequest);
+        const request: TranslationBatchRequest = {
+          segments: reqSegments,
+          targetLocale: "zh-CN",
+          glossary: batchData.glossary,
+          preserve: batchData.preserve,
+          systemPrompt: batchData.prompt,
+          maxOutputTokens: protocolConfig.maxOutputTokens
+        };
+
+        try {
+          const subResult = await provider.translateBatch(request, candidate);
+          subResults.push(subResult);
+        } catch (err) {
+          const info = provider.classifyError(err);
+          console.log(`   ❌ ${candidate.id}: sub-batch failed — ${info.safeMessage}`);
+          throw err; // Re-throw to let fallback loop handle it
+        }
+      }
+
+      // Merge sub-results
+      return {
+        translations: subResults.flatMap((r) => r.translations),
+        metadata: {
+          provider: provider.id,
+          requestedModel: candidate.id,
+          actualModel: candidate.id,
+          protocol: candidate.protocol,
+          latencyMs: subResults.reduce((sum, r) => sum + r.metadata.latencyMs, 0)
+        }
+      };
+    }
+
+    // Normal batch (no split needed)
+    const reqSegments: TranslationSegmentRequest[] = segsForThisModel.map(
+      toTranslationSegmentRequest
+    );
+    const request: TranslationBatchRequest = {
+      segments: reqSegments,
+      targetLocale: "zh-CN",
+      glossary: batchData.glossary,
+      preserve: batchData.preserve,
+      systemPrompt: batchData.prompt,
+      maxOutputTokens: protocolConfig.maxOutputTokens
+    };
+
+    try {
+      const result = await provider.translateBatch(request, candidate);
+
+      // Validate
+      validateTranslationBatch(segsForThisModel, result);
+
+      return result;
+    } catch (err) {
+      const info = provider.classifyError(err);
+      failures.push(`${candidate.id}: ${info.kind}`);
+      console.log(`   ❌ ${candidate.id}: ${info.safeMessage}`);
+
+      if (info.fatal) {
+        throw new AllModelsFailedError([info]);
+      }
+    }
+  }
+
+  throw new AllModelsFailedError(
+    failures.map((f) => ({ kind: "unknown", safeMessage: f, fatal: false }))
+  );
+}
+
+function validateTranslationBatch(
+  segments: TranslationSegment[],
+  result: TranslationBatchResult
+): void {
+  // All segments must have a translation
+  const resultIds = new Map(result.translations.map((t) => [t.id, t.text]));
+
+  const missing = segments.filter((s) => !resultIds.has(s.id));
+  if (missing.length > 0) {
+    throw new Error(`Missing segments: ${missing.map((s) => s.id.slice(0, 12)).join(", ")}`);
+  }
+
+  // Extra segments in result
+  const expectedIds = new Set(segments.map((s) => s.id));
+  const extra = result.translations.filter((t) => !expectedIds.has(t.id));
+  if (extra.length > 0) {
+    throw new Error(`Extra segments: ${extra.map((t) => t.id.slice(0, 12)).join(", ")}`);
+  }
+
+  // Placeholder preservation
+  for (const seg of segments) {
+    const translation = resultIds.get(seg.id) ?? "";
+    const srcPlaceholders = (seg.source.match(/\{\{[^}]+\}\}/g) ?? []).length;
+    const tgtPlaceholders = (translation.match(/\{\{[^}]+\}\}/g) ?? []).length;
+    if (srcPlaceholders !== tgtPlaceholders) {
+      throw new Error(
+        `Placeholder mismatch in ${seg.id}: src=${srcPlaceholders} tgt=${tgtPlaceholders}`
+      );
+    }
+  }
 }
 
 export async function translateBatches(
   options: TranslateBatchesOptions
 ): Promise<TranslatedSegment[]> {
-  const { segments, apiKey, maxRequestsPerRun = 35 } = options;
+  const { segments, onProgress } = options;
   const policy = loadTranslationPolicy();
   const versions = getConfigVersions();
   const cache = loadCache();
   const glossary = loadGlossary();
   const prompt = loadTranslationPrompt();
 
-  const limited = Math.min(maxRequestsPerRun, policy.maxRequestsPerRun);
+  // Create provider
+  const provider = createTranslationProvider();
+  const candidates = await provider.getCandidateModels();
+  const availableCandidates = candidates.filter((c) => c.available !== false);
+
+  if (availableCandidates.length === 0) {
+    console.log("   ⚠ No available NVIDIA models. Translation skipped.");
+    return [];
+  }
+
+  console.log(`   📋 Model chain: ${availableCandidates.map((c) => c.id).join(" → ")}`);
+
   const batches = groupIntoBatches(segments, policy);
+  console.log(`   📊 ${segments.length} segments → ${batches.length} batches`);
 
-  console.log(
-    `   📊 ${segments.length} segments → ${batches.length} batches (max ${limited} requests)`
-  );
-
-  let requestsUsed = 0;
   const translated: TranslatedSegment[] = [];
-  const modelHistory = loadModelHistory() ?? { models: {} };
-
-  // Discover and rank models
-  console.log("   🌐 Discovering free models...");
-  const { models: discoveredModels, freeFallback } = await discoverModels(apiKey);
-  console.log(`   ✅ Found ${discoveredModels.length} eligible free models`);
-  const allModels: OpenRouterModel[] = [...discoveredModels, freeFallback];
-  const ranked: RankedModel[] = rankModels(allModels, modelHistory);
-  const top3 = ranked
-    .slice(0, 3)
-    .map((m) => m.model.id)
-    .join(", ");
-  console.log(`   📋 Ranked models (top 3): ${top3} ... + fallback ${freeFallback.id}`);
-
-  const client = new OpenRouterClient(apiKey, policy.fallback.maxRetriesPerModel);
 
   // Process batches
-  let batchIndex = 0;
-  for (const batch of batches) {
-    batchIndex++;
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    onProgress?.(translated.length, segments.length);
 
-    if (requestsUsed >= limited) {
-      console.log(`   ⚠ Budget exhausted (${requestsUsed}/${limited} requests used).`);
-      // Save checkpoint
-      const remaining = segments.filter((s) => !translated.find((t) => t.segmentId === s.id));
-      savePendingSync({
-        targetCommit: "",
-        startedAt: new Date().toISOString(),
-        completedSegmentIds: translated.map((t) => t.segmentId),
-        remainingSegmentIds: remaining.map((s) => s.id),
-        validCacheEntries: translated.length,
-        status: "translating"
-      });
-      saveModelHistory(modelHistory);
-      break;
-    }
-
-    // Check cache first
+    // Check cache
     const cachedResults: TranslatedSegment[] = [];
     const uncached: TranslationSegment[] = [];
 
@@ -217,160 +325,69 @@ export async function translateBatches(
 
     if (cachedResults.length > 0) {
       console.log(
-        `   💾 Batch ${batchIndex}/${batches.length}: ${cachedResults.length} cache-hit, ${uncached.length} need translation`
+        `   💾 Batch ${i + 1}/${batches.length}: ${cachedResults.length} cache-hit, ${uncached.length} need translation`
       );
     }
     translated.push(...cachedResults);
 
     if (uncached.length === 0) continue;
 
-    // Build uncached batch
-    const uncachedBatch: SegmentBatch = {
-      segments: uncached,
-      estimatedChars: uncached.reduce((sum, s) => sum + s.source.length, 0)
-    };
-
-    // Try each ranked model in order
-    let batchResult: TranslatedSegment[] | null = null;
-    let modelAttempt = 0;
-
-    for (const rankedModel of ranked) {
-      if (requestsUsed >= limited) break;
-      modelAttempt++;
-      requestsUsed++;
-
-      console.log(
-        `   🔄 Batch ${batchIndex} attempt ${modelAttempt}: trying ${rankedModel.model.id}...`
+    // Translate uncached
+    try {
+      const result = await translateWithFallback(
+        provider,
+        {
+          segments: uncached,
+          glossary: glossary.terms,
+          preserve: glossary.preserve,
+          prompt
+        },
+        availableCandidates
       );
 
-      const schema = buildSchemaForBatch(uncachedBatch);
+      const batchTranslated: TranslatedSegment[] = result.translations.map((t) => ({
+        segmentId: t.id,
+        translation: t.text,
+        modelUsed: result.metadata.actualModel
+      }));
 
-      const t0 = Date.now();
-      const content = await client.complete({
-        model: rankedModel.model.id,
-        messages: [
-          { role: "system", content: prompt },
-          {
-            role: "user",
-            content: JSON.stringify({
-              glossary: glossary.terms,
-              preserve: glossary.preserve,
-              segments: uncached.map((s) => ({
-                id: s.id,
-                source: s.source,
-                normalizedSource: s.normalizedSource,
-                sectionPath: s.sectionPath,
-                filePath: s.filePath
-              }))
-            })
+      translated.push(...batchTranslated);
+
+      // Write cache
+      const cacheEntries: TranslationMemoryEntry[] = uncached.map((s) => {
+        const rt = result.translations.find((t) => t.id === s.id);
+        return {
+          key: buildCacheKey(s, versions),
+          source: s.source,
+          translation: rt?.text ?? "",
+          metadata: {
+            targetLocale: "zh-CN",
+            filePath: s.filePath,
+            sectionPath: s.sectionPath,
+            modelRequested: result.metadata.requestedModel,
+            modelUsed: result.metadata.actualModel,
+            translatedAt: new Date().toISOString()
           }
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: schema
-        }
+        };
       });
-
-      // Update model history
-      const mh = modelHistory.models[rankedModel.model.id] ?? {
-        attempts: 0,
-        successes: 0,
-        transportFailures: 0,
-        schemaFailures: 0,
-        placeholderFailures: 0,
-        languageFailures: 0,
-        semanticFailures: 0,
-        averageLatencyMs: 0,
-        lastSuccessAt: undefined,
-        lastFailureAt: undefined
-      };
-      mh.attempts++;
-      mh.averageLatencyMs =
-        (mh.averageLatencyMs * (mh.attempts - 1) + content.latencyMs) / mh.attempts;
-      modelHistory.models[rankedModel.model.id] = mh;
-
-      if (content.error) {
-        console.log(`   ❌ ${rankedModel.model.id}: transport error (${content.error})`);
-        mh.transportFailures++;
-        mh.lastFailureAt = new Date().toISOString();
-        continue; // Try next model
-      }
-
-      // Parse JSON response
-      let parsed: Record<string, string>;
-      try {
-        parsed = JSON.parse(content.content);
-      } catch {
-        console.log(`   ❌ ${rankedModel.model.id}: invalid JSON response`);
-        mh.schemaFailures++;
-        mh.lastFailureAt = new Date().toISOString();
-        continue;
-      }
-
-      // Validate all segments present
-      const allPresent = uncached.every((s) => parsed[s.id] !== undefined);
-      if (!allPresent) {
-        const missing = uncached.filter((s) => !parsed[s.id]).map((s) => s.id.slice(0, 12));
-        console.log(`   ❌ ${rankedModel.model.id}: missing segments (${missing.join(", ")}...)`);
-        mh.schemaFailures++;
-        mh.lastFailureAt = new Date().toISOString();
-        continue;
-      }
-
-      // Basic validation - placeholder count match
-      const placeholderOk = uncached.every((s) => {
-        const translation = parsed[s.id];
-        const srcPlaceholders = (s.source.match(/\{\{[^}]+\}\}/g) ?? []).length;
-        const tgtPlaceholders = (translation.match(/\{\{[^}]+\}\}/g) ?? []).length;
-        return srcPlaceholders === tgtPlaceholders;
-      });
-
-      if (!placeholderOk) {
-        console.log(`   ❌ ${rankedModel.model.id}: placeholder mismatch`);
-        mh.placeholderFailures++;
-        mh.lastFailureAt = new Date().toISOString();
-        continue;
-      }
-
-      // Success
-      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      console.log(`   ✅ ${rankedModel.model.id}: ${uncached.length} segments in ${elapsed}s`);
-      mh.successes++;
-      mh.lastSuccessAt = new Date().toISOString();
-
-      batchResult = uncached.map((s) => ({
-        segmentId: s.id,
-        translation: parsed[s.id],
-        modelUsed: rankedModel.model.id
-      }));
-
-      // Write cache entries
-      const cacheEntries: TranslationMemoryEntry[] = uncached.map((s) => ({
-        key: buildCacheKey(s, versions),
-        source: s.source,
-        translation: parsed[s.id],
-        metadata: {
-          targetLocale: "zh-CN",
-          filePath: s.filePath,
-          sectionPath: s.sectionPath,
-          modelRequested: rankedModel.model.id,
-          modelUsed: rankedModel.model.id,
-          translatedAt: new Date().toISOString()
-        }
-      }));
       appendCache(cacheEntries);
 
-      break; // Success, stop trying other models
-    }
-
-    if (batchResult) {
-      translated.push(...batchResult);
-    } else {
-      console.log(`   🚫 Batch ${batchIndex}: all ${modelAttempt} models failed`);
+      console.log(
+        `   ✅ Batch ${i + 1}: ${batchTranslated.length} segments via ${result.metadata.actualModel}`
+      );
+    } catch (err) {
+      if (err instanceof AllModelsFailedError) {
+        console.log(`   🚫 Batch ${i + 1}: all models failed`);
+        // Save checkpoint
+        break;
+      }
+      throw err;
     }
   }
 
-  // Final checkpoint
+  onProgress?.(translated.length, segments.length);
+
+  // Save checkpoint
   savePendingSync({
     targetCommit: "",
     startedAt: new Date().toISOString(),
@@ -381,7 +398,6 @@ export async function translateBatches(
     validCacheEntries: translated.length,
     status: translated.length === segments.length ? "completed" : "translating"
   });
-  saveModelHistory(modelHistory);
 
   return translated;
 }

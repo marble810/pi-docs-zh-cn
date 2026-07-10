@@ -76,7 +76,7 @@ jobs:
           fi
 
           # Only create a sync job when the check found a docs change. This
-          # keeps the OpenRouter secret out of no-change scheduled runs.
+          # keeps the NVIDIA secret out of no-change scheduled runs.
           if echo "$OUTPUT" | grep -q "Has changes:    true"; then
             NEEDS_SYNC="true"
             TRANS_NEEDED="true"
@@ -118,12 +118,14 @@ jobs:
       - name: Run sync
         run: pnpm sync:run ${{ github.event.inputs.force_sync == 'true' && '--force' || '' }} ${{ github.event.inputs.force_retranslate == 'true' && '--retranslate' || '' }}
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
-          OPENROUTER_SITE_URL: ${{ vars.OPENROUTER_SITE_URL }}
-          OPENROUTER_APP_NAME: ${{ vars.OPENROUTER_APP_NAME }}
-          OPENROUTER_MAX_REQUESTS_PER_RUN: ${{ vars.OPENROUTER_MAX_REQUESTS_PER_RUN || '35' }}
-          FORCE_RETRANSLATE: ${{ needs.plan.outputs.translation_required }}
+          AI_PROVIDER: nvidia
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_BASE_URL: ${{ vars.NVIDIA_BASE_URL }}
+          NVIDIA_MODEL_CHAIN: ${{ vars.NVIDIA_MODEL_CHAIN }}
+          NVIDIA_REQUEST_TIMEOUT_MS: ${{ vars.NVIDIA_REQUEST_TIMEOUT_MS || '120000' }}
+          NVIDIA_POLL_TIMEOUT_MS: ${{ vars.NVIDIA_POLL_TIMEOUT_MS || '180000' }}
+          NVIDIA_MAX_REQUESTS_PER_RUN: ${{ vars.NVIDIA_MAX_REQUESTS_PER_RUN || '100' }}
+          NVIDIA_REQUESTS_PER_MINUTE: ${{ vars.NVIDIA_REQUESTS_PER_MINUTE || '20' }}
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
