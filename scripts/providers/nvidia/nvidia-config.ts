@@ -11,13 +11,13 @@ const NvidiaEnvSchema = z.object({
       "deepseek-ai/deepseek-v4-pro,deepseek-ai/deepseek-v4-flash,nvidia/riva-translate-4b-instruct-v1_1"
     ),
 
-  NVIDIA_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
+  NVIDIA_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(300_000),
 
   NVIDIA_POLL_TIMEOUT_MS: z.coerce.number().int().positive().default(180_000),
 
   NVIDIA_MAX_REQUESTS_PER_RUN: z.coerce.number().int().positive().default(100),
 
-  NVIDIA_REQUESTS_PER_MINUTE: z.coerce.number().int().positive().default(20),
+  NVIDIA_REQUESTS_PER_MINUTE: z.coerce.number().int().positive().default(10),
 
   NVIDIA_MAX_MODEL_ATTEMPTS: z.coerce.number().int().min(1).max(3).default(1),
 
