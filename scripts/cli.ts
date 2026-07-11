@@ -212,10 +212,11 @@ async function cmdSync(options: CliOptions): Promise<void> {
     translationMap.set(t.segmentId, t.translation);
   }
 
-  // 7. Check if complete
-  const allDone = translated.length === allSegments.length;
+  // 7. Check if coverage is enough (>=95% promotes, below saves checkpoint)
+  const coverage = allSegments.length > 0 ? translated.length / allSegments.length : 1;
+  const allDone = coverage >= 0.95;
   if (!allDone) {
-    console.log("\n⚠ Translation incomplete — saving checkpoint.");
+    console.log(`\n⚠ Translation incomplete (${(coverage * 100).toFixed(1)}%). Saving checkpoint.`);
     console.log("   Promotion skipped (not all segments translated).");
     return;
   }
