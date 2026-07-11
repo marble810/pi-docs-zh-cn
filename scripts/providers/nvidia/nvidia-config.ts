@@ -5,7 +5,11 @@ const NvidiaEnvSchema = z.object({
 
   NVIDIA_BASE_URL: z.string().url().default("https://integrate.api.nvidia.com/v1"),
 
-  NVIDIA_MODEL_CHAIN: z.string().min(1, "NVIDIA_MODEL_CHAIN must not be empty"),
+  NVIDIA_MODEL_CHAIN: z
+    .string()
+    .default(
+      "deepseek-ai/deepseek-v4-pro,deepseek-ai/deepseek-v4-flash,nvidia/riva-translate-4b-instruct-v1_1"
+    ),
 
   NVIDIA_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
 
