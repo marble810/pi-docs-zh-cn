@@ -29,7 +29,9 @@
 <style>
   .docs-layout {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, var(--content-max-width)) var(--toc-width);
+    grid-template-columns: var(--sidebar-width) minmax(0, var(--content-max-width)) var(
+        --toc-width
+      );
     column-gap: var(--space-12);
     max-width: 1440px;
     margin: 0 auto;
