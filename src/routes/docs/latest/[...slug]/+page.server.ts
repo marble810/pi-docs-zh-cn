@@ -5,6 +5,8 @@ import fs from "node:fs";
 import path from "node:path";
 import type { EntryGenerator } from "./$types.js";
 
+export const prerender = true;
+
 export const entries: EntryGenerator = () => {
   return getManifest()
     .filter((page) => page.slug !== "")

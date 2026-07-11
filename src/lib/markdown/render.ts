@@ -61,7 +61,7 @@ export async function renderMarkdown(markdown: string, slug?: string): Promise<R
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
-    .use(rewriteDocLinks(slug) as never)
+    .use(() => rewriteDocLinks(slug))
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: "wrap" })
     .use(rehypeSanitize as never, sanitizeSchema)
@@ -87,7 +87,7 @@ export async function renderMarkdown(markdown: string, slug?: string): Promise<R
               const langAttr = (className?.[0] ?? "").replace(/^language-/, "");
               const code = nodeText(codeNode);
               const html = hl.codeToHtml(code, {
-                lang: langAttr || "text",
+                lang: hl.getLoadedLanguages().includes(langAttr) ? langAttr : "text",
                 themes: {
                   light: "github-light",
                   dark: "github-dark"
@@ -101,7 +101,8 @@ export async function renderMarkdown(markdown: string, slug?: string): Promise<R
         );
       };
     } as never)
-    .use(rehypeStringify);
+    // Shiki adds its highlighted <pre> block as a raw node after sanitization.
+    .use(rehypeStringify, { allowDangerousHtml: true });
 
   const file = await processor.process(markdown);
   const html = String(file);

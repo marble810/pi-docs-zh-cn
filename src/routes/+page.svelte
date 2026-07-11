@@ -19,7 +19,7 @@
     <div class="hero-actions">
       <a href={base + "/docs/latest/"} class="btn-primary">开始阅读</a>
       <a
-        href="https://github.com/liangkeren/pi-docs-zh-cn"
+        href="https://github.com/marble810/pi-docs-zh-cn"
         target="_blank"
         rel="noopener"
         class="btn-secondary">GitHub 仓库</a
@@ -70,7 +70,7 @@
       <h3>自动翻译说明</h3>
       <p>
         本翻译内容由 AI 模型自动生成，经过人工校对流程但仍可能存在不一致之处。如发现翻译问题，欢迎在 <a
-          href="https://github.com/liangkeren/pi-docs-zh-cn"
+          href="https://github.com/marble810/pi-docs-zh-cn"
           target="_blank"
           rel="noopener">GitHub 仓库</a
         > 提交 Issue 或 Pull Request。

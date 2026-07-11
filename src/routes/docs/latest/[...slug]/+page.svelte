@@ -4,7 +4,7 @@
   import MarkdownArticle from "$lib/components/MarkdownArticle.svelte";
   import PageNavigation from "$lib/components/PageNavigation.svelte";
 
-  let data: PageData = $props();
+  let { data }: { data: PageData } = $props();
 
   const currentPage = $derived(data.manifest.find((p) => p.slug === data.slug));
 </script>

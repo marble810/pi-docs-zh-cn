@@ -10,7 +10,6 @@ import type {
   SearchDocument,
   SyncMetadata
 } from "./lib/types.js";
-import { loadNavigationOverrides } from "./lib/config.js";
 
 interface ParsedDoc {
   slug: string;
@@ -96,27 +95,25 @@ export function generateSiteData(): void {
     "utf-8"
   );
 
-  // Generate navigation.json
-  const navOverrides = loadNavigationOverrides();
-  const sections = new Map<string, ParsedDoc[]>();
-  for (const d of docs) {
-    const section = d.section ?? "other";
-    if (!sections.has(section)) sections.set(section, []);
-    sections.get(section)!.push(d);
-  }
-
-  const navigation: NavigationGroup[] = [];
-  for (const [sectionId, sectionDocs] of sections) {
-    const groupTitle = navOverrides.groups[sectionId]?.title ?? sectionId;
-    const items: NavigationItem[] = sectionDocs
-      .filter((d) => d.slug !== "")
-      .map((d) => ({
-        slug: d.slug,
-        title: d.title
-      }));
-    if (items.length === 0) continue;
-    navigation.push({ id: sectionId, title: groupTitle, items });
-  }
+  // docs.json is the upstream navigation source of truth. Building groups from
+  // file paths loses its hierarchy and creates a one-item group for every page.
+  const sourceNav = JSON.parse(
+    fs.readFileSync(path.join(CONTENT_ZH_DIR, "docs.json"), "utf-8")
+  ) as { navigation: Array<{ title: string; items: Array<{ title: string; path: string }> }> };
+  const availableSlugs = new Set(docs.map((d) => d.slug));
+  const toSlug = (filePath: string) => {
+    const slug = filePath.replace(/\.(md|mdx)$/, "").replace(/\/index$/, "");
+    return slug === "index" ? "" : slug;
+  };
+  const navigation: NavigationGroup[] = sourceNav.navigation
+    .map((group) => ({
+      id: group.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      title: group.title,
+      items: group.items
+        .map((item): NavigationItem => ({ slug: toSlug(item.path), title: item.title }))
+        .filter((item) => availableSlugs.has(item.slug))
+    }))
+    .filter((group) => group.items.length > 0);
 
   fs.writeFileSync(
     path.join(GENERATED_DIR, "navigation.json"),

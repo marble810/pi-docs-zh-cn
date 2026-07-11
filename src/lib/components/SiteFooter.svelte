@@ -42,7 +42,7 @@
 
     <div class="footer-bottom">
       <a href={base + "/"}>首页</a>
-      <a href="https://github.com/liangkeren/pi-docs-zh-cn" target="_blank" rel="noopener">GitHub</a
+      <a href="https://github.com/marble810/pi-docs-zh-cn" target="_blank" rel="noopener">GitHub</a
       >
     </div>
   </div>

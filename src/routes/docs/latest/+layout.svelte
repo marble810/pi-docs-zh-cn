@@ -28,10 +28,13 @@
 
 <style>
   .docs-layout {
-    display: flex;
-    max-width: 1280px;
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, var(--content-max-width)) var(--toc-width);
+    column-gap: var(--space-12);
+    max-width: 1440px;
     margin: 0 auto;
     min-height: calc(100vh - var(--header-height));
+    padding: 0 var(--space-8);
   }
 
   .docs-sidebar-col {
@@ -45,10 +48,8 @@
   }
 
   .docs-main-col {
-    flex: 1;
     min-width: 0;
-    padding: var(--space-10) var(--space-8);
-    max-width: var(--content-max-width);
+    padding: var(--space-16) 0 var(--space-16);
   }
 
   .docs-toc-col {
@@ -61,9 +62,20 @@
     }
   }
 
+  @media (max-width: 1100px) {
+    .docs-layout {
+      grid-template-columns: var(--sidebar-width) minmax(0, var(--content-max-width));
+    }
+  }
+
   @media (max-width: 768px) {
+    .docs-layout {
+      display: block;
+      padding: 0 var(--space-5);
+    }
+
     .docs-main-col {
-      padding: var(--space-6) var(--space-4);
+      padding: var(--space-10) 0 var(--space-16);
       max-width: 100%;
     }
   }

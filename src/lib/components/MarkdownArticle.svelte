@@ -9,8 +9,8 @@
 <style>
   .markdown-article {
     font-family: var(--font-serif);
-    font-size: var(--text-base);
-    line-height: var(--leading-relaxed);
+    font-size: 1.125rem;
+    line-height: 1.6;
     color: var(--color-fg);
     max-width: 100%;
   }
@@ -20,37 +20,50 @@
   }
 
   .markdown-article :global(a) {
-    color: var(--color-accent);
-    text-decoration: none;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 65%, transparent);
+    text-underline-offset: 0.14em;
   }
 
   .markdown-article :global(a:hover) {
-    text-decoration: underline;
+    color: var(--color-accent);
+    text-decoration-color: currentColor;
   }
 
   .markdown-article :global(code) {
     font-family: var(--font-mono);
-    font-size: 0.875em;
+    font-size: 0.82em;
     background: var(--color-code-bg);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    padding: 1px 5px;
+    border-radius: 2px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 
   .markdown-article :global(pre) {
-    background: var(--color-code-bg);
+    background: var(--color-code-block-bg) !important;
+    color: var(--color-code-block-fg);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-4);
+    border-radius: 3px;
+    padding: 18px;
     overflow-x: auto;
-    margin: var(--space-4) 0;
-    font-size: var(--text-sm);
-    line-height: var(--leading-normal);
+    margin: var(--space-5) 0;
+    font-size: 0.78rem;
+    line-height: 1.55;
   }
 
   .markdown-article :global(pre code) {
     background: transparent;
+    border: 0;
+    border-radius: 0;
     padding: 0;
     font-size: inherit;
+  }
+
+  .markdown-article :global(pre.shiki span) {
+    color: var(--shiki-dark) !important;
   }
 
   .markdown-article :global(table) {
@@ -79,9 +92,9 @@
   }
 
   .markdown-article :global(blockquote) {
-    border-left: 3px solid var(--color-accent);
+    border-left: 1px solid var(--color-border);
     padding-left: var(--space-4);
-    margin: var(--space-4) 0;
+    margin: var(--space-5) 0;
     color: var(--color-muted);
   }
 

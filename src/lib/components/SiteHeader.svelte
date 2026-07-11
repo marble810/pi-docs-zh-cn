@@ -81,8 +81,6 @@
     top: 0;
     z-index: 50;
     background: var(--color-header-bg);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--color-border);
     height: var(--header-height);
   }
 
@@ -90,9 +88,9 @@
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    max-width: 1280px;
+    max-width: 1440px;
     margin: 0 auto;
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-8);
     height: 100%;
   }
 
@@ -123,20 +121,22 @@
   }
 
   .logo-text {
-    font-family: var(--font-sans);
-    font-weight: 700;
-    font-size: var(--text-lg);
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--color-fg);
   }
 
   .logo-badge {
-    font-family: var(--font-sans);
-    font-size: var(--text-xs);
-    padding: 1px 6px;
-    border-radius: var(--radius-sm);
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    padding: 1px 5px;
+    border-radius: 2px;
+    border: 1px solid var(--color-border);
+    color: var(--color-muted);
+    font-weight: 400;
   }
 
   .header-nav {
@@ -147,8 +147,9 @@
   }
 
   .header-nav a {
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
     color: var(--color-muted);
     text-decoration: none;
     transition: color var(--transition-fast);
@@ -169,13 +170,13 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: 4px 10px;
+    padding: 6px 10px;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: 3px;
     background: var(--color-surface);
     color: var(--color-muted);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
     cursor: pointer;
     transition: all var(--transition-fast);
   }

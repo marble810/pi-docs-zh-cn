@@ -17,6 +17,7 @@ const config = {
         if (status === 404) return;
         throw new Error(`Prerender HTTP ${status}`);
       },
+      handleMissingId: "ignore",
       handleUnseenRoutes: "warn"
     },
     paths: {
