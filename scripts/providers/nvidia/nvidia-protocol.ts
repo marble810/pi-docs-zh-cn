@@ -7,6 +7,13 @@ export function resolveTranslationProtocol(modelId: string): TranslationProtocol
   return "structured-json";
 }
 
+/** Whether the model supports OpenAI-style response_format: { type: "json_object" } */
+export function supportsJsonResponseFormat(modelId: string): boolean {
+  // V4 Flash on NVIDIA doesn't respect json_object and returns plain text
+  if (modelId === "deepseek-ai/deepseek-v4-flash") return false;
+  return true;
+}
+
 export function maxBatchConfig(protocol: TranslationProtocol) {
   if (protocol === "tagged-text") {
     return {

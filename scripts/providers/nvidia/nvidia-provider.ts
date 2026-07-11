@@ -8,7 +8,7 @@ import type { NvidiaConfig } from "./nvidia-config.js";
 import { NvidiaClient } from "./nvidia-client.js";
 import { fetchAvailableModelIds } from "./nvidia-models.js";
 import type { NvidiaChatResponse } from "./nvidia-response.js";
-import { resolveTranslationProtocol } from "./nvidia-protocol.js";
+import { resolveTranslationProtocol, supportsJsonResponseFormat } from "./nvidia-protocol.js";
 import { buildStructuredJsonBody, parseStructuredJsonResponse } from "./nvidia-structured-json.js";
 import { buildTaggedTextBody, parseTaggedTextResponse } from "./nvidia-tagged-text.js";
 import { classifyNvidiaError } from "./nvidia-errors.js";
@@ -129,12 +129,13 @@ export class NvidiaNimProvider implements TranslationProvider {
     if (protocol === "tagged-text") {
       body = buildTaggedTextBody(model.id, request);
     } else {
-      body = buildStructuredJsonBody(model.id, request);
+      const useResponseFormat = supportsJsonResponseFormat(model.id);
+      body = buildStructuredJsonBody(model.id, request, useResponseFormat);
       // Debug: log request shape
       const req = body as Record<string, unknown>;
       console.log(
         `      📤 ${model.id}: ${req.model}, max_tokens=${req.max_tokens}, ` +
-          `response_format=${JSON.stringify(req.response_format)}, ` +
+          `json_format=${useResponseFormat}, ` +
           `segments=${request.segments.length}`
       );
     }

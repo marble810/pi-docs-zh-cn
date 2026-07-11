@@ -6,15 +6,16 @@ import type {
 
 export function buildStructuredJsonBody(
   model: string,
-  batch: TranslationBatchRequest
+  batch: TranslationBatchRequest,
+  useResponseFormat = true
 ): {
   model: string;
   temperature: number;
   max_tokens: number;
   messages: Array<{ role: string; content: string }>;
-  response_format: { type: "json_object" };
+  response_format?: { type: "json_object" };
 } {
-  return {
+  const body: ReturnType<typeof buildStructuredJsonBody> = {
     model,
     temperature: 0,
     max_tokens: batch.maxOutputTokens,
@@ -37,11 +38,14 @@ export function buildStructuredJsonBody(
           }))
         })
       }
-    ],
-    response_format: {
-      type: "json_object"
-    }
+    ]
   };
+
+  if (useResponseFormat) {
+    body.response_format = { type: "json_object" };
+  }
+
+  return body;
 }
 
 export type StructuredJsonResponse = {
