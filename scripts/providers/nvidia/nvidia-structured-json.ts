@@ -45,10 +45,8 @@ export function buildStructuredJsonBody(
 }
 
 export type StructuredJsonResponse = {
-  translations: Array<{
-    id: string;
-    text: string;
-  }>;
+  translations?: Array<{ id: string; text: string }>;
+  segments?: Array<{ id: string; translation: string }>;
 };
 
 export function parseStructuredJsonResponse(
@@ -58,14 +56,18 @@ export function parseStructuredJsonResponse(
 ): TranslationBatchResult {
   const parsed = JSON.parse(content) as StructuredJsonResponse;
 
-  if (!parsed.translations || !Array.isArray(parsed.translations)) {
-    throw new Error("Response missing 'translations' array");
-  }
+  let translations: Array<{ id: string; text: string }>;
 
-  const translations = parsed.translations.map((t) => ({
-    id: t.id,
-    text: t.text
-  }));
+  // Try { translations: [{ id, text }] } format first
+  if (parsed.translations && Array.isArray(parsed.translations)) {
+    translations = parsed.translations.map((t) => ({ id: t.id, text: t.text }));
+  }
+  // Then try { segments: [{ id, translation }] } format (DeepSeek V4 actual output)
+  else if (parsed.segments && Array.isArray(parsed.segments)) {
+    translations = parsed.segments.map((s) => ({ id: s.id, text: s.translation }));
+  } else {
+    throw new Error("Response missing 'translations' or 'segments' array");
+  }
 
   return {
     translations,
