@@ -130,6 +130,13 @@ export class NvidiaNimProvider implements TranslationProvider {
       body = buildTaggedTextBody(model.id, request);
     } else {
       body = buildStructuredJsonBody(model.id, request);
+      // Debug: log request shape
+      const req = body as Record<string, unknown>;
+      console.log(
+        `      📤 ${model.id}: ${req.model}, max_tokens=${req.max_tokens}, ` +
+          `response_format=${JSON.stringify(req.response_format)}, ` +
+          `segments=${request.segments.length}`
+      );
     }
 
     const response = await this.client.post<NvidiaChatResponse>("/chat/completions", body);
@@ -140,11 +147,24 @@ export class NvidiaNimProvider implements TranslationProvider {
       throw new ProviderError("empty-response", "Empty response from model", false);
     }
 
+    // Debug: log raw response snippet on error
+    const logPreview = (text: string) => text.slice(0, 500).replace(/\n/g, "\\n");
+
     let result: TranslationBatchResult;
     if (protocol === "tagged-text") {
-      result = parseTaggedTextResponse(content, protocol, model.id);
+      try {
+        result = parseTaggedTextResponse(content, protocol, model.id);
+      } catch (err) {
+        console.log(`      📝 ${model.id} raw: ${logPreview(content)}`);
+        throw err;
+      }
     } else {
-      result = parseStructuredJsonResponse(content, protocol, model.id);
+      try {
+        result = parseStructuredJsonResponse(content, protocol, model.id);
+      } catch (err) {
+        console.log(`      📝 ${model.id} raw: ${logPreview(content)}`);
+        throw err;
+      }
     }
 
     result.metadata.latencyMs = Date.now() - t0;
