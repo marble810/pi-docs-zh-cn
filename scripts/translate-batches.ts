@@ -377,9 +377,11 @@ export async function translateBatches(
       );
     } catch (err) {
       if (err instanceof AllModelsFailedError) {
-        console.log(`   🚫 Batch ${i + 1}: all models failed`);
-        // Save checkpoint
-        break;
+        console.log(
+          `   🚫 Batch ${i + 1}: all models failed — skipping, ${uncached.length} segments untranslated`
+        );
+        // Continue to next batch; checkpoint saves remaining segments at end
+        continue;
       }
       throw err;
     }
