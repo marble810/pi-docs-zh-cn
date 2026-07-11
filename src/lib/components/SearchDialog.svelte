@@ -52,7 +52,7 @@
       selectedIndex = Math.max(selectedIndex - 1, 0);
     } else if (e.key === "Enter" && results[selectedIndex]) {
       e.preventDefault();
-      window.location.href = base + "/docs/latest/" + results[selectedIndex].slug + "/";
+      window.location.href = base + "/docs/latest/" + results[selectedIndex].slug;
     }
   }
 
@@ -119,7 +119,7 @@
           {#each results as result, i}
             <li>
               <a
-                href={base + "/docs/latest/" + result.slug + "/"}
+                href={base + "/docs/latest/" + result.slug}
                 class="search-result-item"
                 class:selected={i === selectedIndex}
                 onclick={closeAndClear}

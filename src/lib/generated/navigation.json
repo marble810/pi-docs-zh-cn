@@ -1,1 +1,272 @@
-[]
+[
+  {
+    "id": "compaction",
+    "title": "compaction",
+    "items": [
+      {
+        "slug": "compaction",
+        "title": "compaction"
+      }
+    ]
+  },
+  {
+    "id": "containerization",
+    "title": "containerization",
+    "items": [
+      {
+        "slug": "containerization",
+        "title": "containerization"
+      }
+    ]
+  },
+  {
+    "id": "custom-provider",
+    "title": "custom-provider",
+    "items": [
+      {
+        "slug": "custom-provider",
+        "title": "custom-provider"
+      }
+    ]
+  },
+  {
+    "id": "development",
+    "title": "开发",
+    "items": [
+      {
+        "slug": "development",
+        "title": "development"
+      }
+    ]
+  },
+  {
+    "id": "extensions",
+    "title": "extensions",
+    "items": [
+      {
+        "slug": "extensions",
+        "title": "extensions"
+      }
+    ]
+  },
+  {
+    "id": "json",
+    "title": "json",
+    "items": [
+      {
+        "slug": "json",
+        "title": "json"
+      }
+    ]
+  },
+  {
+    "id": "keybindings",
+    "title": "keybindings",
+    "items": [
+      {
+        "slug": "keybindings",
+        "title": "keybindings"
+      }
+    ]
+  },
+  {
+    "id": "models",
+    "title": "models",
+    "items": [
+      {
+        "slug": "models",
+        "title": "models"
+      }
+    ]
+  },
+  {
+    "id": "packages",
+    "title": "packages",
+    "items": [
+      {
+        "slug": "packages",
+        "title": "packages"
+      }
+    ]
+  },
+  {
+    "id": "prompt-templates",
+    "title": "prompt-templates",
+    "items": [
+      {
+        "slug": "prompt-templates",
+        "title": "prompt-templates"
+      }
+    ]
+  },
+  {
+    "id": "providers",
+    "title": "providers",
+    "items": [
+      {
+        "slug": "providers",
+        "title": "providers"
+      }
+    ]
+  },
+  {
+    "id": "quickstart",
+    "title": "quickstart",
+    "items": [
+      {
+        "slug": "quickstart",
+        "title": "quickstart"
+      }
+    ]
+  },
+  {
+    "id": "rpc",
+    "title": "rpc",
+    "items": [
+      {
+        "slug": "rpc",
+        "title": "rpc"
+      }
+    ]
+  },
+  {
+    "id": "sdk",
+    "title": "sdk",
+    "items": [
+      {
+        "slug": "sdk",
+        "title": "sdk"
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "title": "security",
+    "items": [
+      {
+        "slug": "security",
+        "title": "security"
+      }
+    ]
+  },
+  {
+    "id": "session-format",
+    "title": "session-format",
+    "items": [
+      {
+        "slug": "session-format",
+        "title": "session-format"
+      }
+    ]
+  },
+  {
+    "id": "sessions",
+    "title": "sessions",
+    "items": [
+      {
+        "slug": "sessions",
+        "title": "sessions"
+      }
+    ]
+  },
+  {
+    "id": "settings",
+    "title": "settings",
+    "items": [
+      {
+        "slug": "settings",
+        "title": "settings"
+      }
+    ]
+  },
+  {
+    "id": "shell-aliases",
+    "title": "shell-aliases",
+    "items": [
+      {
+        "slug": "shell-aliases",
+        "title": "shell-aliases"
+      }
+    ]
+  },
+  {
+    "id": "skills",
+    "title": "skills",
+    "items": [
+      {
+        "slug": "skills",
+        "title": "skills"
+      }
+    ]
+  },
+  {
+    "id": "terminal-setup",
+    "title": "terminal-setup",
+    "items": [
+      {
+        "slug": "terminal-setup",
+        "title": "terminal-setup"
+      }
+    ]
+  },
+  {
+    "id": "termux",
+    "title": "termux",
+    "items": [
+      {
+        "slug": "termux",
+        "title": "termux"
+      }
+    ]
+  },
+  {
+    "id": "themes",
+    "title": "themes",
+    "items": [
+      {
+        "slug": "themes",
+        "title": "themes"
+      }
+    ]
+  },
+  {
+    "id": "tmux",
+    "title": "tmux",
+    "items": [
+      {
+        "slug": "tmux",
+        "title": "tmux"
+      }
+    ]
+  },
+  {
+    "id": "tui",
+    "title": "tui",
+    "items": [
+      {
+        "slug": "tui",
+        "title": "tui"
+      }
+    ]
+  },
+  {
+    "id": "usage",
+    "title": "usage",
+    "items": [
+      {
+        "slug": "usage",
+        "title": "usage"
+      }
+    ]
+  },
+  {
+    "id": "windows",
+    "title": "windows",
+    "items": [
+      {
+        "slug": "windows",
+        "title": "windows"
+      }
+    ]
+  }
+]

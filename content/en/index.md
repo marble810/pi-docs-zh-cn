@@ -1,10 +1,10 @@
-# Pi 文档
+# Pi Documentation
 
-Pi 是一个极简的终端编程运行框架。其设计目标是保持核心小巧，同时通过 TypeScript 扩展、技能、提示词模板、主题和 pi 包进行扩展。
+Pi is a minimal terminal coding harness. It is designed to stay small at the core while being extended through TypeScript extensions, skills, prompt templates, themes, and pi packages.
 
-## 快速入门
+## Quick start
 
-使用 npm 安装 Pi ：
+Install Pi with npm:
 
 ```bash
 npm install -g --ignore-scripts @earendil-works/pi-coding-agent
@@ -12,13 +12,13 @@ npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
 `--ignore-scripts` disables dependency lifecycle scripts during install. Pi does not require install scripts for normal npm installs.
 
-在 Linux 或 macOS 上，你也可以使用安装程序：
+On Linux or macOS, you can also use the installer:
 
 ```bash
 curl -fsSL https://pi.dev/install.sh | sh
 ```
 
-要卸载 pi 本身，对于 curl 和 npm 安装，请使用 npm ：
+To uninstall pi itself, use npm for curl and npm installs:
 
 ```bash
 npm uninstall -g @earendil-works/pi-coding-agent
@@ -26,7 +26,7 @@ npm uninstall -g @earendil-works/pi-coding-agent
 
 For pnpm, Yarn, or Bun installs, use the matching global remove command: `pnpm remove -g @earendil-works/pi-coding-agent`, `yarn global remove @earendil-works/pi-coding-agent`, or `bun uninstall -g @earendil-works/pi-coding-agent`.
 
-然后在项目目录中运行它：
+Then run it in a project directory:
 
 ```bash
 pi
@@ -36,7 +36,7 @@ Authenticate with `/login` for subscription providers, or set an API key such as
 
 For the full first-run flow, see [Quickstart](quickstart.md).
 
-## 从这里开始
+## Start here
 
 - [Quickstart](quickstart.md) - install, authenticate, and run a first session.
 - [Using Pi](usage.md) - interactive mode, slash commands, context files, and CLI reference.
@@ -48,7 +48,7 @@ For the full first-run flow, see [Quickstart](quickstart.md).
 - [Sessions](sessions.md) - session management, branching, and tree navigation.
 - [Compaction](compaction.md) - context compaction and branch summarization.
 
-## 自定义
+## Customization
 
 - [Extensions](extensions.md) - TypeScript modules for tools, commands, events, and custom UI.
 - [Skills](skills.md) - Agent Skills for reusable on-demand capabilities.
@@ -58,25 +58,25 @@ For the full first-run flow, see [Quickstart](quickstart.md).
 - [Custom models](models.md) - add model entries for supported provider APIs.
 - [Custom providers](custom-provider.md) - implement custom APIs and OAuth flows.
 
-## 编程式使用
+## Programmatic usage
 
 - [SDK](sdk.md) - embed pi in Node.js applications.
 - [RPC mode](rpc.md) - integrate over stdin/stdout JSONL.
 - [JSON event stream mode](json.md) - print mode with structured events.
 - [TUI components](tui.md) - build custom terminal UI for extensions.
 
-## 参考
+## Reference
 
 - [Session format](session-format.md) - JSONL session file format, entry types, and SessionManager API.
 
-## 平台设置
+## Platform setup
 
 - [Windows](windows.md)
-- [Android 上的 Termux](termux.md)
+- [Termux on Android](termux.md)
 - [tmux](tmux.md)
-- [终端设置](terminal-setup.md)
-- [Shell 别名](shell-aliases.md)
+- [Terminal setup](terminal-setup.md)
+- [Shell aliases](shell-aliases.md)
 
-## 开发
+## Development
 
 - [Development](development.md) - local setup, project structure, and debugging.

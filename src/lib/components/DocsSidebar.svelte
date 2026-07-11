@@ -21,7 +21,7 @@
           {#each group.items as item}
             <li>
               <a
-                href={base + "/docs/latest/" + item.slug + "/"}
+                href={base + "/docs/latest/" + item.slug}
                 class="nav-link"
                 class:active={currentSlug === item.slug}
               >
@@ -32,7 +32,7 @@
                   {#each item.children as child}
                     <li>
                       <a
-                        href={base + "/docs/latest/" + child.slug + "/"}
+                        href={base + "/docs/latest/" + child.slug}
                         class="nav-link nav-sublink"
                         class:active={currentSlug === child.slug}
                       >

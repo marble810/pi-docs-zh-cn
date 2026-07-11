@@ -17,7 +17,7 @@
             {#each group.items as item}
               <li>
                 <a
-                  href={base + "/docs/latest/" + item.slug + "/"}
+                  href={base + "/docs/latest/" + item.slug}
                   class="mobile-nav-link"
                   onclick={onNavigate}
                 >

@@ -16,7 +16,7 @@
   <nav class="page-nav" aria-label="页面导航">
     <div class="page-nav-prev">
       {#if prev}
-        <a href={base + "/docs/latest/" + prev.slug + "/"} class="page-nav-link">
+        <a href={base + "/docs/latest/" + prev.slug} class="page-nav-link">
           <span class="page-nav-direction">上一页</span>
           <span class="page-nav-title">{prev.title}</span>
         </a>
@@ -24,7 +24,7 @@
     </div>
     <div class="page-nav-next">
       {#if next}
-        <a href={base + "/docs/latest/" + next.slug + "/"} class="page-nav-link">
+        <a href={base + "/docs/latest/" + next.slug} class="page-nav-link">
           <span class="page-nav-direction">下一页</span>
           <span class="page-nav-title">{next.title}</span>
         </a>

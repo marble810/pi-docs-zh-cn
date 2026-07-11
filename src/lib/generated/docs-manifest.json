@@ -1,9 +1,170 @@
 [
   {
+    "slug": "compaction",
+    "filePath": "content/zh-CN/compaction.md",
+    "title": "compaction",
+    "section": "compaction"
+  },
+  {
+    "slug": "containerization",
+    "filePath": "content/zh-CN/containerization.md",
+    "title": "containerization",
+    "section": "containerization"
+  },
+  {
+    "slug": "custom-provider",
+    "filePath": "content/zh-CN/custom-provider.md",
+    "title": "custom-provider",
+    "section": "custom-provider"
+  },
+  {
+    "slug": "development",
+    "filePath": "content/zh-CN/development.md",
+    "title": "development",
+    "section": "development"
+  },
+  {
+    "slug": "extensions",
+    "filePath": "content/zh-CN/extensions.md",
+    "title": "extensions",
+    "section": "extensions"
+  },
+  {
     "slug": "",
     "filePath": "content/zh-CN/index.md",
-    "title": "Pi 简体中文文档",
-    "description": "Pi 编程代理文档的社区维护简体中文翻译。",
+    "title": "index",
     "section": "getting-started"
+  },
+  {
+    "slug": "json",
+    "filePath": "content/zh-CN/json.md",
+    "title": "json",
+    "section": "json"
+  },
+  {
+    "slug": "keybindings",
+    "filePath": "content/zh-CN/keybindings.md",
+    "title": "keybindings",
+    "section": "keybindings"
+  },
+  {
+    "slug": "models",
+    "filePath": "content/zh-CN/models.md",
+    "title": "models",
+    "section": "models"
+  },
+  {
+    "slug": "packages",
+    "filePath": "content/zh-CN/packages.md",
+    "title": "packages",
+    "section": "packages"
+  },
+  {
+    "slug": "prompt-templates",
+    "filePath": "content/zh-CN/prompt-templates.md",
+    "title": "prompt-templates",
+    "section": "prompt-templates"
+  },
+  {
+    "slug": "providers",
+    "filePath": "content/zh-CN/providers.md",
+    "title": "providers",
+    "section": "providers"
+  },
+  {
+    "slug": "quickstart",
+    "filePath": "content/zh-CN/quickstart.md",
+    "title": "quickstart",
+    "section": "quickstart"
+  },
+  {
+    "slug": "rpc",
+    "filePath": "content/zh-CN/rpc.md",
+    "title": "rpc",
+    "section": "rpc"
+  },
+  {
+    "slug": "sdk",
+    "filePath": "content/zh-CN/sdk.md",
+    "title": "sdk",
+    "section": "sdk"
+  },
+  {
+    "slug": "security",
+    "filePath": "content/zh-CN/security.md",
+    "title": "security",
+    "section": "security"
+  },
+  {
+    "slug": "session-format",
+    "filePath": "content/zh-CN/session-format.md",
+    "title": "session-format",
+    "section": "session-format"
+  },
+  {
+    "slug": "sessions",
+    "filePath": "content/zh-CN/sessions.md",
+    "title": "sessions",
+    "section": "sessions"
+  },
+  {
+    "slug": "settings",
+    "filePath": "content/zh-CN/settings.md",
+    "title": "settings",
+    "section": "settings"
+  },
+  {
+    "slug": "shell-aliases",
+    "filePath": "content/zh-CN/shell-aliases.md",
+    "title": "shell-aliases",
+    "section": "shell-aliases"
+  },
+  {
+    "slug": "skills",
+    "filePath": "content/zh-CN/skills.md",
+    "title": "skills",
+    "section": "skills"
+  },
+  {
+    "slug": "terminal-setup",
+    "filePath": "content/zh-CN/terminal-setup.md",
+    "title": "terminal-setup",
+    "section": "terminal-setup"
+  },
+  {
+    "slug": "termux",
+    "filePath": "content/zh-CN/termux.md",
+    "title": "termux",
+    "section": "termux"
+  },
+  {
+    "slug": "themes",
+    "filePath": "content/zh-CN/themes.md",
+    "title": "themes",
+    "section": "themes"
+  },
+  {
+    "slug": "tmux",
+    "filePath": "content/zh-CN/tmux.md",
+    "title": "tmux",
+    "section": "tmux"
+  },
+  {
+    "slug": "tui",
+    "filePath": "content/zh-CN/tui.md",
+    "title": "tui",
+    "section": "tui"
+  },
+  {
+    "slug": "usage",
+    "filePath": "content/zh-CN/usage.md",
+    "title": "usage",
+    "section": "usage"
+  },
+  {
+    "slug": "windows",
+    "filePath": "content/zh-CN/windows.md",
+    "title": "windows",
+    "section": "windows"
   }
 ]

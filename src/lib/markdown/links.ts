@@ -21,7 +21,7 @@ export function rewriteDocLinks(slug: string | undefined) {
             (!href.startsWith("#") && !href.startsWith("http") && !href.startsWith("/")))
         ) {
           const path = href.replace(/\.md$/, "").replace(/index$/, "");
-          node.properties.href = `/docs/latest/${path}/`;
+          node.properties.href = `/docs/latest/${path}`;
         }
       }
       if (node.tagName === "img" && typeof node.properties?.src === "string") {
