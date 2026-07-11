@@ -58,17 +58,42 @@ export function parseStructuredJsonResponse(
   protocol: TranslationProtocol,
   modelId: string
 ): TranslationBatchResult {
-  const parsed = JSON.parse(content) as StructuredJsonResponse;
+  const parsed = JSON.parse(content);
 
   let translations: Array<{ id: string; text: string }>;
 
-  // Try { translations: [{ id, text }] } format first
-  if (parsed.translations && Array.isArray(parsed.translations)) {
-    translations = parsed.translations.map((t) => ({ id: t.id, text: t.text }));
+  // Format 1: { translations: [{ id, text }] }
+  if (
+    parsed &&
+    typeof parsed === "object" &&
+    !Array.isArray(parsed) &&
+    parsed.translations &&
+    Array.isArray(parsed.translations)
+  ) {
+    translations = parsed.translations.map((t: { id: string; text: string }) => ({
+      id: t.id,
+      text: t.text
+    }));
   }
-  // Then try { segments: [{ id, translation }] } format (DeepSeek V4 actual output)
-  else if (parsed.segments && Array.isArray(parsed.segments)) {
-    translations = parsed.segments.map((s) => ({ id: s.id, text: s.translation }));
+  // Format 2: { segments: [{ id, translation }] } (DeepSeek V4 Pro)
+  else if (
+    parsed &&
+    typeof parsed === "object" &&
+    !Array.isArray(parsed) &&
+    parsed.segments &&
+    Array.isArray(parsed.segments)
+  ) {
+    translations = parsed.segments.map((s: { id: string; translation: string }) => ({
+      id: s.id,
+      text: s.translation
+    }));
+  }
+  // Format 3: [{ id, translation }] or [{ id, target }] (V4 Flash bare array)
+  else if (Array.isArray(parsed)) {
+    translations = parsed.map((item: { id: string; translation?: string; target?: string }) => ({
+      id: item.id,
+      text: item.translation ?? item.target ?? ""
+    }));
   } else {
     throw new Error("Response missing 'translations' or 'segments' array");
   }
