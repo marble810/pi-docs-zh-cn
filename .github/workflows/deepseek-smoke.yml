@@ -1,0 +1,30 @@
+name: DeepSeek smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call DeepSeek models API
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEEPSEEK_API_KEY:-}" ]; then
+            echo "DEEPSEEK_API_KEY secret is missing"
+            exit 1
+          fi
+          code=$(curl -sS -o /tmp/deepseek-smoke.json -w "%{http_code}" \
+            https://api.deepseek.com/models \
+            -H "Authorization: Bearer ${DEEPSEEK_API_KEY}")
+          echo "HTTP $code"
+          # Do not print full body (may include model inventory); only success signal
+          if [ "$code" != "200" ]; then
+            echo "Request failed"
+            head -c 200 /tmp/deepseek-smoke.json || true
+            echo
+            exit 1
+          fi
+          echo "DeepSeek API key works"
