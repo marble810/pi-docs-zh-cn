@@ -1,17 +1,13 @@
 import type { ProviderErrorInfo } from "../provider.js";
-import { HttpError, RateLimitError, TimeoutError } from "./nvidia-client.js";
+import { HttpError, RateLimitError } from "./deepseek-client.js";
 
-export function classifyNvidiaError(error: unknown): ProviderErrorInfo {
+export function classifyDeepSeekError(error: unknown): ProviderErrorInfo {
   if (error instanceof HttpError) {
     return classifyHttpStatus(error.status, error.message);
   }
 
   if (error instanceof RateLimitError) {
     return { kind: "rate-limit", safeMessage: error.message, fatal: false };
-  }
-
-  if (error instanceof TimeoutError) {
-    return { kind: "timeout", safeMessage: error.message, fatal: false };
   }
 
   if (error instanceof SyntaxError) {
@@ -21,6 +17,12 @@ export function classifyNvidiaError(error: unknown): ProviderErrorInfo {
   if (error instanceof Error) {
     const msg = error.message.toLowerCase();
 
+    if (error.name === "AbortError") {
+      return { kind: "timeout", safeMessage: "DeepSeek request timed out", fatal: false };
+    }
+    if (msg.includes("deepseek_max_requests_per_run")) {
+      return { kind: "config-error", safeMessage: error.message, fatal: true };
+    }
     if (msg.includes("auth") || msg.includes("unauthorized") || msg.includes("key")) {
       return { kind: "auth", safeMessage: error.message, fatal: true };
     }
@@ -73,9 +75,9 @@ function classifyHttpStatus(status: number, message: string): ProviderErrorInfo 
       return { kind: "server-error", safeMessage: message, fatal: false };
     default:
       return {
-        kind: "unknown",
+        kind: status >= 400 && status < 500 ? "config-error" : "unknown",
         safeMessage: message,
-        fatal: status >= 400 && status < 500 ? false : false
+        fatal: status >= 400 && status < 500
       };
   }
 }

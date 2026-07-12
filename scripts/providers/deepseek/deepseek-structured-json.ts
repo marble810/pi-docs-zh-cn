@@ -3,21 +3,40 @@ import type {
   TranslationBatchResult,
   TranslationProtocol
 } from "../provider.js";
+import { z } from "zod";
+
+const TranslationResponseSchema = z
+  .object({
+    translations: z.array(
+      z
+        .object({
+          id: z.string().min(1),
+          text: z.string().min(1)
+        })
+        .strict()
+    )
+  })
+  .strict();
+
+type ValidatedTranslationResponse = z.infer<typeof TranslationResponseSchema>;
+
+function validateResponseShape(data: unknown): ValidatedTranslationResponse {
+  return TranslationResponseSchema.parse(data);
+}
 
 export function buildStructuredJsonBody(
   model: string,
-  batch: TranslationBatchRequest,
-  useResponseFormat = true
+  batch: TranslationBatchRequest
 ): {
   model: string;
   temperature: number;
   max_tokens: number;
   messages: Array<{ role: string; content: string }>;
-  response_format?: { type: "json_object" };
+  response_format: { type: "json_object" };
 } {
-  const body: ReturnType<typeof buildStructuredJsonBody> = {
+  return {
     model,
-    temperature: 0,
+    temperature: 0.01,
     max_tokens: batch.maxOutputTokens,
     messages: [
       {
@@ -38,57 +57,39 @@ export function buildStructuredJsonBody(
           }))
         })
       }
-    ]
+    ],
+    response_format: { type: "json_object" }
   };
-
-  if (useResponseFormat) {
-    body.response_format = { type: "json_object" };
-  }
-
-  return body;
 }
-
-export type StructuredJsonResponse = {
-  translations?: Array<{ id: string; text: string }>;
-  segments?: Array<{ id: string; translation: string }>;
-};
 
 export function parseStructuredJsonResponse(
   content: string,
   protocol: TranslationProtocol,
   modelId: string
 ): TranslationBatchResult {
-  const parsed = JSON.parse(content);
+  const parsed: unknown = JSON.parse(content);
+  const record =
+    parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
 
   let translations: Array<{ id: string; text: string }>;
 
   // Format 1: { translations: [{ id, text }] }
-  if (
-    parsed &&
-    typeof parsed === "object" &&
-    !Array.isArray(parsed) &&
-    parsed.translations &&
-    Array.isArray(parsed.translations)
-  ) {
-    translations = parsed.translations.map((t: { id: string; text: string }) => ({
+  if (record && Array.isArray(record.translations)) {
+    translations = record.translations.map((t: { id: string; text: string }) => ({
       id: t.id,
       text: t.text
     }));
   }
-  // Format 2: { segments: [{ id, translation }] } (DeepSeek V4 Pro)
-  else if (
-    parsed &&
-    typeof parsed === "object" &&
-    !Array.isArray(parsed) &&
-    parsed.segments &&
-    Array.isArray(parsed.segments)
-  ) {
-    translations = parsed.segments.map((s: { id: string; translation: string }) => ({
+  // Format 2: { segments: [{ id, translation }] }
+  else if (record && Array.isArray(record.segments)) {
+    translations = record.segments.map((s: { id: string; translation: string }) => ({
       id: s.id,
       text: s.translation
     }));
   }
-  // Format 3: [{ id, translation }] or [{ id, target }] (V4 Flash bare array)
+  // Format 3: [{ id, translation }] or [{ id, target }] bare array
   else if (Array.isArray(parsed)) {
     translations = parsed.map((item: { id: string; translation?: string; target?: string }) => ({
       id: item.id,
@@ -98,10 +99,14 @@ export function parseStructuredJsonResponse(
     throw new Error("Response missing 'translations' or 'segments' array");
   }
 
+  translations = validateResponseShape({ translations }).translations;
+  const ids = new Set(translations.map((item) => item.id));
+  if (ids.size !== translations.length) throw new Error("Response contains duplicate segment IDs");
+
   return {
     translations,
     metadata: {
-      provider: "nvidia-nim",
+      provider: "deepseek",
       requestedModel: modelId,
       actualModel: modelId,
       protocol,

@@ -1,6 +1,6 @@
 # 开发
 
-See [AGENTS.md](https://github.com/earendil-works/pi-mono/blob/main/AGENTS.md) for additional guidelines.
+更多指南请参见 [AGENTS.md](https://github.com/earendil-works/pi-mono/blob/main/AGENTS.md)。
 
 ## 安装
 
@@ -17,11 +17,11 @@ npm run build
 /path/to/pi-mono/pi-test.sh
 ```
 
-该脚本可以从任何目录运行。Pi 会保留调用者的当前工作目录。
+脚本可以从任何目录运行。Pi 保留调用者的当前工作目录。
 
 ## 分支 / 重命名
 
-Configure via `package.json`:
+通过 `package.json` 进行配置：
 
 ```json
 {
@@ -32,25 +32,25 @@ Configure via `package.json`:
 }
 ```
 
-Change `name`, `configDir`, and `bin` field for your fork. Affects CLI banner, config paths, and environment variable names.
+为你的分支更改 `name`、`configDir` 和 `bin` 字段。这会影响 CLI 横幅、配置路径和环境变量名称。
 
 ## 路径解析
 
-三种执行模式： npm install、独立二进制文件、从源码使用 tsx。
+三种执行模式： npm install、独立二进制文件、 tsx from源代码。
 
-**Always use `src/config.ts`** for package assets:
+**对于包资源，始终使用 `src/config.ts`**：
 
 ```typescript
 import { getPackageDir, getThemeDir } from "./config.js";
 ```
 
-Never use `__dirname` directly for package assets.
+对于包资源，切勿直接使用 `__dirname`。
 
 ## 调试命令
 
-`/debug` (hidden) writes to `~/.pi/agent/pi-debug.log`:
+`/debug` (隐藏) 写入 `~/.pi/agent/pi-debug.log`：
 
-- 渲染后的 TUI 行（含 ANSI 代码）
+- 渲染的 TUI 行，带有 ANSI 代码
 - 发送给 LLM 的最后消息
 
 ## 测试

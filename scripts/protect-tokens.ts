@@ -13,12 +13,15 @@ export function resetCounters(): void {
 }
 
 const INLINE_CODE_RE = /`[^`]+`/g;
-const URL_RE = /https?:\/\/[^\s<>"']+/g;
+const URL_RE = /https?:\/\/[^\s<>"'()]+/g;
 const PATH_RE = /(?<![a-zA-Z])(?:\/[a-zA-Z0-9_.-]+)+(?:\/[a-zA-Z0-9_.-]+)?/g;
 const COMMAND_RE =
-  /(?<![a-zA-Z])(?:\$?\s*(?:npx|npm|pnpm|yarn|node|tsx|git|curl|ls|cd|mkdir|cp|mv|rm|echo|cat|grep|find|xargs|tee|chmod|touch|source|\.\s+))\s*[a-zA-Z0-9_.-]+/g;
+  /(?<![a-zA-Z])(?:\$?\s*(?:npx|npm|pnpm|yarn|node|tsx|git|curl|ls|cd|mkdir|cp|mv|rm|echo|cat|grep|find|xargs|tee|chmod|touch|source))\s+[a-zA-Z0-9_.-]+/g;
 const PRODUCT_RE =
   /\b(Pi|SvelteKit|Svelte|Bits UI|GitHub|OpenRouter|Markdown|TypeScript|Node\.js)\b/g;
+// Protect Markdown delimiters so the model only translates prose, not syntax.
+const MARKDOWN_RE =
+  /<!--[\s\S]*?-->|<\/?[A-Za-z][^>]*>|(?:^|\n)[ \t]{0,3}(?:[-+*]|\d+[.)])\s+|(?:^|\n)[ \t]{0,3}> ?|(?: {2}|\\)\n|\\[^\n]|\n|(?:[!()*_~{}]|\[|\])/gm;
 
 export function protectTokens(source: string): { text: string; tokens: ProtectedToken[] } {
   const tokens: ProtectedToken[] = [];
@@ -27,15 +30,16 @@ export function protectTokens(source: string): { text: string; tokens: Protected
     [];
 
   const IDENTIFIER_RE =
-    /(?<![a-zA-Z])(?:[A-Z][a-z]+(?:[A-Z][a-z]+)+|[a-z]+(?:-[a-z]+)+)(?![a-zA-Z])/g;
+    /(?<![a-zA-Z])(?:[A-Z][a-z]+[A-Z][A-Za-z0-9]*|[a-z]+[A-Z][A-Za-z0-9]*|[A-Z][A-Z0-9_]{2,}|[a-z]+(?:-[a-z]+)+|[A-Za-z_][\w$]*\.[A-Za-z_][\w$]*)(?![a-zA-Z])/g;
 
   const patterns: [RegExp, ProtectedTokenType][] = [
     [INLINE_CODE_RE, "inline-code"],
+    [MARKDOWN_RE, "markdown"],
     [URL_RE, "url"],
     [PATH_RE, "path"],
+    [PRODUCT_RE, "product"],
     [IDENTIFIER_RE, "identifier"],
-    [COMMAND_RE, "command"],
-    [PRODUCT_RE, "product"]
+    [COMMAND_RE, "command"]
   ];
 
   for (const [re, type] of patterns) {

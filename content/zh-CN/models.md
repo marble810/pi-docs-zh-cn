@@ -1,40 +1,41 @@
 # 自定义模型
 
-Add custom providers and (Ollama, vLLM, LM Studio, proxies) via `~/.pi/agent/models.json`.
+通过 `~/.pi/agent/models.json` 添加自定义模型提供商和模型 (Ollama、vLLM、LM Studio、代理)。
 
 ## 目录
 
-- [最小示例example)
-- [example)
-- [ed-api- [figuration)
-- [模型配置uration)
-- [in-providers)
-- [按模型覆盖verrides)
-- [Anthropic Messages 兼容性lity)
-- [OpenAI 兼容性compatibility)
+- [最小示例](#minimal-example)
+- [完整示例](#full-example)
+- [支持的 API](#supported-apis)
+- [模型提供商配置](#provider-configuration)
+- [模型配置](#model-configuration)
+- [覆盖内置模型提供商](#overriding-built-in-providers)
+- [按模型覆盖](#per-model-overrides)
+- [Anthropic Messages 兼容性](#anthropic-messages-compatibility)
+- [OpenAI 兼容性](#openai-compatibility)
 
-## Minimal Example
+## 最小示例
 
-For local models (Ollama, LM Studio, vLLM), only `id` is required per model:
+对于本地模型 (Ollama、LM Studio、vLLM)，每个模型只需要 `id`：
 
 ```json
 {
   "providers": {
     "ollama": {
-      "": "http://localhost:11434/v1",
-      "api": "",
-      "": "ollama",
+      "baseUrl": "http://localhost:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
       "models": [{ "id": "llama3.1:8b" }, { "id": "qwen2.5-coder:7b" }]
     }
   }
 }
 ```
 
-The `apiKey` value is a placeholder because Ollama ignores it. pi still treats models as requiring auth before they appear in `/model`, so keyless local servers should keep a dummy value, save a key for that provider with `/login`, or pass `--api-key` when selecting the model.
+`apiKey` 值是一个占位符，因为 Ollama 会忽略它。pi 仍然会在模型出现在 `/model` 中之前将其视为需要认证，因此无密钥的本地服务器应保留一个虚拟值，使用 `/login` 为该模型提供商保存一个密钥，或在选择模型时传递 `--api-key`。
 
-Some OpenAI-compatible servers do not understand the `developer` role used for reasoning-capable models. For those providers, set `compat.supportsDeveloperRole` to `false` so pi sends the system prompt as a `system` message instead. If the server also does not support `reasoning_effort`, set `compat.supportsReasoningEffort` to `false` too.
+某些与 OpenAI 兼容的服务器不理解用于 reasoning-capable 模型的 `developer` 角色。对于这些模型提供商，将 `compat.supportsDeveloperRole` 设置为 `false`，以便 pi 将系统提示词作为 `system` 消息发送。如果服务器也不支持 `reasoning_effort`，请同时将 `compat.supportsReasoningEffort` 设置为 `false`。
 
-You can set `compat` at the provider level to apply to all models, or at the model level to override a specific model. This commonly applies to Ollama, vLLM, SGLang, and similar OpenAI-compatible servers.
+你可以在模型提供商级别设置 `compat` 以应用于所有模型，或在模型级别设置以覆盖特定模型。这通常适用于 Ollama、vLLM、SGLang 和类似的与 OpenAI 兼容的服务器。
 
 ```json
 {
@@ -58,7 +59,9 @@ You can set `compat` at the provider level to apply to all models, or at the mod
 }
 ```
 
-## Full Example
+## 完整示例
+
+当你需要特定值时覆盖默认设置：
 
 ```json
 {
@@ -72,10 +75,10 @@ You can set `compat` at the provider level to apply to all models, or at the mod
           "id": "llama3.1:8b",
           "name": "Llama 3.1 8B (Local)",
           "reasoning": false,
-          "输入": ["text"],
-          "上下文窗口": 128000,
-          "最大 token 数": 32000,
-          "费用": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+          "input": ["text"],
+          "contextWindow": 128000,
+          "maxTokens": 32000,
+          "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
         }
       ]
     }
@@ -83,11 +86,11 @@ You can set `compat` at the provider level to apply to all models, or at the mod
 }
 ```
 
-The file reloads each time you open `/model`. Edit during session; no restart needed.
+每次打开`/model`时文件都会重新加载。在会话期间编辑，无需重启。
 
-##
+## Google AI Studio 示例
 
-Use `` with a `baseUrl` to add models from Google AI Studio, including custom Gemma 4 entries:
+使用 `google-generative-ai` 配合 `baseUrl` 添加来自 Google AI Studio 的模型，包括自定义 Gemma 4 条目：
 
 ```json
 {
@@ -110,57 +113,71 @@ Use `` with a `baseUrl` to add models from Google AI Studio, including custom Ge
 }
 ```
 
-The `baseUrl` is required when adding custom models to the `google-generative-ai` API type.
+向 `google-generative-ai` API 类型添加自定义模型时，`baseUrl` 是必需的。
 
-## Supported APIs
+## 支持的 API
 
-| API | 描述etions`|  |
-| `` |  |
-|`anthropic-messages`|  |
-|`google-generative-ai` | |
+| API                    | 描述                                 |
+| ---------------------- | ------------------------------------ |
+| `openai-completions`   | OpenAI Chat Completions (兼容性最佳) |
+| `openai-responses`     | OpenAI Responses API                 |
+| `anthropic-messages`   | Anthropic Messages API               |
+| `google-generative-ai` | Google Generative AI                 |
 
-Set `api` at provider level (default for all models) or model level (override per model).
+在模型提供商级别 (所有模型的默认值) 或模型级别 (按模型覆盖) 设置 `api`。
 
-## Provider Configuration
+## 模型提供商配置
 
-| 字段ion |
-|-------|-------------|
-| `baseUrl` | |
-| `api` | |
-| `apiKey` | Optional API key config (see value resolution below). Omit it when auth is provided by `/login`/`auth.json` or CLI `--api-key`. |
-| `|  |
-|` | Set `true` to add `Authorization: Bearer <apiKey>` automatically |
-| `models` | |
-| `` | |
+| 字段             | 描述                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `baseUrl`        | API 端点 URL                                                                                            |
+| `api`            | API 类型 (见上文)                                                                                       |
+| `apiKey`         | 可选的 API 键配置 (参见下面的值解析)。当认证由 `/login`/`auth.json` 或 CLI `--api-key` 提供时，省略它。 |
+| `headers`        | 自定义请求头 (参见下方值解析)                                                                           |
+| `authHeader`     | 设置 `true` 以自动添加 `Authorization: Bearer <apiKey>`                                                 |
+| `models`         | 模型配置数组                                                                                            |
+| `modelOverrides` | 在此模型提供商上，针对 built-in 或 extension-registered 模型的逐模型覆盖                                |
 
-For providers with `models`, non-built-in provider configs need `baseUrl` and an `api` value at either provider or model level. `apiKey` is not required to load the file: models become available when auth is configured through `/login`/`auth.json`, CLI `--api-key`, or provider `apiKey`. If no auth is configured, the models load but stay unavailable in `/model` and `--list-models`.
+对于具有 `models` 的模型提供商，non-built-in 提供者配置需要 `baseUrl` 和在提供商或模型级别的 `api` 值。加载文件不需要 `apiKey`：当通过 `/login`/`auth.json`、CLI `--api-key` 或提供商的 `apiKey` 配置身份验证时，模型变为可用。如果未配置身份验证，模型会加载但在 `/model` 和 `--list-models` 中保持不可用。
 
-### `apiKey` and `headers` fields support command execution, environment interpolation, and literals:
+### 值解析
 
-- **Shell command:** `"!command"` at the start executes the whole value as a command and uses stdout
-  ```json
-  "apiKey": "!security find-generic-password -ws 'anthropic'"
-  "apiKey": "!op read 'op://vault/item/credential'"
-  ```
-- **Environment interpolation:** `"$ENV_VAR"` or `"${ENV_VAR}"` uses the value of the named variable. Interpolation works inside larger literals.
-  ```json
-  "apiKey": "$MY_API_KEY"
-  "apiKey": "${KEY_PREFIX}_${KEY_SUFFIX}"
-  ```
-  `$FOO_BAR` is the variable `FOO_BAR`; use `${FOO}_BAR` when `BAR` is literal text. Missing environment variables make the value unresolved.
-- **Escapes:** `"$$"` emits a literal `"$"`; `"$!"` emits a literal `"!"` without triggering command execution.
-  ```json
-  "apiKey": "$$literal-dollar-prefix"
-  "apiKey": "$!literal-bang-prefix"
-  ```
-- **Literal value:** Used directly. Plain uppercase s such as `MY_API_KEY` are literals; use `$MY_API_KEY` for environment variables.
-  ```json
-  "apiKey": "sk-..."
-  ```
+`apiKey` 和 `headers` 字段支持命令执行、环境变量插值和字面量：
 
-For `models.json`, shell commands are resolved at request time. pi intentionally does not apply built-in TTL, stale reuse, or recovery logic for arbitrary commands. Different commands need different caching and failure strategies, and pi cannot infer the right one.
+- **Shell 命令：** 开头的 `"!command"` 将整个值作为命令执行并使用 stdout
 
-`/model` availability checks use configured auth presence and do not execute shell commands.
+```json
+ "apiKey": "!security find-generic-password -ws 'anthropic'"
+ "apiKey": "!op read 'op://vault/item/credential'"
+```
+
+- **环境变量插值：** `"$ENV_VAR"` 或 `"${ENV_VAR}"` 使用命名变量的值。插值可以在较大的字面量内部工作。
+
+```json
+ "apiKey": "$MY_API_KEY"
+ "apiKey": "${KEY_PREFIX}_${KEY_SUFFIX}"
+```
+
+`$FOO_BAR` is the variable `FOO_BAR`; use `${FOO}_BAR` when `BAR` 是字面文本。缺失的环境变量会导致值无法解析。
+
+- **转义：** `"$"` 输出字面的 `"$"`；`"$!"` 输出字面的 `"!"` 而不触发命令执行。
+
+```json
+ "apiKey": "$literal-dollar-prefix"
+ "apiKey": "$!literal-bang-prefix"
+```
+
+- **字面量值：** 直接使用。纯大写字符串如 `MY_API_KEY` 是字面量；使用 `$MY_API_KEY` 表示环境变量。
+
+```json
+ "apiKey": "sk-..."
+```
+
+对于 `models.json`， Shell 命令在请求时解析。pi 有意不应用 built-in TTL、过期复用或针对任意命令的恢复逻辑。不同的命令需要不同的缓存和失败策略， pi 无法推断出正确的策略。
+
+如果您的命令很慢、昂贵、rate-limited，或者应在临时故障时继续使用之前的值，请将其包装在您自己的脚本或命令中，实现您想要的缓存或 TTL 行为。
+
+`/model` 可用性检查使用配置的身份认证存在性，并且不执行 Shell 命令。
 
 ### 自定义请求头
 
@@ -181,22 +198,22 @@ For `models.json`, shell commands are resolved at request time. pi intentionally
 }
 ```
 
-## Model Configuration
+## 模型配置
 
-| Field              | 是否必填 | 默认值                                                                                                       | Description                                                                              |
-| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `id`               | 是       | —                                                                                                            | 模型标识符（传递给 API ）                                                                |
-| `name`             | 否       | Human-readable model label. Used for matching (`--model` patterns) and shown as secondary model detail text. |
-| `api`              | No       | provider's `api`                                                                                             | 为此模型覆盖模型提供商的 API                                                             |
-| `reasoning`        | No       | `false`                                                                                                      | 支持扩展思考                                                                             |
-| `thinkingLevelMap` | No       | pi 思考级别映射到模型提供商的值，并标记不支持的级别（见下文）                                                |
-| `input`            | No       | `["text"]`                                                                                                   | Input types: `["text"]` or `["text", "image"]`                                           |
-| `contextWindow`    | No       | `128000`                                                                                                     | 上下文窗口大小（以 token 计）                                                            |
-| `maxTokens`        | No       | `16384`                                                                                                      | 最大输出 token 数                                                                        |
-| `cost`             | No       | 全部为零                                                                                                     | 每百万 token 费率，可选的请求级输入定价层级                                              |
-| `compat`           | No       | provider `compat`                                                                                            | Provider compatibility overrides. Merged with provider-level `compat` when both are set. |
+| 字段               | 必需 | 默认值              | 描述                                                                        |
+| ------------------ | ---- | ------------------- | --------------------------------------------------------------------------- |
+| `id`               | 是   | —                   | 模型标识符 (传递给 API)                                                     |
+| `name`             | 否   | `id`                | 人类可读的模型标签。用于匹配 (`--model` 模式)，并作为次要模型详情文本显示。 |
+| `api`              | 否   | 模型提供商的 `api`  | 为此模型覆盖模型提供商的 API                                                |
+| `reasoning`        | 否   | `false`             | 支持扩展思考                                                                |
+| `thinkingLevelMap` | 否   | 已省略              | 将 pi 思考级别映射到提供商值，并标记不支持的级别 (见下文)                   |
+| `input`            | 否   | `["text"]`          | 输入类型：`["text"]` 或 `["text", "image"]`                                 |
+| `contextWindow`    | 否   | `128000`            | 上下文窗口大小（以 token 计）                                               |
+| `maxTokens`        | 否   | `16384`             | 最大输出 token 数                                                           |
+| `cost`             | 否   | 全为零              | 按 million-token 计费，可选 request-wide 输入定价层级                       |
+| `compat`           | 否   | 模型提供商 `compat` | 模型提供商兼容性覆盖。当同时设置时，与 provider-level `compat` 合并。       |
 
-A cost tier supplies a complete alternate rate set and applies to the full request when total input usage (`input + cacheRead + cacheWrite`) exceeds `inputTokensAbove`. When multiple tiers match, the highest threshold wins.
+成本层提供完整的备用费率集，当总输入用量 (`input + cacheRead + cacheWrite`) 超过 `inputTokensAbove` 时，该费率集应用于整个请求。当多个层匹配时，阈值最高的生效。
 
 ```json
 {
@@ -220,18 +237,22 @@ A cost tier supplies a complete alternate rate set and applies to the full reque
 
 当前行为：
 
-- `/model`, `--list-models`, and the interactive footer display entries by model `id`.
-- The configured `name` is used for model matching and secondary model detail text. It does not replace the footer/status-bar model id.
+- `/model`、`--list-models` 以及交互式页脚按模型 `id` 显示条目。
+- 配置的 `name` 用于模型匹配和辅助模型详细信息文本。它不会替换页脚/status-bar 模型 ID。
 
-###
+### 思考级别映射
 
-Use `thinkingLevelMap` on a model to describe model-specific thinking controls. Keys are pi thinking levels: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. Maps may contain holes; for example, a model can expose `high` and `max` without exposing `xhigh`.
+在模型上使用 `thinkingLevelMap` 来描述 model-specific 思考控制。键是 pi 思考级别：`off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`。映射中可能存在空缺；例如，模型可以暴露 `high` 和 `max` 而不暴露 `xhigh`。
 
-| Value   |                                                                                                                      |
-| ------- | -------------------------------------------------------------------------------------------------------------------- |
-| omitted | Standard levels through `high` use the provider's default mapping; extended `xhigh` and `max` levels are unsupported |
-| string  |                                                                                                                      |
-| ``      |                                                                                                                      |
+值为三态：
+
+| 值     | 含义                                                                                  |
+| ------ | ------------------------------------------------------------------------------------- |
+| 省略   | 标准级别（最高至 `high`）使用模型提供商的默认映射；扩展级别 `xhigh` 和 `max` 不受支持 |
+| 字符串 | 该级别受支持，此值将发送给模型提供商                                                  |
+| `null` | 级别不受支持，将被隐藏/跳过/限制移除                                                  |
+
+仅支持关闭、高和最大推理级别的模型示例：
 
 ```json
 {
@@ -248,6 +269,8 @@ Use `thinkingLevelMap` on a model to describe model-specific thinking controls. 
 }
 ```
 
+无法禁用思考的模型示例：
+
 ```json
 {
   "id": "always-thinking-model",
@@ -258,9 +281,11 @@ Use `thinkingLevelMap` on a model to describe model-specific thinking controls. 
 }
 ```
 
-Migration: older configs that used `compat.reasoningEffortMap` should move that mapping to model-level `thinkingLevelMap`. Use `null` for levels that should not appear in the UI.
+迁移：使用 `compat.reasoningEffortMap` 的旧配置应将此映射移至 model-level `thinkingLevelMap`。对于不应在 UI 中显示的级别，请使用 `null`。
 
-## Overriding Built-in Providers
+## 覆盖内置模型提供商
+
+通过代理路由 built-in 提供商，无需重新定义模型：
 
 ```json
 {
@@ -272,7 +297,9 @@ Migration: older configs that used `compat.reasoningEffortMap` should move that 
 }
 ```
 
-To merge custom models into a built-in provider, include the `models` array:
+所有 built-in Anthropic 模型仍然可用。现有的 OAuth 或 API 密钥认证继续有效。
+
+要将自定义模型合并到 built-in 提供商，请包含 `models` 数组：
 
 ```json
 {
@@ -287,14 +314,16 @@ To merge custom models into a built-in provider, include the `models` array:
 }
 ```
 
--
-- Custom models are upserted by `id` within the provider.
-- If a custom model `id` matches a built-in model `id`, the custom model replaces that built-in model.
-- If a custom model `id` is new, it is added alongside built-in models.
+合并语义：
 
-## Per-model Overrides
+- 内置模型将被保留。
+- 自定义模型在提供商内通过 `id` 进行插入或更新。
+- 如果自定义模型 `id` 与 built-in 模型 `id` 匹配，则自定义模型将替换该 built-in 模型。
+- 如果自定义模型 `id` 是新的，它将与 built-in 模型一起添加。
 
-Use `modelOverrides` to customize built-in models and matching extension-registered models without replacing the provider's full model list.
+## 按模型覆盖
+
+使用 `modelOverrides` 自定义 built-in 模型和匹配的 extension-registered 模型，而无需替换提供商的完整模型列表。
 
 ```json
 {
@@ -315,9 +344,9 @@ Use `modelOverrides` to customize built-in models and matching extension-registe
 }
 ```
 
-`modelOverrides` supports these fields per model: `name`, `reasoning`, `thinkingLevelMap`, `input`, `cost` (partial), `contextWindow`, `maxTokens`, `headers`, `compat`.
+`modelOverrides` 支持每个模型的这些字段：`name`、`reasoning`、`thinkingLevelMap`、`input`、`cost` (partial)、`contextWindow`、`maxTokens`、`headers`、`compat`。
 
-Direct OpenAI GPT-5.6 Sol, Terra, and Luna default to a `272000` context window so requests remain within OpenAI's short-context pricing tier. To opt into OpenAI's 1.05M context window, increase it for each model you use:
+直接 OpenAI GPT-5.6 Sol、Terra 和 Luna 默认使用 `272000` 上下文窗口，以便请求保持在 OpenAI 的 short-context 定价层级内。要选择使用 OpenAI 的 1.05M 上下文窗口，请为你使用的每个模型增加它：
 
 ```json
 {
@@ -333,25 +362,25 @@ Direct OpenAI GPT-5.6 Sol, Terra, and Luna default to a `272000` context window 
 }
 ```
 
-The override preserves the built-in pricing metadata. Requests with more than 272K total input tokens use GPT-5.6's long-context rates for the entire request. Apply the same override to `gpt-5.6-terra` or `gpt-5.6-luna` when needed.
+此覆盖保留了 built-in 定价元数据。总输入令牌超过 272K 的请求将对整个请求使用 GPT-5.6 的 long-context 费率。需要时，对 `gpt-5.6-terra` 或 `gpt-5.6-luna` 应用相同的覆盖。
 
 行为说明：
 
-- `modelOverrides` are applied to built-in provider models and matching extension-registered provider models.
-- 未知的模型 ID 会被忽略。
-- You can combine provider-level `baseUrl`/`headers` with `modelOverrides`.
-- Overriding `name` changes model matching and secondary detail text only; the footer and primary model lists continue to show the model `id`.
-- If `models` is also defined for a provider, custom models are merged after built-in overrides. A custom model with the same `id` replaces the overridden built-in model entry.
+- `modelOverrides` 应用于 built-in 提供商模型和匹配的 extension-registered 提供商模型。
+- 未知的模型 ID 将被忽略。
+- 你可以将 provider-level `baseUrl`/`headers` 与 `modelOverrides` 结合使用。
+- 覆盖 `name` 仅更改模型匹配和辅助详细信息文本；页脚和主要模型列表继续显示模型 `id`。
+- 如果某个模型提供商也定义了 `models`，自定义模型会在 built-in 覆盖之后合并。具有相同 `id` 的自定义模型将替换被覆盖的 built-in 模型条目。
 
-## Anthropic Messages Compatibility
+## Anthropic Messages 兼容性
 
-For providers or proxies using `api: "anthropic-messages"`, use `compat` to control Anthropic-specific request compatibility.
+对于使用 `api: "anthropic-messages"` 的模型提供商或代理，请使用 `compat` 来控制 Anthropic 特定的请求兼容性。
 
-By default pi sends per-tool `eager_input_streaming: true`. If a proxy or Anthropic-compatible backend rejects that field, set `supportsEagerToolInputStreaming` to `false`. Pi will omit `tools[].eager_input_streaming` and send the legacy `fine-grained-tool-streaming-2025-05-14` beta header for tool-enabled requests instead.
+默认情况下， pi 发送 per-tool `eager_input_streaming: true`。如果代理或兼容 Anthropic 的后端拒绝该字段，请将 `supportsEagerToolInputStreaming` 设置为 `false`。Pi 将省略 `tools[].eager_input_streaming`，改为为 tool-enabled 请求发送旧版 `fine-grained-tool-streaming-2025-05-14` beta 标头。
 
-Some Anthropic models require adaptive thinking (`thinking.type: "adaptive"` plus `output_config.effort`) instead of the legacy budget-based thinking payload. Built-in models set this automatically. For custom providers or aliases that route to those models, set `forceAdaptiveThinking` to `true`.
+某些 Anthropic 模型需要自适应思考 (`thinking.type: "adaptive"` 加 `output_config.effort`)，而不是旧版 budget-based 思考有效载荷。内置模型会自动设置此选项。对于路由到这些模型的自定义提供商或别名，请将 `forceAdaptiveThinking` 设置为 `true`。
 
-Some Anthropic-compatible providers emit thinking blocks with empty signatures and still expect them on replay. Set `allowEmptySignature` to `true` only for those providers; real Anthropic rejects empty thinking signatures.
+某些兼容 Anthropic 的模型提供商会发出带有空签名的思考块，并且仍然期望在重放时收到它们。请仅针对这些模型提供商将 `allowEmptySignature` 设置为 `true`；真正的 Anthropic 会拒绝空的思考签名。
 
 ```json
 {
@@ -378,21 +407,21 @@ Some Anthropic-compatible providers emit thinking blocks with empty signatures a
 }
 ```
 
-| Field                             | Description                                                                                                                                                                                            |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `supportsEagerToolInputStreaming` | Whether the provider accepts per-tool `eager_input_streaming`. Default: `true`. Set to `false` to omit that field and use the legacy fine-grained tool streaming beta header on tool-enabled requests. |
-| `supportsLongCacheRetention`      | Whether the provider accepts Anthropic long cache retention (`cache_control.ttl: "1h"`) when cache retention is `long`. Default: `true`.                                                               |
-| `sendSessionAffinityHeaders`      | Whether to send `x-session-affinity` from the session id when caching is enabled. Default: auto-detected for known providers.                                                                          |
-| `supportsCacheControlOnTools`     | Whether the provider accepts Anthropic-style `cache_control` markers on tool definitions. Default: `true`.                                                                                             |
-| `forceAdaptiveThinking`           | Whether to send adaptive thinking (`thinking.type: "adaptive"` plus `output_config.effort`) for this model. Built-in adaptive models set this automatically. Default: `false`.                         |
-| `allowEmptySignature`             | Whether to replay empty thinking signatures as `signature: ""` instead of converting thinking to text. Default: `false`.                                                                               |
+| 字段                              | 描述                                                                                                                                                                 |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `supportsEagerToolInputStreaming` | 模型提供商是否接受 per-tool `eager_input_streaming`。默认值：`true`。设置为 `false` 以省略该字段，并在 tool-enabled 请求上使用旧版 fine-grained 工具流式 beta 标头。 |
+| `supportsLongCacheRetention`      | 当缓存保留时间为 `long` 时，模型提供商是否接受 Anthropic 长缓存保留 (`cache_control.ttl: "1h"`)。默认值：`true`。                                                    |
+| `sendSessionAffinityHeaders`      | 启用缓存时，是否从会话 ID 发送 `x-session-affinity`。默认值：对于已知模型提供商为 auto-detected。                                                                    |
+| `supportsCacheControlOnTools`     | 模型提供商是否接受工具定义上的 Anthropic 风格 `cache_control` 标记。默认值：`true`。                                                                                 |
+| `forceAdaptiveThinking`           | 是否为此模型发送自适应思考 (`thinking.type: "adaptive"` 加 `output_config.effort`)。内置自适应模型会自动设置此选项。默认值：`false`。                                |
+| `allowEmptySignature`             | 是否将空的思考签名重放为 `signature: ""`，而不是将思考转换为文本。默认值：`false`。                                                                                  |
 
-## OpenAI Compatibility
+## OpenAI 兼容性
 
-For providers with partial OpenAI compatibility, use the `compat` field.
+对于具有部分 OpenAI 兼容性的模型提供商，请使用 `compat` 字段。
 
-- Provider-level `compat` applies defaults to all models under that provider.
-- Model-level `compat` overrides provider-level values for that model.
+- 模型提供商级别的 `compat` 会将默认值应用于该模型提供商下的所有模型。
+- 模型级别的 `compat` 会覆盖该模型的 provider-level 值。
 
 ```json
 {
@@ -410,28 +439,28 @@ For providers with partial OpenAI compatibility, use the `compat` field.
 }
 ```
 
-| Field                                         | Description                                                                                                                                                                                                                          |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `supportsStore`                               | Provider supports `store` field                                                                                                                                                                                                      |
-| `supportsDeveloperRole`                       | Use `developer` vs `system` role                                                                                                                                                                                                     |
-| `supportsReasoningEffort`                     | Support for `reasoning_effort` parameter                                                                                                                                                                                             |
-| `supportsUsageInStreaming`                    | Supports `stream_options: { include_usage: true }` (default: `true`)                                                                                                                                                                 |
-| `maxTokensField`                              | Use `max_completion_tokens` or `max_tokens`                                                                                                                                                                                          |
-| `requiresToolResultName`                      | Include `name` on tool result messages                                                                                                                                                                                               |
-| `requiresAssistantAfterToolResult`            | 在工具结果之后、用户消息之前插入一条助手消息                                                                                                                                                                                         |
-| `requiresThinkingAsText`                      | 将思考块转换为纯文本                                                                                                                                                                                                                 |
-| `requiresReasoningContentOnAssistantMessages` | Include empty `reasoning_content` on all replayed assistant messages when reasoning is enabled                                                                                                                                       |
-| `thinkingFormat`                              | Use `reasoning_effort`, `openrouter`, `deepseek`, `together`, `zai`, `qwen`, `chat-template`, or `qwen-chat-template` thinking parameters                                                                                            |
-| `chatTemplateKwargs`                          | `chat_template_kwargs` values for `thinkingFormat: "chat-template"`; use `{ "$var": "thinking.enabled" }` or `{ "$var": "thinking.effort" }` for pi-controlled thinking values                                                       |
-| `cacheControlFormat`                          | Use Anthropic-style `cache_control` markers on the system prompt, last tool definition, and last user/assistant text content. Currently only `anthropic` is supported.                                                               |
-| `supportsStrictMode`                          | Include the `strict` field in tool definitions                                                                                                                                                                                       |
-| `supportsLongCacheRetention`                  | Whether the provider accepts long cache retention when cache retention is `long`: `prompt_cache_retention: "24h"` for OpenAI prompt caching, or `cache_control.ttl: "1h"` when `cacheControlFormat` is `anthropic`. Default: `true`. |
-| `openRouterRouting`                           | OpenRouter provider routing preferences. This object is sent as-is in the `provider` field of the [OpenRouter API request](https://openrouter.ai/docs/guides/routing/provider-selection).                                            |
-| `vercelGatewayRouting`                        | Vercel AI Gateway routing config for provider selection (`only`, `order`)                                                                                                                                                            |
+| 字段                                          | 描述                                                                                                                                                                                                  |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `supportsStore`                               | 模型提供商支持 `store` 字段                                                                                                                                                                           |
+| `supportsDeveloperRole`                       | 使用 `developer` 与 `system` 角色                                                                                                                                                                     |
+| `supportsReasoningEffort`                     | 支持 `reasoning_effort` 参数                                                                                                                                                                          |
+| `supportsUsageInStreaming`                    | 支持 `stream_options: { include_usage: true }` (默认值：`true`)                                                                                                                                       |
+| `maxTokensField`                              | 使用 `max_completion_tokens` 或 `max_tokens`                                                                                                                                                          |
+| `requiresToolResultName`                      | 在工具结果消息中包含 `name`                                                                                                                                                                           |
+| `requiresAssistantAfterToolResult`            | 在工具结果之后的用户消息前插入一条助手消息                                                                                                                                                            |
+| `requiresThinkingAsText`                      | 将思考块转换为纯文本                                                                                                                                                                                  |
+| `requiresReasoningContentOnAssistantMessages` | 启用推理时，在所有重放的助手消息中包含空的 `reasoning_content`                                                                                                                                        |
+| `thinkingFormat`                              | 使用 `reasoning_effort`、`openrouter`、`deepseek`、`together`、`zai`、`qwen`、`chat-template` 或 `qwen-chat-template` 思考参数                                                                        |
+| `chatTemplateKwargs`                          | `thinkingFormat: "chat-template"` 的 `chat_template_kwargs` 值；使用 `{ "$var": "thinking.enabled" }` 或 `{ "$var": "thinking.effort" }` 作为 pi-controlled 的思考值                                  |
+| `cacheControlFormat`                          | 在系统提示词、最后一个工具定义以及最后一条用户/助手文本内容上使用 Anthropic 风格的 `cache_control` 标记。目前仅支持 `anthropic`。                                                                     |
+| `supportsStrictMode`                          | 在工具定义中包含 `strict` 字段                                                                                                                                                                        |
+| `supportsLongCacheRetention`                  | 当缓存保留设置为`long`时，模型提供商是否接受长缓存保留：对于OpenAI提示缓存，为`prompt_cache_retention: "24h"`；当`cacheControlFormat`为`anthropic`时，则为`cache_control.ttl: "1h"`。默认值：`true`。 |
+| `openRouterRouting`                           | OpenRouter模型提供商路由偏好。此对象通过as-is发送到[OpenRouter API请求](https://openrouter.ai/docs/guides/routing/provider-selection)的`provider`字段中。                                             |
+| `vercelGatewayRouting`                        | Vercel AI Gateway 模型提供商选择的路由配置(`only`、`order`)                                                                                                                                           |
 
-`openrouter` uses `reasoning: { effort }`. `together` uses `reasoning: { enabled }` and also `reasoning_effort` when `supportsReasoningEffort` is enabled. `qwen` uses top-level `enable_thinking`. Use `qwen-chat-template` for local Qwen-compatible servers that require `chat_template_kwargs.enable_thinking` and `preserve_thinking`. Use `chat-template` for vLLM/Hugging Face chat templates that need configurable `chat_template_kwargs`, such as `chatTemplateKwargs: { "thinking": { "$var": "thinking.enabled" } }` for DeepSeek V3.x templates.
+`openrouter`使用`reasoning: { effort }`。`together`使用`reasoning: { enabled }`，并在`supportsReasoningEffort`启用时也使用`reasoning_effort`。`qwen`使用top-level `enable_thinking`。对于需要`chat_template_kwargs.enable_thinking`和`preserve_thinking`的本地 Qwen 兼容服务器，请使用`qwen-chat-template`。对于需要可配置`chat_template_kwargs`的vLLM/Hugging Face 聊天模板（例如DeepSeek V3.x模板的`chatTemplateKwargs: { "thinking": { "$var": "thinking.enabled" } }`），请使用`chat-template`。
 
-`cacheControlFormat: "anthropic"` is for OpenAI-compatible providers that expose Anthropic-style prompt caching through `cache_control` markers on text content and tool definitions.
+`cacheControlFormat: "anthropic"` 适用于通过文本内容和工具定义上的 `cache_control` 标记暴露 Anthropic 风格提示词缓存的 OpenAI 兼容模型提供商。
 
 示例：
 

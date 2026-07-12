@@ -42,7 +42,7 @@ function copyRecursive(src: string, dest: string): number {
  * Atomically promote staging to content directories.
  * Uses a temp dir and rename for atomicity on supported filesystems.
  */
-export function promoteStaging(): PromoteResult {
+export function promoteStaging(releaseTag = process.env.UPSTREAM_RELEASE_TAG): PromoteResult {
   const cfg = loadUpstreamConfig();
 
   // Read commit from upstream
@@ -92,6 +92,7 @@ export function promoteStaging(): PromoteResult {
     docsPath: cfg.docsPath,
     publishedCommit: commit,
     publishedAt: new Date().toISOString(),
+    ...(releaseTag ? { releaseTag } : {}),
     files: {}
   };
 

@@ -47,7 +47,7 @@ function parseArgs(): CliOptions {
 }
 
 function hasApiKey(): boolean {
-  return !!process.env.NVIDIA_API_KEY;
+  return !!process.env.DEEPSEEK_API_KEY;
 }
 
 async function cmdCheck(): Promise<void> {
@@ -84,8 +84,8 @@ async function cmdCheck(): Promise<void> {
   }
 
   if (!hasApiKey()) {
-    console.log("\n⚠ NVIDIA_API_KEY not set. Skipping translation.");
-    console.log("  Set NVIDIA_API_KEY in .env or GitHub Secrets to run full pipeline.");
+    console.log("\n⚠ DEEPSEEK_API_KEY not set. Skipping translation.");
+    console.log("  Set DEEPSEEK_API_KEY in .env or GitHub Secrets to run full pipeline.");
     return;
   }
 
@@ -95,7 +95,7 @@ async function cmdCheck(): Promise<void> {
 async function cmdSync(options: CliOptions): Promise<void> {
   // Check API key availability
   if (!hasApiKey()) {
-    console.log("⚠ NVIDIA_API_KEY not set.");
+    console.log("⚠ DEEPSEEK_API_KEY not set.");
     console.log("  Running check-only mode (detect changes, no translation).");
     await cmdCheck();
     return;
@@ -132,9 +132,8 @@ async function cmdSync(options: CliOptions): Promise<void> {
   // 4. Prepare .work/staging/content/zh-CN
   console.log("\n📁 Step 4: Preparing staging zh-CN...");
 
-  if (!fs.existsSync(STAGING_ZH_DIR)) {
-    fs.mkdirSync(STAGING_ZH_DIR, { recursive: true });
-  }
+  fs.rmSync(STAGING_ZH_DIR, { recursive: true, force: true });
+  fs.mkdirSync(STAGING_ZH_DIR, { recursive: true });
 
   // 4a. Copy all existing content/zh-CN to staging
   if (fs.existsSync(CONTENT_ZH_DIR)) {
@@ -176,10 +175,15 @@ async function cmdSync(options: CliOptions): Promise<void> {
 
   // 5. Extract segments
   console.log("\n🔧 Step 5: Extracting segments from changed files...");
-  const modifiedFiles = changed
-    .filter((c) => c.type === "added" || c.type === "modified")
-    .map((c) => (c.type === "added" || c.type === "modified" ? c.path : null))
-    .filter(Boolean) as string[];
+  const modifiedFiles = (options.retranslate ? diff.changes : changed)
+    .filter(
+      (c) =>
+        c.type === "added" ||
+        c.type === "modified" ||
+        (options.retranslate && c.type === "unchanged")
+    )
+    .map((c) => ("path" in c ? c.path : null))
+    .filter((file): file is string => Boolean(file?.endsWith(".md") || file?.endsWith(".mdx")));
 
   const filesToTranslate = new Map<string, { original: string; segments: TranslationSegment[] }>();
 
@@ -196,7 +200,7 @@ async function cmdSync(options: CliOptions): Promise<void> {
     `   Extracted ${allSegments.length} natural-language segments from ${modifiedFiles.length} files`
   );
 
-  // 6. Translate (uses NVIDIA provider, no apiKey param needed)
+  // 6. Translate (uses DeepSeek provider, no apiKey param needed)
   console.log("\n🌐 Step 6: Translating...");
   const translated = await translateBatches({
     segments: allSegments,
@@ -212,12 +216,12 @@ async function cmdSync(options: CliOptions): Promise<void> {
     translationMap.set(t.segmentId, t.translation);
   }
 
-  // 7. Check if coverage is enough (>=95% promotes, below saves checkpoint)
+  // 7. Never rebuild from an incomplete map: the base document is English.
   const coverage = allSegments.length > 0 ? translated.length / allSegments.length : 1;
-  const allDone = coverage >= 0.95;
+  const allDone = translated.length === allSegments.length;
   if (!allDone) {
     console.log(`\n⚠ Translation incomplete (${(coverage * 100).toFixed(1)}%). Saving checkpoint.`);
-    console.log("   Promotion skipped (not all segments translated).");
+    console.log("   Promotion skipped until every segment is translated.");
     return;
   }
 
@@ -255,7 +259,7 @@ async function cmdSync(options: CliOptions): Promise<void> {
 
 async function cmdResume(): Promise<void> {
   if (!hasApiKey()) {
-    console.log("⚠ NVIDIA_API_KEY not set. Cannot resume translation.");
+    console.log("⚠ DEEPSEEK_API_KEY not set. Cannot resume translation.");
     process.exit(1);
   }
 

@@ -6,7 +6,7 @@ export type FileChange =
   | { type: "unchanged"; path: string };
 
 export type ProtectedTokenType =
-  "inline-code" | "url" | "path" | "identifier" | "command" | "product";
+  "inline-code" | "url" | "path" | "identifier" | "command" | "product" | "markdown";
 
 export type ProtectedToken = {
   placeholder: string;
@@ -21,6 +21,8 @@ export type TranslationSegment = {
   sectionPath: string[];
   source: string;
   normalizedSource: string;
+  sourceStart?: number;
+  sourceEnd?: number;
   sourceHash: string;
   contextHash: string;
   protectedTokens: ProtectedToken[];
@@ -113,6 +115,7 @@ export type PublishedUpstream = {
   docsPath: string;
   publishedCommit: string;
   publishedAt: string;
+  releaseTag?: string;
   files: Record<string, { sha256: string }>;
 };
 

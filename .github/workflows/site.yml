@@ -34,6 +34,8 @@ jobs:
       run_sync: ${{ steps.decide.outputs.run_sync }}
       translation_required: ${{ steps.decide.outputs.translation_required }}
       target_commit: ${{ steps.decide.outputs.target_commit }}
+      new_release: ${{ steps.decide.outputs.new_release }}
+      release_tag: ${{ steps.decide.outputs.release_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -54,17 +56,36 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Check upstream
+      - name: Check release and upstream
         id: decide
         run: |
-          echo "Checking upstream for changes..."
-          # Capture sync-check output
-          OUTPUT=$(pnpm sync:check 2>&1) || true
-          echo "$OUTPUT"
-
           NEEDS_SYNC="false"
           TRANS_NEEDED="false"
           TARGET_COMMIT=""
+          NEW_RELEASE="false"
+          RELEASE_TAG=""
+
+          # Scheduled runs only inspect docs after a new Pi release. Manual
+          # runs retain their existing ability to check or force a sync.
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            RELEASE_OUTPUT=$(pnpm release:check)
+            echo "$RELEASE_OUTPUT"
+            RELEASE_TAG=$(echo "$RELEASE_OUTPUT" | jq -r '.latestTag')
+            NEW_RELEASE=$(echo "$RELEASE_OUTPUT" | jq -r '.hasNewRelease')
+            if [[ "$NEW_RELEASE" != "true" ]]; then
+              echo "No new Pi release; skipping upstream docs check."
+              echo "run_sync=$NEEDS_SYNC" >> "$GITHUB_OUTPUT"
+              echo "translation_required=$TRANS_NEEDED" >> "$GITHUB_OUTPUT"
+              echo "target_commit=$TARGET_COMMIT" >> "$GITHUB_OUTPUT"
+              echo "new_release=$NEW_RELEASE" >> "$GITHUB_OUTPUT"
+              echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "Checking upstream for changes..."
+          OUTPUT=$(pnpm sync:check 2>&1)
+          echo "$OUTPUT"
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ "${{ github.event.inputs.force_sync }}" == "true" ]]; then
@@ -76,13 +97,12 @@ jobs:
           fi
 
           # Only create a sync job when the check found a docs change. This
-          # keeps the NVIDIA secret out of no-change scheduled runs.
+          # keeps the DEEPSEEK_API_KEY secret out of no-change scheduled runs.
           if echo "$OUTPUT" | grep -q "Has changes:    true"; then
             NEEDS_SYNC="true"
             TRANS_NEEDED="true"
           fi
 
-          # Extract target commit from output if present
           if echo "$OUTPUT" | grep -qoE '[0-9a-f]{40}'; then
             TARGET_COMMIT=$(echo "$OUTPUT" | grep -oE '[0-9a-f]{40}' | head -1)
           fi
@@ -90,10 +110,76 @@ jobs:
           echo "run_sync=$NEEDS_SYNC" >> "$GITHUB_OUTPUT"
           echo "translation_required=$TRANS_NEEDED" >> "$GITHUB_OUTPUT"
           echo "target_commit=$TARGET_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "new_release=$NEW_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
 
   sync:
     needs: [plan]
     if: needs.plan.outputs.run_sync == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run sync until complete
+        shell: bash
+        run: |
+          ARGS="--force"
+          if [[ "${{ github.event.inputs.force_retranslate }}" == "true" ]]; then
+            ARGS="$ARGS --retranslate"
+          fi
+
+          for attempt in $(seq 1 20); do
+            echo "Sync attempt $attempt/20"
+            pnpm sync:run $ARGS
+            if jq -e '.status == "completed"' state/pending-sync.json >/dev/null; then
+              exit 0
+            fi
+            sleep $(( attempt < 6 ? attempt * 60 : 300 ))
+          done
+
+          echo "Translation did not reach 100% after 20 attempts."
+          exit 1
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_BASE_URL: ${{ vars.DEEPSEEK_BASE_URL || 'https://api.deepseek.com' }}
+          DEEPSEEK_MODEL: deepseek-v4-flash
+          DEEPSEEK_REQUEST_TIMEOUT_MS: ${{ vars.DEEPSEEK_REQUEST_TIMEOUT_MS || '300000' }}
+          DEEPSEEK_MAX_REQUESTS_PER_RUN: ${{ vars.DEEPSEEK_MAX_REQUESTS_PER_RUN || '1000' }}
+          DEEPSEEK_MAX_MODEL_ATTEMPTS: ${{ vars.DEEPSEEK_MAX_MODEL_ATTEMPTS || '6' }}
+          UPSTREAM_RELEASE_TAG: ${{ needs.plan.outputs.release_tag }}
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
+        with:
+          commit_message: |
+            sync: upstream content update [skip ci]
+
+            Upstream commit: ${{ needs.plan.outputs.target_commit }}
+          commit_user_name: pi-docs-bot
+          commit_user_email: bot@pi-docs-zh-cn.dev
+          push_options: ""
+
+  record-release:
+    needs: [plan, sync]
+    if: github.event_name == 'schedule' && needs.plan.outputs.new_release == 'true' && needs.sync.result == 'skipped'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -115,25 +201,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run sync
-        run: pnpm sync:run ${{ github.event.inputs.force_sync == 'true' && '--force' || '' }} ${{ github.event.inputs.force_retranslate == 'true' && '--retranslate' || '' }}
-        env:
-          AI_PROVIDER: nvidia
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          NVIDIA_BASE_URL: ${{ vars.NVIDIA_BASE_URL }}
-          NVIDIA_MODEL_CHAIN: ${{ vars.NVIDIA_MODEL_CHAIN }}
-          NVIDIA_REQUEST_TIMEOUT_MS: ${{ vars.NVIDIA_REQUEST_TIMEOUT_MS || '120000' }}
-          NVIDIA_POLL_TIMEOUT_MS: ${{ vars.NVIDIA_POLL_TIMEOUT_MS || '180000' }}
-          NVIDIA_MAX_REQUESTS_PER_RUN: ${{ vars.NVIDIA_MAX_REQUESTS_PER_RUN || '100' }}
-          NVIDIA_REQUESTS_PER_MINUTE: ${{ vars.NVIDIA_REQUESTS_PER_MINUTE || '20' }}
+      - name: Record checked release
+        run: pnpm release:record "${{ needs.plan.outputs.release_tag }}"
 
-      - name: Commit changes
+      - name: Commit release state
         uses: stefanzweifel/git-auto-commit-action@e348103e9026cc0eee72ae06630dbe30c8bf7a79 # v5.1.0
         with:
-          commit_message: |
-            sync: upstream content update [skip ci]
-
-            Upstream commit: ${{ needs.plan.outputs.target_commit }}
+          commit_message: "chore: record checked Pi release [skip ci]"
           commit_user_name: pi-docs-bot
           commit_user_email: bot@pi-docs-zh-cn.dev
           push_options: ""

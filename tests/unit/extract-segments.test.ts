@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { extractSegments, resetSegmentCounter } from "../../scripts/extract-segments.js";
+import { restoreTokens } from "../../scripts/protect-tokens.js";
 
 describe("extractSegments", () => {
   beforeEach(() => resetSegmentCounter());
@@ -71,7 +72,20 @@ describe("extractSegments", () => {
     // The paragraph contains the inline code text
     const para = segments.find((s) => s.nodeType === "paragraph");
     expect(para).toBeDefined();
-    // remark-parse strips backticks from inlineCode value
-    expect(para!.source).toBe("Use fetch() to get data.");
+    expect(para!.source).toBe("Use `fetch()` to get data.");
+    expect(para!.sourceStart).toBe(md.indexOf("Use"));
+    expect(para!.sourceEnd).toBe(md.indexOf("data.") + "data.".length);
+  });
+
+  it("protects inline Markdown markers in a positioned segment", () => {
+    const md = "Read [the docs](https://example.com) and **start here**.\n";
+    const [segment] = extractSegments(md, "links.md");
+    expect(segment.source).toBe("Read [the docs](https://example.com) and **start here**.");
+    expect(md.slice(segment.sourceStart, segment.sourceEnd)).toBe(segment.source);
+    expect(segment.normalizedSource).not.toContain("[");
+    expect(segment.normalizedSource).not.toContain("]");
+    expect(segment.normalizedSource).not.toContain("*");
+    expect(segment.protectedTokens.some((token) => token.type === "markdown")).toBe(true);
+    expect(restoreTokens(segment.normalizedSource, segment.protectedTokens)).toBe(segment.source);
   });
 });

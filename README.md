@@ -25,16 +25,16 @@
 
 ## 技术栈
 
-| 类别     | 技术                                              |
-| -------- | ------------------------------------------------- |
-| 框架     | [SvelteKit](https://kit.svelte.dev/) (静态适配器) |
-| 包管理   | [pnpm](https://pnpm.io/)                          |
-| 语言     | TypeScript                                        |
-| 翻译网关 | [OpenRouter](https://openrouter.ai/)              |
-| 样式     | CSS (无框架)                                      |
-| 测试     | Vitest (单元/集成), Playwright (E2E)              |
-| CI/CD    | GitHub Actions                                    |
-| 托管     | GitHub Pages                                      |
+| 类别     | 技术                                                  |
+| -------- | ----------------------------------------------------- |
+| 框架     | [SvelteKit](https://kit.svelte.dev/) (静态适配器)     |
+| 包管理   | [pnpm](https://pnpm.io/)                              |
+| 语言     | TypeScript                                            |
+| 翻译引擎 | [DeepSeek](https://deepseek.com/) (deepseek-v4-flash) |
+| 样式     | CSS (无框架)                                          |
+| 测试     | Vitest (单元/集成), Playwright (E2E)                  |
+| CI/CD    | GitHub Actions                                        |
+| 托管     | GitHub Pages                                          |
 
 ## 仓库结构
 
@@ -129,9 +129,9 @@ pnpm build
 pnpm preview
 ```
 
-## OpenRouter API Key 设置
+## DeepSeek API Key 设置
 
-翻译功能需要 OpenRouter API 密钥。
+翻译功能需要 DeepSeek API 密钥。
 
 ### 本地开发
 
@@ -140,16 +140,16 @@ pnpm preview
 cp .env.example .env
 
 # 编辑 .env，填入你的 API 密钥
-OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxx
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 ```
 
 ### GitHub Secrets
 
 在仓库 Settings → Secrets and variables → Actions 中添加：
 
-| 名称                 | 描述                                  |
-| -------------------- | ------------------------------------- |
-| `OPENROUTER_API_KEY` | OpenRouter API 密钥（同步工作流使用） |
+| 名称               | 描述                                |
+| ------------------ | ----------------------------------- |
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥（同步工作流使用） |
 
 ## GitHub Pages 设置
 
@@ -181,7 +181,7 @@ pnpm build && pnpm preview
 
 ## 日常同步
 
-每日自动同步（UTC 03:17），通过 GitHub Actions 的 cron 调度触发。
+每日自动检查（UTC 03:17）：仅当 Pi 发布新版本时才检测上游文档变更并同步。
 
 ## 手动同步
 
@@ -200,37 +200,6 @@ FORCE_RETRANSLATE=true pnpm sync:run
 
 # 或通过 workflow_dispatch，勾选 force_retranslate
 ```
-
-## 动态免费模型发现
-
-系统通过 OpenRouter API (`/api/v1/models`) 自动发现免费模型，无需手动配置模型 ID。
-
-## 免费价格规则
-
-免费模型判定标准（来自 `translation-policy.yml`）：
-
-```yaml
-priceValidation:
-  prompt: 0 # 输入价格为 0
-  completion: 0 # 输出价格为 0
-  request: 0 # 请求价格为 0
-  internalReasoning: 0 # 推理价格为 0
-```
-
-所有价格字段均为 `0` 的模型被视为免费模型。
-
-## 回退规则
-
-当主要模型失败时，按以下规则回退：
-
-1. 尝试下一个可用免费模型
-2. 单个模型最大重试次数: 1
-3. 熔断阈值: 连续 3 次失败
-4. 最终回退: `openrouter/free` (OpenRouter 的免费路由)
-
-## openrouter/free 角色
-
-`openrouter/free` 作为最终回退路由。该路由会自动选择可用的免费模型，无需指定具体模型 ID。
 
 ## 翻译记忆
 
@@ -287,8 +256,7 @@ terms:
 | 每批最大字符数     | 20,000        |
 | 每批最大文件数     | 2             |
 | 每次运行最大请求数 | 35            |
-| 最大并发数         | 1             |
-| 最小请求间隔       | 3.2 秒        |
+| 最大并发数         | 8             |
 | 模型上下文长度     | 32,768 tokens |
 
 ## 故障恢复

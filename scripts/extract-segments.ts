@@ -59,8 +59,14 @@ export function extractSegments(content: string, filePath: string): TranslationS
     return headingStack.slice(1).map((h) => h.text);
   }
 
-  function addSegment(node: Node, source: string, nodeType: string): void {
-    if (!source || !source.trim()) return;
+  function addSegment(node: Node, nodeType: string): void {
+    const children = "children" in node && Array.isArray(node.children) ? node.children : [];
+    const sourceStart = children[0]?.position?.start.offset ?? node.position?.start.offset;
+    const sourceEnd = children.at(-1)?.position?.end.offset ?? node.position?.end.offset;
+    if (sourceStart === undefined || sourceEnd === undefined) return;
+
+    const source = content.slice(sourceStart, sourceEnd);
+    if (!source.trim()) return;
     const { text: normalizedSource, tokens } = protectTokens(source);
     const sectionPath = getSectionPath();
     const occurrence = segments.filter(
@@ -75,6 +81,8 @@ export function extractSegments(content: string, filePath: string): TranslationS
       sectionPath,
       source,
       normalizedSource,
+      sourceStart,
+      sourceEnd,
       sourceHash: hashString(normalizedSource),
       contextHash: hashString(`${filePath}::${sectionPath.join("/")}::${nodeType}`),
       protectedTokens: tokens
@@ -89,30 +97,26 @@ export function extractSegments(content: string, filePath: string): TranslationS
         headingStack.pop();
       }
       headingStack.push({ depth: h.depth, text });
-      addSegment(h, text, "heading");
+      addSegment(h, "heading");
     } else if (node.type === "paragraph") {
-      const text = extractText(node);
-      addSegment(node, text, "paragraph");
+      addSegment(node, "paragraph");
     } else if (node.type === "list") {
       const list = node as List;
       for (const item of list.children || []) {
-        const text = extractText(item);
-        addSegment(item, text, "listItem");
+        addSegment(item, "listItem");
       }
     } else if (node.type === "table") {
       const table = node as Table;
       for (const row of table.children || []) {
         for (const cell of row.children || []) {
-          const text = extractText(cell);
-          addSegment(cell, text, "tableCell");
+          addSegment(cell, "tableCell");
         }
       }
     } else if (node.type === "code") {
       // Skip fenced code blocks — never translate code
       continue;
     } else if (node.type === "blockquote") {
-      const text = extractText(node);
-      addSegment(node, text, "blockquote");
+      addSegment(node, "blockquote");
     }
   }
 

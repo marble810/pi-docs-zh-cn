@@ -1,32 +1,35 @@
-> pi 可以创建主题。让它为你的设置构建一个。
+> Pi 可以创建主题。让它为你的设置构建一个主题。
 
 # 主题
 
-主题是定义 TUI 颜色的 JSON 文件。
+主题是 JSON 文件，用于定义 TUI 的颜色。
 
 ## 目录
 
-- [ons)
-- [eme)
-- [eme)
-- [主题格式
-- [颜色 Token
-- [提示ips)
+- [位置](#locations)
+- [选择主题](#selecting-a-theme)
+- [创建自定义主题](#creating-a-custom-theme)
+- [主题格式](#theme-format)
+- [颜色令牌](#color-tokens)
+- [颜色值](#color-values)
+- [提示](#tips)
 
-## Locations
+## 位置
 
-- Built-in: `dark`, `light`
-- Global: `~/.pi/agent/themes/*.json`
-- Project: `.pi/themes/*.json` (only after the project is trusted)
-- Packages: `themes/` directories or `pi.themes` entries in `package.json`
-- Settings: `themes` array with files or directories
-- CLI: `--theme <path>` (repeatable)
+Pi 从以下位置加载主题：
 
-Disable discovery with `--no-themes`.
+- 内置：`dark`、`light`
+- 全局：`~/.pi/agent/themes/*.json`
+- 项目：`.pi/themes/*.json` (仅在项目受信任后)
+- 包：`themes/` 目录或 `pi.themes` 中的 `package.json` 条目
+- 设置：`themes` 数组，包含文件或目录
+- CLI：`--theme <path>` (可重复)
 
-## Selecting a Theme
+使用 `--no-themes` 禁用发现。
 
-Select a theme via `/settings` or in `settings.json`:
+## 选择主题
+
+通过 `/settings` 或在 `settings.json` 中选择主题：
 
 ```json
 {
@@ -34,18 +37,18 @@ Select a theme via `/settings` or in `settings.json`:
 }
 ```
 
-On first run, pi detects your terminal background and defaults to `dark` or `light`.
+首次运行时， pi 检测你的终端背景并默认为 `dark` 或 `light`。
 
-## Creating a Custom Theme
+## 创建自定义主题
 
-1.
+1. 创建一个主题文件：
 
 ```bash
 mkdir -p ~/.pi/agent/themes
 vim ~/.pi/agent/themes/my-theme.json
 ```
 
-2. Define the theme with all required colors (see [Color Tokens](#color-tokens)):
+2. 使用所有必需的颜色定义主题 (参见[颜色令牌](#color-tokens))：
 
 ```json
 {
@@ -63,17 +66,17 @@ vim ~/.pi/agent/themes/my-theme.json
     "success": "#00ff00",
     "error": "#ff0000",
     "warning": "#ffff00",
-    "弱化文本": "secondary",
-    "淡化文本": 240,
-    "正文": "",
-    "思考块文本": "secondary",
-    "选中行背景": "#2d2d30",
-    "用户消息背景": "#2d2d30",
-    "用户消息文本": "",
-    "扩展消息背景": "#2d2d30",
-    "扩展消息文本": "",
-    "扩展消息标签": "primary",
-    "工具调用等待背景": "#1e1e2e",
+    "muted": "secondary",
+    "dim": 240,
+    "text": "",
+    "thinkingText": "secondary",
+    "selectedBg": "#2d2d30",
+    "userMessageBg": "#2d2d30",
+    "userMessageText": "",
+    "customMessageBg": "#2d2d30",
+    "customMessageText": "",
+    "customMessageLabel": "primary",
+    "toolPendingBg": "#1e1e2e",
     "toolSuccessBg": "#1e2e1e",
     "toolErrorBg": "#2e1e1e",
     "toolTitle": "primary",
@@ -94,12 +97,12 @@ vim ~/.pi/agent/themes/my-theme.json
     "syntaxComment": "secondary",
     "syntaxKeyword": "primary",
     "syntaxFunction": "#00aaff",
-    "syntaxVariablefaa00",
+    "syntaxVariable": "#ffaa00",
     "syntaxString": "#00ff00",
     "syntaxNumber": "#ff00ff",
     "syntaxType": "#00aaff",
     "syntaxOperator": "primary",
-    "syntaxPunctuationondary",
+    "syntaxPunctuation": "secondary",
     "thinkingOff": "secondary",
     "thinkingMinimal": "primary",
     "thinkingLow": "#00aaff",
@@ -112,11 +115,11 @@ vim ~/.pi/agent/themes/my-theme.json
 }
 ```
 
-3. Select the theme via `/settings`.
+3. 通过 `/settings` 选择主题。
 
-**Hot reload:** When you edit the currently active custom theme file, pi reloads it automatically for immediate visual feedback.
+**热重载：** 当你编辑当前激活的自定义主题文件时， pi 会自动重新加载它以获得即时视觉反馈。
 
-## Theme Format
+## 主题格式
 
 ```json
 {
@@ -135,106 +138,108 @@ vim ~/.pi/agent/themes/my-theme.json
 }
 ```
 
-- `name` is required, must be unique, and must not contain `/`.
-- `vars` is optional. Define reusable colors here, then reference them in `colors`.
-- `colors` must define all 51 required tokens. `thinkingMax` is optional and falls back to `thinkingXhigh`.
+- `name` 是必需的，必须唯一，且不能包含 `/`。
+- `vars` 是可选的。在此定义可复用的颜色，然后在 `colors` 中引用它们。
+- `colors` 必须定义所有 51 个必需的 token。`thinkingMax` 是可选的，回退到 `thinkingXhigh`。
 
-The `$schema` field enables editor auto-completion and validation.
+`$schema` 字段启用编辑器 auto-completion 和验证。
 
-## Color Tokens
+## 颜色 Token
 
-Every theme must define all 51 required color tokens. `thinkingMax` is optional for compatibility with existing themes; when omitted, it uses `thinkingXhigh`.
+每个主题必须定义所有 51 个必需的颜色 token。`thinkingMax` 是可选的，用于与现有主题兼容；省略时，它使用 `thinkingXhigh`。
 
-### 核心 UI （ 11 种颜色）
+### 核心 UI (11 种颜色)
 
-| Token | 用途nt`| 主强调色（ Logo、选中项、光标） |
-|`border`| 常规边框 |
-|`borderAccent`| 高亮边框 |
-|`borderMuted`| 弱化边框（编辑器） |
-|`success`| 成功状态 |
-|`error`| 错误状态 |
-|`warning`| 警告状态 |
-|`muted`| 次要文本 |
-|`dim`| 三级文本 |
-|`text`| 默认值 text (usually`""`) |
-| `thinkingText` | 思考块文本 |
+| Token          | 用途                            |
+| -------------- | ------------------------------- |
+| `accent`       | 主要强调色 (logo、选中项、光标) |
+| `border`       | 普通边框                        |
+| `borderAccent` | 高亮边框                        |
+| `borderMuted`  | 细微边框 (编辑器)               |
+| `success`      | 成功状态                        |
+| `error`        | 错误状态                        |
+| `warning`      | 警告状态                        |
+| `muted`        | 次要文本                        |
+| `dim`          | 三级文本                        |
+| `text`         | 默认文本 (通常为 `""`)          |
+| `thinkingText` | 思考块文本                      |
 
-### 背景与内容（ 11 种颜色）
+### 背景与内容 (11 种颜色)
 
-| Token                | Purpose          |
-| -------------------- | ---------------- |
-| `selectedBg`         | 选中行背景       |
-| `userMessageBg`      | 用户消息背景     |
-| `userMessageText`    | 用户消息文本     |
-| `customMessageBg`    | 扩展消息背景     |
-| `customMessageText`  | 扩展消息文本     |
-| `customMessageLabel` | 扩展消息标签     |
-| `toolPendingBg`      | 工具框（待处理） |
-| `toolSuccessBg`      | 工具框（成功）   |
-| `toolErrorBg`        | 工具框（错误）   |
-| `toolTitle`          | 工具标题         |
-| `toolOutput`         | 工具输出文本     |
+| 令牌                 | 用途            |
+| -------------------- | --------------- |
+| `selectedBg`         | 选中行背景      |
+| `userMessageBg`      | 用户消息背景    |
+| `userMessageText`    | 用户消息文本    |
+| `customMessageBg`    | 扩展消息背景    |
+| `customMessageText`  | 扩展消息文本    |
+| `customMessageLabel` | 扩展消息标签    |
+| `toolPendingBg`      | 工具箱 (进行中) |
+| `toolSuccessBg`      | 工具箱 (成功)   |
+| `toolErrorBg`        | 工具箱 (错误)   |
+| `toolTitle`          | 工具标题        |
+| `toolOutput`         | 工具输出文本    |
 
-### Markdown （ 10 种颜色）
+### Markdown (10 种颜色)
 
-| Token               | Purpose      |
-| ------------------- | ------------ |
-| `mdHeading`         | 标题         |
-| `mdLink`            | 链接文本     |
-| `mdLinkUrl`         | 链接 URL     |
-| `mdCode`            | 内联代码     |
-| `mdCodeBlock`       | 代码块内容   |
-| `mdCodeBlockBorder` | 代码块围栏   |
-| `mdQuote`           | 引用块文本   |
-| `mdQuoteBorder`     | 引用块边框   |
-| `mdHr`              | 水平分割线   |
-| `mdListBullet`      | 列表项目符号 |
+| 令牌                | 用途       |
+| ------------------- | ---------- |
+| `mdHeading`         | 标题       |
+| `mdLink`            | 链接文本   |
+| `mdLinkUrl`         | 链接 URL   |
+| `mdCode`            | 行内代码   |
+| `mdCodeBlock`       | 代码块内容 |
+| `mdCodeBlockBorder` | 代码块围栏 |
+| `mdQuote`           | 引用块文本 |
+| `mdQuoteBorder`     | 引用块边框 |
+| `mdHr`              | 水平分隔线 |
+| `mdListBullet`      | 列表项符号 |
 
-### 工具差异对比（ 3 种颜色）
+### 工具差异 (3 种颜色)
 
-| Token             | Purpose  |
+| 标记              | 用途     |
 | ----------------- | -------- |
-| `toolDiffAdded`   | 新增行   |
-| `toolDiffRemoved` | 删除行   |
+| `toolDiffAdded`   | 添加的行 |
+| `toolDiffRemoved` | 移除的行 |
 | `toolDiffContext` | 上下文行 |
 
-### 语法高亮（ 9 种颜色）
+### 语法高亮 (9 种颜色)
 
-| Token               | Purpose     |
-| ------------------- | ----------- |
-| `syntaxComment`     | 注释        |
-| `syntaxKeyword`     | 关键字      |
-| `syntaxFunction`    | 函数名      |
-| `syntaxVariable`    | 变量        |
-| `syntaxString`      | 字符串      |
-| `syntaxNumber`      | 数字        |
-| `syntaxType`        | 类型        |
-| `syntaxOperator`    | 运算符      |
-| `syntaxPunctuation` | Punctuation |
+| 标记                | 用途     |
+| ------------------- | -------- |
+| `syntaxComment`     | 注释     |
+| `syntaxKeyword`     | 关键词   |
+| `syntaxFunction`    | 函数名   |
+| `syntaxVariable`    | 变量     |
+| `syntaxString`      | 字符串   |
+| `syntaxNumber`      | 数字     |
+| `syntaxType`        | 类型     |
+| `syntaxOperator`    | 运算符   |
+| `syntaxPunctuation` | 标点符号 |
 
-### 思考层级边框（ 6 个必需， 1 个可选）
+### 思考层级边框 (6 个必需， 1 个可选)
 
-指示思考层级的编辑器边框颜色（视觉层次从细微到显著）：
+表示思考层级的编辑器边框颜色 (从细微到突出的视觉层级):
 
-| Token             | Purpose                                                   |
-| ----------------- | --------------------------------------------------------- |
-| `thinkingOff`     | 思考关闭                                                  |
-| `thinkingMinimal` | 最小思考                                                  |
-| `thinkingLow`     | 低思考                                                    |
-| `thinkingMedium`  | 中等思考                                                  |
-| `thinkingHigh`    | 高度思考                                                  |
-| `thinkingXhigh`   | 超高思考                                                  |
-| `thinkingMax`     | Maximum thinking; optional, falls back to `thinkingXhigh` |
+| 令牌              | 用途                                  |
+| ----------------- | ------------------------------------- |
+| `thinkingOff`     | 思考关闭                              |
+| `thinkingMinimal` | 最低思考                              |
+| `thinkingLow`     | 低思考                                |
+| `thinkingMedium`  | 中等思考                              |
+| `thinkingHigh`    | 高等思考                              |
+| `thinkingXhigh`   | 极高思考                              |
+| `thinkingMax`     | 最高思考；可选，回退到`thinkingXhigh` |
 
-### Bash 模式（ 1 种颜色）
+### Bash 模式 (1 种颜色)
 
-| Token      | Purpose                                 |
-| ---------- | --------------------------------------- |
-| `bashMode` | Editor border in bash mode (`!` prefix) |
+| 令牌       | 用途                               |
+| ---------- | ---------------------------------- |
+| `bashMode` | Bash 模式下的编辑器边框 (`!` 前缀) |
 
-### HTML 导出（可选）
+### HTML导出 (可选)
 
-The `export` section controls colors for `/export` HTML output. If omitted, colors are derived from `userMessageBg`.
+`export`部分控制`/export` HTML输出的颜色。如果省略，颜色将从`userMessageBg`派生。
 
 ```json
 {
@@ -246,48 +251,51 @@ The `export` section controls colors for `/export` HTML output. If omitted, colo
 }
 ```
 
-## Color Values
+## 颜色值
 
 支持四种格式：
 
-| Format   | 示例        | 描述                           |
-| -------- | ----------- | ------------------------------ |
-| 十六进制 | `"#ff0000"` | 6 位十六进制 RGB               |
-| 256 色   | `39`        | xterm 256 色调色板索引 (0-255) |
-| Variable | `"primary"` | Reference to a `vars` entry    |
-| Default  | `""`        | 终端的默认颜色                 |
+| 格式   | 示例        | 描述             |
+| ------ | ----------- | ---------------- |
+| Hex    | `"#ff0000"` | 6 位十六进制 RGB |
+| 256 色 | `39`        | xterm 256 色     |
+
+				调色板索引 (0-255) |
+
+| 变量 | `"primary"` | 对 `vars` 条目的引用 |
+| 默认 | `""` | 终端的默认颜色 |
 
 ### 256 色调色板
 
-- `0-15`: Basic ANSI colors (terminal-dependent)
-- `16-231`: 6×6×6 RGB cube (`16 + 36×R + 6×G + B` where R,G,B are 0-5)
-- `232-255`: Grayscale ramp
+- `0-15`: 基本 ANSI 颜色 (terminal-dependent)
+- `16-231`: 6×6×6 RGB 立方体 (`16 + 36×R + 6×G + B` 其中 R,G,B 取值范围为 0-5)
+- `232-255`: 灰度渐变
 
 ### 终端兼容性
 
-Pi 使用 24 位 RGB 颜色。大多数现代终端都支持此功能（ iTerm2、Kitty、WezTerm、Windows 终端、VS Code ）。对于仅支持 256 色的旧终端， pi 会回退到最接近的近似颜色。
+Pi 使用 24 位 RGB 颜色。大多数现代终端都支持此功能(iTerm2, Kitty, WezTerm, Windows 终端， VS Code)。对于仅支持 256 色的老旧终端， pi 会回退到最接近的近似颜色。
 
-检查 truecolor 支持：
+检查真彩色支持：
 
 ```bash
 echo $COLORTERM  # Should output "truecolor" or "24bit"
 ```
 
-## Tips
+## 提示
 
-**Dark terminals:** Use bright, saturated colors with higher contrast.
+**深色终端：**使用明亮、饱和且对比度较高的颜色。
 
-**Light terminals:** Use darker, muted colors with lower contrast.
+**浅色终端：**使用较暗、柔和且对比度较低的颜色。
 
-**Color harmony:** Start with a base palette (Nord, Gruvbox, Tokyo Night), define it in `vars`, and reference consistently.
+**色彩和谐：**从基础调色板开始 (Nord, Gruvbox, Tokyo Night)，在 `vars` 中定义，并一致地引用。
 
-**Testing:** Check your theme with different message types, tool states, markdown content, and long wrapped text.
+**测试：**使用不同的消息类型、工具状态、Markdown 内容和长换行文本检查你的主题。
 
-**VS Code:** Set `terminal.integrated.minimumContrastRatio` to `1` for accurate colors.
+**VS Code ：**将 `terminal.integrated.minimumContrastRatio` 设置为 `1` 以获得准确的颜色。
 
 ## 示例
 
-查看内置主题：
+参见 built-in 主题：
 
 - [dark.json](../src/modes/interactive/theme/dark.json)
 - [light.json](../src/modes/interactive/theme/light.json)

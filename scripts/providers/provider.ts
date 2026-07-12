@@ -83,7 +83,7 @@ export type ProviderErrorInfo = {
 export function toTranslationSegmentRequest(seg: TranslationSegment): TranslationSegmentRequest {
   return {
     id: seg.id,
-    source: seg.source,
+    source: seg.normalizedSource,
     sectionPath: seg.sectionPath,
     protectedTokens: seg.protectedTokens.map((t) => t.placeholder)
   };

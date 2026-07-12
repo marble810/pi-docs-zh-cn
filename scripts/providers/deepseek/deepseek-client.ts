@@ -1,26 +1,22 @@
-import type { NvidiaConfig } from "./nvidia-config.js";
+import type { DeepSeekConfig } from "./deepseek-config.js";
 
-export class NvidiaClient {
+export class DeepSeekClient {
   private baseUrl: string;
   private apiKey: string;
   private timeoutMs: number;
-  private rateLimitIntervalMs: number;
-  private lastRequestTime = 0;
+  private requestCount = 0;
 
-  constructor(private config: NvidiaConfig) {
+  constructor(private config: DeepSeekConfig) {
     this.baseUrl = config.baseUrl;
     this.apiKey = config.apiKey;
     this.timeoutMs = config.requestTimeoutMs;
-    this.rateLimitIntervalMs = Math.ceil(60_000 / config.requestsPerMinute);
   }
 
-  private async throttle(): Promise<void> {
-    const now = Date.now();
-    const wait = this.lastRequestTime + this.rateLimitIntervalMs - now;
-    if (wait > 0) {
-      await new Promise((r) => setTimeout(r, wait));
+  private claimRequest(): void {
+    if (this.requestCount >= this.config.maxRequestsPerRun) {
+      throw new Error(`DEEPSEEK_MAX_REQUESTS_PER_RUN exceeded (${this.config.maxRequestsPerRun})`);
     }
-    this.lastRequestTime = Date.now();
+    this.requestCount++;
   }
 
   private headers(): Record<string, string> {
@@ -30,36 +26,15 @@ export class NvidiaClient {
     };
   }
 
-  async get<T>(path: string): Promise<T> {
-    await this.throttle();
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
-
-    try {
-      const res = await fetch(`${this.baseUrl}${path}`, {
-        method: "GET",
-        headers: this.headers(),
-        signal: controller.signal
-      });
-
-      if (!res.ok) {
-        throw await buildHttpError(res, `${this.baseUrl}${path}`);
-      }
-
-      return (await res.json()) as T;
-    } finally {
-      clearTimeout(timer);
-      timer.unref?.();
-    }
-  }
-
-  async post<T>(path: string, body: unknown, retries = 1): Promise<T> {
-    await this.throttle();
-
+  async post<T>(
+    path: string,
+    body: unknown,
+    retries = this.config.maxModelAttempts - 1
+  ): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
+      this.claimRequest();
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -85,20 +60,24 @@ export class NvidiaClient {
         lastError = err as Error;
 
         if (err instanceof RateLimitError) {
-          console.log(`      ⚠ Rate limited, waiting ${err.retryAfter}s`);
-          await new Promise((r) => setTimeout(r, err.retryAfter * 1000));
+          if (attempt >= retries) throw err;
+          const backoff = Math.min(err.retryAfter * 2 ** attempt, 60);
+          console.log(
+            `      ⚠ Rate limited, backing off ${backoff}s (attempt ${attempt + 1}/${retries + 1})`
+          );
+          await new Promise((r) => setTimeout(r, backoff * 1000));
           continue;
         }
 
         if (err instanceof HttpError) {
-          // Don't retry auth errors
-          if (err.status === 401 || err.status === 403) throw err;
-          if (attempt < retries) {
-            console.log(`      ⚠ HTTP ${err.status}, retry ${attempt + 1}/${retries}`);
-            await new Promise((r) => setTimeout(r, 2000));
-            continue;
-          }
-          throw err;
+          // Configuration/authentication/client errors are fatal; only transient 5xx responses retry.
+          if (err.status < 500 || attempt >= retries) throw err;
+          const backoff = Math.min(5 * 2 ** attempt, 120);
+          console.log(
+            `      ⚠ HTTP ${err.status}, backing off ${backoff}s (attempt ${attempt + 1}/${retries + 1})`
+          );
+          await new Promise((r) => setTimeout(r, backoff * 1000));
+          continue;
         }
 
         // Timeout / network error - retry
@@ -114,21 +93,6 @@ export class NvidiaClient {
     }
 
     throw lastError ?? new Error("Unknown error");
-  }
-
-  /** Poll until job completes or timeout */
-  async pollUntilDone<T>(
-    path: string,
-    isDone: (resp: T) => boolean,
-    timeoutMs = this.config.pollTimeoutMs
-  ): Promise<T> {
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      const result = await this.get<T>(path);
-      if (isDone(result)) return result;
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-    throw new TimeoutError(`Poll timeout after ${timeoutMs}ms: ${path}`);
   }
 }
 
@@ -151,13 +115,6 @@ export class RateLimitError extends Error {
     super(`Rate limited (Retry-After: ${retryAfter}s) at ${url}`);
     this.name = "RateLimitError";
     this.retryAfter = retryAfter;
-  }
-}
-
-export class TimeoutError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "TimeoutError";
   }
 }
 

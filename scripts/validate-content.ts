@@ -62,9 +62,9 @@ export function validateContent(enDir?: string, zhDir?: string): ContentValidati
   const allAnchors = new Map<string, Set<string>>();
   const allPaths = new Set<string>();
 
-  // Collect all zh paths and anchors
+  // Collect all zh paths and anchors (use resolved dir so staging validation works)
   for (const f of zhFiles) {
-    const rel = path.relative(CONTENT_ZH_DIR, f);
+    const rel = path.relative(zhDirResolved, f);
     allPaths.add(rel);
     const content = fs.readFileSync(f, "utf-8");
     const anchors = new Set<string>();
@@ -97,7 +97,7 @@ export function validateContent(enDir?: string, zhDir?: string): ContentValidati
   // 3. Validate internal links in zh files
   const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g;
   for (const f of zhFiles) {
-    const rel = path.relative(CONTENT_ZH_DIR, f);
+    const rel = path.relative(zhDirResolved, f);
     const content = fs.readFileSync(f, "utf-8");
     const dir = path.dirname(rel);
 
@@ -111,18 +111,42 @@ export function validateContent(enDir?: string, zhDir?: string): ContentValidati
       // Check if target exists (strip anchor)
       const [targetPath, anchor] = resolved.split("#");
       if (targetPath) {
-        const targetRel = targetPath.endsWith(".md") ? targetPath : targetPath + ".md";
-        if (!allPaths.has(targetRel) && !allPaths.has(targetPath)) {
-          // Try also checking in en
-          const enTarget = path.join(enDirResolved, targetRel);
-          if (!fs.existsSync(enTarget)) {
-            brokenInternalLinks++;
-            errors.push(`Broken link in ${rel}: -> ${href} (resolved: ${targetRel})`);
+        const ext = path.extname(targetPath.replace(/\/+$/, ""));
+        const escapesContent =
+          targetPath === ".." ||
+          targetPath.startsWith("../") ||
+          targetPath.includes("/../") ||
+          targetPath.endsWith("/");
+        // Outside the docs content tree, or directory / non-doc resource links
+        // (upstream examples/source). Do not force-append .md or fail existence.
+        if (escapesContent || (ext && ext !== ".md" && ext !== ".mdx")) {
+          // skip existence check
+        } else {
+          const targetRel =
+            ext === ".md" || ext === ".mdx" ? targetPath : `${targetPath.replace(/\/+$/, "")}.md`;
+          if (!allPaths.has(targetRel) && !allPaths.has(targetPath)) {
+            // Try also checking in en content tree
+            const enTarget = path.join(enDirResolved, targetRel);
+            if (!fs.existsSync(enTarget)) {
+              // Same unresolved href in EN = upstream illustrative/external link, not a translation defect
+              const enSource = path.join(enDirResolved, rel);
+              const upstreamSame =
+                fs.existsSync(enSource) &&
+                fs.readFileSync(enSource, "utf-8").includes(`](${href})`);
+              if (upstreamSame) {
+                warnings.push(
+                  `Unresolved upstream link in ${rel}: -> ${href} (resolved: ${targetRel})`
+                );
+              } else {
+                brokenInternalLinks++;
+                errors.push(`Broken link in ${rel}: -> ${href} (resolved: ${targetRel})`);
+              }
+            }
           }
         }
       }
 
-      // Check anchor exists
+      // Check anchor exists (only for doc targets)
       if (anchor && allAnchors.get(targetPath) && !allAnchors.get(targetPath)!.has(anchor)) {
         warnings.push(`Broken anchor in ${rel}: #${anchor} not found in ${targetPath}`);
       }

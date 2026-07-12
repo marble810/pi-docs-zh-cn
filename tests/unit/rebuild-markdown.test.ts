@@ -73,14 +73,45 @@ describe("rebuildMarkdown", () => {
     expect(result).not.toContain("coding agent 构建"); // glossary replaced it
   });
 
-  it("does not crash on missing segment translations (skips them)", () => {
+  it("rejects missing segment translations", () => {
     const original = "# Hello\n\nWorld.\n";
     const segs = [makeSeg("s1", "Hello"), makeSeg("s2", "World.")];
-    // Only providing s1 translation
     const translations = new Map([["s1", "你好"]]);
-    const result = rebuildMarkdown(original, segs, translations);
-    expect(result).toContain("你好");
-    expect(result).toContain("World."); // s2 untranslated → stays
+    expect(() => rebuildMarkdown(original, segs, translations)).toThrow(
+      "Missing or empty translation for segment s2"
+    );
+  });
+
+  it("restores protected Markdown around translated prose", () => {
+    const source = "Read [the docs](https://example.com) and **start here**.";
+    const { text: normalizedSource, tokens } = protectTokens(source);
+    const segment = makeSeg("s1", source, normalizedSource, tokens);
+    const translation = normalizedSource
+      .replace("Read ", "阅读 ")
+      .replace("the docs", "文档")
+      .replace(" and ", " 并 ")
+      .replace("start here", "从这里开始");
+
+    expect(translation).not.toContain("[");
+    expect(translation).not.toContain("]");
+    expect(translation).not.toContain("*");
+    expect(rebuildMarkdown(source, [segment], new Map([["s1", translation]]))).toBe(
+      "阅读 [文档](https://example.com) 并 **从这里开始**."
+    );
+  });
+
+  it("replaces duplicate sources at their distinct positions", () => {
+    const original = "Same.\n\nSame.\n";
+    const segs = [makeSeg("s1", "Same."), makeSeg("s2", "Same.")];
+    const result = rebuildMarkdown(
+      original,
+      segs,
+      new Map([
+        ["s1", "第一处。"],
+        ["s2", "第二处。"]
+      ])
+    );
+    expect(result).toBe("第一处。\n\n第二处。\n");
   });
 
   it("rebuilds with headings and preserves heading hierarchy", () => {

@@ -4,8 +4,7 @@ maxSegmentsPerBatch: 24
 maxInputCharactersPerBatch: 20000
 maxFilesPerBatch: 2
 maxRequestsPerRun: 35
-maxConcurrency: 1
-minimumRequestIntervalMs: 3200
+maxConcurrency: 8
 
 maxContextLength: 32768
 minContextLength: 32768

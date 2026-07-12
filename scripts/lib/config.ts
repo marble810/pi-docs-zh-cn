@@ -24,8 +24,7 @@ const policySchema = z.object({
   maxInputCharactersPerBatch: z.number(),
   maxFilesPerBatch: z.number(),
   maxRequestsPerRun: z.number(),
-  maxConcurrency: z.number(),
-  minimumRequestIntervalMs: z.number(),
+  maxConcurrency: z.literal(8),
   maxContextLength: z.number(),
   minContextLength: z.number(),
   priceValidation: z.object({

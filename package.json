@@ -18,6 +18,8 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
+    "release:check": "tsx scripts/check-release.ts",
+    "release:record": "tsx scripts/record-release.ts",
     "sync:check": "tsx scripts/cli.ts check",
     "sync:run": "tsx scripts/cli.ts sync",
     "sync:force": "tsx scripts/cli.ts sync --force",
