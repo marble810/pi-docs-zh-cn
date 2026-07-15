@@ -2,33 +2,19 @@ import { visit } from "unist-util-visit";
 import type { Root } from "hast";
 
 /**
- * Rewrite internal .md links to /docs/latest/<slug>/ and image paths to base.
+ * Rewrite internal .md links to /docs/latest/<slug> and relative images to /docs-assets/.
  * Operates on HAST tree after remark-rehype.
  */
-export function rewriteDocLinks(slug: string | undefined) {
-  void slug;
-  // ponytail: simple anchor rewrite; a full route resolver can replace this
+export function rewriteDocLinks(_slug: string | undefined) {
   return function transform(tree: Root): void {
     visit(tree, "element", (node) => {
       if (node.tagName === "a" && typeof node.properties?.href === "string") {
-        const href = node.properties.href as string;
-        const url = tryParse(href);
-        if (!url) return;
-        // Internal .md links or paths without protocol
-        if (
-          !url.protocol &&
-          (href.endsWith(".md") ||
-            (!href.startsWith("#") && !href.startsWith("http") && !href.startsWith("/")))
-        ) {
-          const path = href.replace(/\.md$/, "").replace(/index$/, "");
-          node.properties.href = `/docs/latest/${path}`;
-        }
+        const rewritten = rewriteDocHref(node.properties.href as string);
+        if (rewritten !== null) node.properties.href = rewritten;
       }
       if (node.tagName === "img" && typeof node.properties?.src === "string") {
         const src = node.properties.src as string;
-        if (!src.startsWith("http") && !src.startsWith("/")) {
-          // Relative image path — map to docs-assets base-aware
-          // ponytail: assumes base path aware; base is prepended at render time
+        if (!src.startsWith("http") && !src.startsWith("/") && !src.startsWith("data:")) {
           node.properties.src = `/docs-assets/${src}`;
         }
       }
@@ -36,10 +22,29 @@ export function rewriteDocLinks(slug: string | undefined) {
   };
 }
 
-function tryParse(url: string): URL | null {
-  try {
-    return new URL(url, "http://localhost");
-  } catch {
+/** Pure rewrite for unit tests. Returns null when href should stay as-is. */
+export function rewriteDocHref(href: string): string | null {
+  if (
+    !href ||
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("http://") ||
+    href.startsWith("https://") ||
+    href.startsWith("//") ||
+    href.startsWith("/")
+  ) {
     return null;
   }
+
+  // packages.md, packages.md#uninstall, path/to.md?x=1
+  const m = href.match(/^([^#?]*?)\.mdx?([#?].*)?$/);
+  if (!m) return null;
+
+  let path = m[1];
+  // leave repo-relative escapes alone (../examples/...)
+  if (path === ".." || path.startsWith("../") || path.includes("/../")) return null;
+
+  path = path.replace(/\/index$/, "").replace(/^index$/, "");
+  const route = path ? `/docs/latest/${path}` : "/docs/latest/";
+  return route + (m[2] ?? "");
 }
