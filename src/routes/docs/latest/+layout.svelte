@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { LayoutData } from "./$types.js";
+  import Dialog from "$lib/components/ui/Dialog.svelte";
+  import MobileNavigation from "$lib/components/MobileNavigation.svelte";
   import DocsSidebar from "$lib/components/DocsSidebar.svelte";
   import DocsToc from "$lib/components/DocsToc.svelte";
+  import { mobileNavOpen } from "$lib/stores/ui.js";
   import { page } from "$app/stores";
 
   let { data, children }: { data: LayoutData; children: import("svelte").Snippet } = $props();
@@ -10,7 +13,33 @@
   let headings = $derived(
     ($page.data as { headings?: Array<{ id: string; text: string; depth: 2 | 3 }> })?.headings || []
   );
+
+  let mobileDialogOpen = $state(false);
+
+  // Sync with global mobile nav store
+  $effect(() => {
+    const unsub = mobileNavOpen.subscribe((v) => (mobileDialogOpen = v));
+    return () => unsub();
+  });
+
+  // When dialog closes via Bits UI, sync back to store
+  $effect(() => {
+    if (!mobileDialogOpen) {
+      mobileNavOpen.set(false);
+    }
+  });
+
+  function onMobileNav() {
+    mobileDialogOpen = false;
+    mobileNavOpen.set(false);
+  }
 </script>
+
+<Dialog bind:open={mobileDialogOpen} class="mobile-nav-dialog">
+  {#snippet content()}
+    <MobileNavigation {navigation} onNavigate={onMobileNav} />
+  {/snippet}
+</Dialog>
 
 <div class="docs-layout">
   <div class="docs-sidebar-col">
@@ -80,5 +109,18 @@
       padding: var(--space-10) 0 var(--space-16);
       max-width: 100%;
     }
+  }
+
+  /* Mobile nav dialog: full-height drawer on small screens */
+  :global(.mobile-nav-dialog) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(320px, 80vw);
+    height: 100dvh;
+    background: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    overflow-y: auto;
+    z-index: var(--z-overlay);
   }
 </style>

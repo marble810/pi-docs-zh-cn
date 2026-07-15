@@ -2,7 +2,7 @@
    Pi Docs — Design Tokens
    Serif (Noto Serif SC) for body, Sans (system) for UI,
    Mono (JetBrains Mono / system) for code.
-   Light & dark themes via data-theme attribute / prefers-color-scheme.
+   Dark mode only.
    ============================================================ */
 
 @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap");
@@ -29,11 +29,11 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  /* Radius — square only; values kept as aliases for existing var() calls */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 
   /* Typography scale */
   --text-xs: 0.75rem;
@@ -56,45 +56,17 @@
   --content-max-width: 730px;
   --header-height: 86px;
 
+  /* Layering */
+  --z-header: 50;
+  --z-overlay: 60;
+
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
 }
 
-/* ---------- Light theme (default) ---------- */
-:root,
-[data-theme="light"] {
-  --color-bg: #f7f6f2;
-  --color-fg: #202a34;
-  --color-surface: #eeece6;
-  --color-surface-hover: #e5e2da;
-  --color-border: #d4d1c8;
-  --color-accent: #326f6b;
-  --color-accent-hover: #225551;
-  --color-accent-soft: #e2efeb;
-  --color-muted: #68727a;
-  --color-code-bg: #e9e8e3;
-  --color-code-fg: #202a34;
-  --color-code-block-bg: #212730;
-  --color-code-block-fg: rgba(213, 216, 219, 0.8);
-  --color-selection: rgba(50, 111, 107, 0.18);
-  --color-sidebar-bg: transparent;
-  --color-toc-bg: transparent;
-  --color-toc-active: #326f6b;
-  --color-warning-bg: #f8f0dc;
-  --color-warning-border: #d7c58b;
-  --color-warning-fg: #72591b;
-  --color-success-bg: #e3eee8;
-  --color-success-border: #a8c8b4;
-  --color-header-bg: transparent;
-  --color-overlay: rgba(18, 25, 32, 0.45);
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-/* ---------- Dark theme ---------- */
-[data-theme="dark"] {
+/* ---------- Dark theme (default & only) ---------- */
+:root {
   --color-bg: #10171e;
   --color-fg: rgba(213, 216, 219, 0.96);
   --color-surface: #17212b;
@@ -122,39 +94,6 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-}
-
-/* ---------- System preference (default without data-theme) ---------- */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg: #10171e;
-    --color-fg: rgba(213, 216, 219, 0.96);
-    --color-surface: #17212b;
-    --color-surface-hover: #202c38;
-    --color-border: rgba(73, 80, 89, 0.62);
-    --color-accent: #8bbdb2;
-    --color-accent-hover: #b5ddd3;
-    --color-accent-soft: #19342f;
-    --color-muted: rgba(159, 164, 171, 0.78);
-    --color-code-bg: rgba(33, 39, 48, 0.9);
-    --color-code-fg: rgba(213, 216, 219, 0.8);
-    --color-code-block-bg: rgba(33, 39, 48, 0.9);
-    --color-code-block-fg: rgba(213, 216, 219, 0.8);
-    --color-selection: rgba(139, 189, 178, 0.28);
-    --color-sidebar-bg: transparent;
-    --color-toc-bg: transparent;
-    --color-toc-active: #a4d3c8;
-    --color-warning-bg: #3a2d12;
-    --color-warning-border: #766128;
-    --color-warning-fg: #e5cd7c;
-    --color-success-bg: #173b30;
-    --color-success-border: #396d5d;
-    --color-header-bg: transparent;
-    --color-overlay: rgba(0, 0, 0, 0.6);
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-  }
 }
 
 /* ---------- Reduced motion ---------- */

@@ -1,20 +1,11 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="system">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     %sveltekit.head%
-    <script>
-      (function () {
-        var theme = localStorage.getItem("pi-docs-theme");
-        if (theme === "dark" || theme === "light") {
-          document.documentElement.setAttribute("data-theme", theme);
-        } else {
-          document.documentElement.setAttribute("data-theme", "system");
-        }
-      })();
-    </script>
+
   </head>
   <body>
     %sveltekit.body%

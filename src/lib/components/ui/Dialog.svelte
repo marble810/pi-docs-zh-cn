@@ -5,11 +5,13 @@
   let {
     open = $bindable(false),
     trigger,
-    content
+    content,
+    class: className = ""
   }: {
     open?: boolean;
     trigger?: Snippet;
     content?: Snippet;
+    class?: string;
   } = $props();
 </script>
 
@@ -20,7 +22,7 @@
     </BitsDialog.Trigger>
   {/if}
 
-  <BitsDialog.Content>
+  <BitsDialog.Content class={className}>
     {#if content}
       {@render content()}
     {/if}

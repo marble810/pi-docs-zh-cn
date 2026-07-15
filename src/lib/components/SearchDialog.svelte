@@ -9,7 +9,7 @@
 
   let query = $state("");
   let results = $state<SearchDocument[]>([]);
-  let miniSearch: MiniSearch<SearchDocument> | null = null;
+  let miniSearch = $state<MiniSearch<SearchDocument> | null>(null);
   let selectedIndex = $state(0);
   let inputEl: HTMLInputElement | undefined = $state();
 
@@ -77,7 +77,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<Dialog bind:open>
+<Dialog bind:open class="search-portal">
   {#snippet content()}
     <div class="search-dialog" role="dialog" aria-label="搜索文档">
       <div class="search-input-wrapper">
@@ -149,7 +149,6 @@
   .search-dialog {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     width: min(560px, 90vw);
     max-height: 70vh;
@@ -195,7 +194,6 @@
     background: transparent;
     color: var(--color-muted);
     cursor: pointer;
-    border-radius: var(--radius-sm);
   }
 
   .search-close:hover {
@@ -215,7 +213,6 @@
     flex-direction: column;
     gap: 2px;
     padding: 8px 12px;
-    border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--color-fg);
     transition: background var(--transition-fast);
@@ -261,8 +258,16 @@
     font-family: var(--font-mono);
     padding: 1px 4px;
     border: 1px solid var(--color-border);
-    border-radius: 3px;
     font-size: 10px;
     margin: 0 2px;
+  }
+
+  /* Fixed portal: never participates in the document layout. */
+  :global(.search-portal) {
+    position: fixed;
+    top: calc(var(--header-height) + var(--space-4));
+    left: 50%;
+    z-index: var(--z-overlay);
+    transform: translateX(-50%);
   }
 </style>

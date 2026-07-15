@@ -1,21 +1,14 @@
 <script lang="ts">
   import { base } from "$app/paths";
-  import ThemeMenu from "./ui/ThemeMenu.svelte";
   import SearchDialog from "./SearchDialog.svelte";
-  import type { Snippet } from "svelte";
-
-  let {
-    mobileNav
-  }: {
-    mobileNav?: Snippet;
-  } = $props();
+  import { mobileNavOpen } from "$lib/stores/ui.js";
 
   let searchOpen = $state(false);
 </script>
 
 <header class="site-header">
   <div class="header-inner">
-    <button class="mobile-menu-btn" id="mobile-menu-trigger" aria-label="打开导航菜单">
+    <button class="mobile-menu-btn" id="mobile-menu-trigger" aria-label="打开导航菜单" onclick={() => ($mobileNavOpen = true)}>
       <svg
         width="20"
         height="20"
@@ -55,31 +48,18 @@
         <span class="search-hint">搜索</span>
         <kbd class="search-kbd">⌘K</kbd>
       </button>
-      <ThemeMenu />
+
     </div>
   </div>
 </header>
 
 <SearchDialog bind:open={searchOpen} />
 
-<div class="mobile-nav-container" id="mobile-nav" hidden>
-  <div class="mobile-nav-inner">
-    {#if mobileNav}
-      {@render mobileNav()}
-    {/if}
-  </div>
-</div>
-
-<!-- Mobile overlay + drawer managed via dialog pattern -->
-{#if false}
-  <!-- ponytail: mobile-nav dialog placeholder — add Dialog-based mobile nav when needed -->
-{/if}
-
 <style>
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: var(--z-header);
     background: var(--color-header-bg);
     height: var(--header-height);
   }
@@ -205,7 +185,5 @@
     background: var(--color-bg);
   }
 
-  .mobile-nav-container {
-    display: none;
-  }
+
 </style>

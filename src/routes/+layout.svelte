@@ -20,11 +20,7 @@
   } = $props();
 </script>
 
-<SiteHeader>
-  {#snippet mobileNav()}
-    <p class="mobile-nav-placeholder">导航加载中...</p>
-  {/snippet}
-</SiteHeader>
+<SiteHeader />
 
 <main class="main-content">
   {@render children()}
