@@ -2,7 +2,8 @@
   "repository": "earendil-works/pi",
   "branch": "main",
   "docsPath": "packages/coding-agent/docs",
-  "publishedCommit": "8479bd84743e8889f728acb21a62794102db0529",
-  "publishedAt": "2026-07-12T06:07:07.050Z",
+  "publishedCommit": "dcfe36c79702ec240b146c45f167ab75ecddd205",
+  "publishedAt": "2026-07-15T04:28:12.077Z",
+  "releaseTag": "v0.80.7",
   "files": {}
 }

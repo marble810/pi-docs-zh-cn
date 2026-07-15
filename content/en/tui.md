@@ -19,12 +19,12 @@ interface Component {
 }
 ```
 
-| Method               | Description                                                                      |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `render(width)`      | Return array of strings (one per line). Each line **must not exceed `width`**.   |
-| `handleInput?(data)` | Receive keyboard input when component has focus.                                 |
-| `wantsKeyRelease?`   | If true, component receives key release events (Kitty protocol). Default: false. |
-| `invalidate()`       | Clear cached render state. Called on theme changes.                              |
+| Method | Description |
+|--------|-------------|
+| `render(width)` | Return array of strings (one per line). Each line **must not exceed `width`**. |
+| `handleInput?(data)` | Receive keyboard input when component has focus. |
+| `wantsKeyRelease?` | If true, component receives key release events (Kitty protocol). Default: false. |
+| `invalidate()` | Clear cached render state. Called on theme changes. |
 
 The TUI appends a full SGR reset and OSC 8 reset at the end of each rendered line. Styles do not carry across lines. If you emit multi-line text with styling, reapply styles per line or use `wrapTextWithAnsi()` so styles are preserved for each wrapped line.
 
@@ -36,8 +36,8 @@ Components that display a text cursor and need IME (Input Method Editor) support
 import { CURSOR_MARKER, type Component, type Focusable } from "@earendil-works/pi-tui";
 
 class MyInput implements Component, Focusable {
-  focused: boolean = false; // Set by TUI when focus changes
-
+  focused: boolean = false;  // Set by TUI when focus changes
+  
   render(width: number): string[] {
     const marker = this.focused ? CURSOR_MARKER : "";
     // Emit marker right before the fake cursor
@@ -47,7 +47,6 @@ class MyInput implements Component, Focusable {
 ```
 
 When a `Focusable` component has focus, TUI:
-
 1. Sets `focused = true` on the component
 2. Scans rendered output for `CURSOR_MARKER` (a zero-width APC escape sequence)
 3. Positions the hardware terminal cursor at that location
@@ -127,24 +126,24 @@ const result = await ctx.ui.custom<string | null>(
     overlay: true,
     overlayOptions: {
       // Size: number or percentage string
-      width: "50%", // 50% of terminal width
-      minWidth: 40, // minimum 40 columns
-      maxHeight: "80%", // max 80% of terminal height
+      width: "50%",          // 50% of terminal width
+      minWidth: 40,          // minimum 40 columns
+      maxHeight: "80%",      // max 80% of terminal height
 
       // Position: anchor-based (default: "center")
       anchor: "right-center", // 9 positions: center, top-left, top-center, etc.
-      offsetX: -2, // offset from anchor
+      offsetX: -2,            // offset from anchor
       offsetY: 0,
 
       // Or percentage/absolute positioning
-      row: "25%", // 25% from top
-      col: 10, // column 10
+      row: "25%",            // 25% from top
+      col: 10,               // column 10
 
       // Margins
-      margin: 2, // all sides, or { top, right, bottom, left }
+      margin: 2,             // all sides, or { top, right, bottom, left }
 
       // Responsive: hide on narrow terminals
-      visible: (termWidth, termHeight) => termWidth >= 80
+      visible: (termWidth, termHeight) => termWidth >= 80,
     },
     // Get handle for programmatic focus and visibility control
     onHandle: (handle) => {
@@ -153,7 +152,7 @@ const result = await ctx.ui.custom<string | null>(
       // handle.unfocus({ target }) - release input to a specific component or null
       // handle.setHidden(true/false) - toggle visibility
       // handle.hide() - permanently remove
-    }
+    },
   }
 );
 ```
@@ -171,21 +170,18 @@ Overlay components are disposed when closed. Don't reuse references - create fre
 ```typescript
 // Wrong - stale reference
 let menu: MenuComponent;
-await ctx.ui.custom(
-  (_, __, ___, done) => {
-    menu = new MenuComponent(done);
-    return menu;
-  },
-  { overlay: true }
-);
-setActiveComponent(menu); // Disposed
+await ctx.ui.custom((_, __, ___, done) => {
+  menu = new MenuComponent(done);
+  return menu;
+}, { overlay: true });
+setActiveComponent(menu);  // Disposed
 
 // Correct - re-call to re-show
-const showMenu = () =>
-  ctx.ui.custom((_, __, ___, done) => new MenuComponent(done), { overlay: true });
+const showMenu = () => ctx.ui.custom((_, __, ___, done) => 
+  new MenuComponent(done), { overlay: true });
 
-await showMenu(); // First show
-await showMenu(); // "Back" = just call again
+await showMenu();  // First show
+await showMenu();  // "Back" = just call again
 ```
 
 See [overlay-qa-tests.ts](../examples/extensions/overlay-qa-tests.ts) for comprehensive examples covering anchors, margins, stacking, responsive visibility, and animation.
@@ -204,10 +200,10 @@ Multi-line text with word wrapping.
 
 ```typescript
 const text = new Text(
-  "Hello World", // content
-  1, // paddingX (default: 1)
-  1, // paddingY (default: 1)
-  (s) => bgGray(s) // optional background function
+  "Hello World",    // content
+  1,                // paddingX (default: 1)
+  1,                // paddingY (default: 1)
+  (s) => bgGray(s)  // optional background function
 );
 text.setText("Updated");
 ```
@@ -218,9 +214,9 @@ Container with padding and background color.
 
 ```typescript
 const box = new Box(
-  1, // paddingX
-  1, // paddingY
-  (s) => bgGray(s) // background function
+  1,                // paddingX
+  1,                // paddingY
+  (s) => bgGray(s)  // background function
 );
 box.addChild(new Text("Content", 0, 0));
 box.setBgFn((s) => bgBlue(s));
@@ -242,7 +238,7 @@ container.removeChild(component1);
 Empty vertical space.
 
 ```typescript
-const spacer = new Spacer(2); // 2 empty lines
+const spacer = new Spacer(2);  // 2 empty lines
 ```
 
 ### Markdown
@@ -252,9 +248,9 @@ Renders markdown with syntax highlighting.
 ```typescript
 const md = new Markdown(
   "# Title\n\nSome **bold** text",
-  1, // paddingX
-  1, // paddingY
-  theme // MarkdownTheme (see below)
+  1,        // paddingX
+  1,        // paddingY
+  theme     // MarkdownTheme (see below)
 );
 md.setText("Updated markdown");
 ```
@@ -265,9 +261,9 @@ Renders images in supported terminals (Kitty, iTerm2, Ghostty, WezTerm, Warp).
 
 ```typescript
 const image = new Image(
-  base64Data, // base64-encoded image
-  "image/png", // MIME type
-  theme, // ImageTheme
+  base64Data,   // base64-encoded image
+  "image/png",  // MIME type
+  theme,        // ImageTheme
   { maxWidthCells: 80, maxHeightCells: 24 }
 );
 ```
@@ -293,7 +289,6 @@ handleInput(data: string) {
 ```
 
 **Key identifiers** (use `Key.*` for autocomplete, or string literals):
-
 - Basic keys: `Key.enter`, `Key.escape`, `Key.tab`, `Key.space`, `Key.backspace`, `Key.delete`, `Key.home`, `Key.end`
 - Arrow keys: `Key.up`, `Key.down`, `Key.left`, `Key.right`
 - With modifiers: `Key.ctrl("c")`, `Key.shift("tab")`, `Key.alt("left")`, `Key.ctrlShift("p")`
@@ -313,7 +308,6 @@ render(width: number): string[] {
 ```
 
 Utilities:
-
 - `visibleWidth(str)` - Get display width (ignores ANSI codes)
 - `truncateToWidth(str, width, ellipsis?)` - Truncate with optional ellipsis
 - `wrapTextWithAnsi(str, width)` - Word wrap preserving ANSI codes
@@ -323,14 +317,17 @@ Utilities:
 Example: Interactive selector
 
 ```typescript
-import { matchesKey, Key, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import {
+  matchesKey, Key,
+  truncateToWidth, visibleWidth
+} from "@earendil-works/pi-tui";
 
 class MySelector {
   private items: string[];
   private selected = 0;
   private cachedWidth?: number;
   private cachedLines?: string[];
-
+  
   public onSelect?: (item: string) => void;
   public onCancel?: () => void;
 
@@ -380,9 +377,9 @@ pi.registerCommand("pick", {
   handler: async (args, ctx) => {
     const items = ["Option A", "Option B", "Option C"];
     const selector = new MySelector(items);
-
+    
     let handle: { close: () => void; requestRender: () => void };
-
+    
     await new Promise<void>((resolve) => {
       selector.onSelect = (item) => {
         ctx.ui.notify(`Selected: ${item}`, "info");
@@ -409,7 +406,7 @@ Components accept theme objects for styling.
 renderResult(result, options, theme, context) {
   // Use theme.fg() for foreground colors
   return new Text(theme.fg("success", "Done!"), 0, 0);
-
+  
   // Use theme.bg() for background colors
   const styled = theme.bg("toolPendingBg", theme.fg("accent", "text"));
 }
@@ -417,18 +414,18 @@ renderResult(result, options, theme, context) {
 
 **Foreground colors** (`theme.fg(color, text)`):
 
-| Category | Colors                                                                                                                                                    |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| General  | `text`, `accent`, `muted`, `dim`                                                                                                                          |
-| Status   | `success`, `error`, `warning`                                                                                                                             |
-| Borders  | `border`, `borderAccent`, `borderMuted`                                                                                                                   |
-| Messages | `userMessageText`, `customMessageText`, `customMessageLabel`                                                                                              |
-| Tools    | `toolTitle`, `toolOutput`                                                                                                                                 |
-| Diffs    | `toolDiffAdded`, `toolDiffRemoved`, `toolDiffContext`                                                                                                     |
-| Markdown | `mdHeading`, `mdLink`, `mdLinkUrl`, `mdCode`, `mdCodeBlock`, `mdCodeBlockBorder`, `mdQuote`, `mdQuoteBorder`, `mdHr`, `mdListBullet`                      |
-| Syntax   | `syntaxComment`, `syntaxKeyword`, `syntaxFunction`, `syntaxVariable`, `syntaxString`, `syntaxNumber`, `syntaxType`, `syntaxOperator`, `syntaxPunctuation` |
-| Thinking | `thinkingOff`, `thinkingMinimal`, `thinkingLow`, `thinkingMedium`, `thinkingHigh`, `thinkingXhigh`, `thinkingMax`                                         |
-| Modes    | `bashMode`                                                                                                                                                |
+| Category | Colors |
+|----------|--------|
+| General | `text`, `accent`, `muted`, `dim` |
+| Status | `success`, `error`, `warning` |
+| Borders | `border`, `borderAccent`, `borderMuted` |
+| Messages | `userMessageText`, `customMessageText`, `customMessageLabel` |
+| Tools | `toolTitle`, `toolOutput` |
+| Diffs | `toolDiffAdded`, `toolDiffRemoved`, `toolDiffContext` |
+| Markdown | `mdHeading`, `mdLink`, `mdLinkUrl`, `mdCode`, `mdCodeBlock`, `mdCodeBlockBorder`, `mdQuote`, `mdQuoteBorder`, `mdHr`, `mdListBullet` |
+| Syntax | `syntaxComment`, `syntaxKeyword`, `syntaxFunction`, `syntaxVariable`, `syntaxString`, `syntaxNumber`, `syntaxType`, `syntaxOperator`, `syntaxPunctuation` |
+| Thinking | `thinkingOff`, `thinkingMinimal`, `thinkingLow`, `thinkingMedium`, `thinkingHigh`, `thinkingXhigh`, `thinkingMax` |
+| Modes | `bashMode` |
 
 **Background colors** (`theme.bg(color, text)`):
 
@@ -539,7 +536,7 @@ class GoodComponent extends Container {
   }
 
   override invalidate(): void {
-    super.invalidate(); // Clear child caches
+    super.invalidate();  // Clear child caches
     this.updateDisplay(); // Rebuild with new theme
   }
 }
@@ -560,7 +557,7 @@ class ComplexComponent extends Container {
   }
 
   private rebuild(): void {
-    this.clear(); // Remove all children
+    this.clear();  // Remove all children
 
     // Build UI with current theme
     this.addChild(new Text(theme.fg("accent", theme.bold("Title")), 1, 0));
@@ -611,7 +608,7 @@ pi.registerCommand("pick", {
     const items: SelectItem[] = [
       { value: "opt1", label: "Option 1", description: "First option" },
       { value: "opt2", label: "Option 2", description: "Second option" },
-      { value: "opt3", label: "Option 3" } // description is optional
+      { value: "opt3", label: "Option 3" },  // description is optional
     ];
 
     const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
@@ -629,16 +626,14 @@ pi.registerCommand("pick", {
         selectedText: (t) => theme.fg("accent", t),
         description: (t) => theme.fg("muted", t),
         scrollInfo: (t) => theme.fg("dim", t),
-        noMatch: (t) => theme.fg("warning", t)
+        noMatch: (t) => theme.fg("warning", t),
       });
       selectList.onSelect = (item) => done(item.value);
       selectList.onCancel = () => done(null);
       container.addChild(selectList);
 
       // Help text
-      container.addChild(
-        new Text(theme.fg("dim", "↑↓ navigate • enter select • esc cancel"), 1, 0)
-      );
+      container.addChild(new Text(theme.fg("dim", "↑↓ navigate • enter select • esc cancel"), 1, 0));
 
       // Bottom border
       container.addChild(new DynamicBorder((s: string) => theme.fg("accent", s)));
@@ -646,17 +641,14 @@ pi.registerCommand("pick", {
       return {
         render: (w) => container.render(w),
         invalidate: () => container.invalidate(),
-        handleInput: (data) => {
-          selectList.handleInput(data);
-          tui.requestRender();
-        }
+        handleInput: (data) => { selectList.handleInput(data); tui.requestRender(); },
       };
     });
 
     if (result) {
       ctx.ui.notify(`Selected: ${result}`, "info");
     }
-  }
+  },
 });
 ```
 
@@ -688,7 +680,7 @@ pi.registerCommand("fetch", {
     } else {
       ctx.ui.setEditorText(result);
     }
-  }
+  },
 });
 ```
 
@@ -706,7 +698,7 @@ pi.registerCommand("settings", {
   handler: async (_args, ctx) => {
     const items: SettingItem[] = [
       { id: "verbose", label: "Verbose mode", currentValue: "off", values: ["on", "off"] },
-      { id: "color", label: "Color output", currentValue: "on", values: ["on", "off"] }
+      { id: "color", label: "Color output", currentValue: "on", values: ["on", "off"] },
     ];
 
     await ctx.ui.custom((_tui, theme, _kb, done) => {
@@ -721,18 +713,18 @@ pi.registerCommand("settings", {
           // Handle value change
           ctx.ui.notify(`${id} = ${newValue}`, "info");
         },
-        () => done(undefined), // On close
-        { enableSearch: true } // Optional: enable fuzzy search by label
+        () => done(undefined),  // On close
+        { enableSearch: true }, // Optional: enable fuzzy search by label
       );
       container.addChild(settingsList);
 
       return {
         render: (w) => container.render(w),
         invalidate: () => container.invalidate(),
-        handleInput: (data) => settingsList.handleInput?.(data)
+        handleInput: (data) => settingsList.handleInput?.(data),
       };
     });
-  }
+  },
 });
 ```
 
@@ -766,9 +758,9 @@ ctx.ui.setWorkingIndicator({
     ctx.ui.theme.fg("dim", "·"),
     ctx.ui.theme.fg("muted", "•"),
     ctx.ui.theme.fg("accent", "●"),
-    ctx.ui.theme.fg("muted", "•")
+    ctx.ui.theme.fg("muted", "•"),
   ],
-  intervalMs: 120
+  intervalMs: 120,
 });
 
 // Hide the indicator entirely
@@ -802,7 +794,7 @@ ctx.ui.setWidget("my-widget", (_tui, theme) => {
   );
   return {
     render: () => lines,
-    invalidate: () => {}
+    invalidate: () => {},
   };
 });
 
@@ -824,7 +816,7 @@ ctx.ui.setFooter((tui, theme, footerData) => ({
     // footerData.getExtensionStatuses(): ReadonlyMap<string, string>
     return [`${ctx.model?.id} (${footerData.getGitBranch() || "no git"})`];
   },
-  dispose: footerData.onBranchChange(() => tui.requestRender()) // reactive
+  dispose: footerData.onBranchChange(() => tui.requestRender()), // reactive
 }));
 
 ctx.ui.setFooter(undefined); // restore default
@@ -867,21 +859,11 @@ class VimEditor extends CustomEditor {
 
     // Normal mode: vim-style navigation
     switch (data) {
-      case "i":
-        this.mode = "insert";
-        return;
-      case "h":
-        super.handleInput("\x1b[D");
-        return; // Left
-      case "j":
-        super.handleInput("\x1b[B");
-        return; // Down
-      case "k":
-        super.handleInput("\x1b[A");
-        return; // Up
-      case "l":
-        super.handleInput("\x1b[C");
-        return; // Right
+      case "i": this.mode = "insert"; return;
+      case "h": super.handleInput("\x1b[D"); return; // Left
+      case "j": super.handleInput("\x1b[B"); return; // Down
+      case "k": super.handleInput("\x1b[A"); return; // Up
+      case "l": super.handleInput("\x1b[C"); return; // Right
     }
     // Pass unhandled keys to super (ctrl+c, etc.), but filter printable chars
     if (data.length === 1 && data.charCodeAt(0) >= 32) return;
@@ -904,7 +886,9 @@ class VimEditor extends CustomEditor {
 export default function (pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx) => {
     // Factory receives theme and keybindings from the app
-    ctx.ui.setEditorComponent((tui, theme, keybindings) => new VimEditor(theme, keybindings));
+    ctx.ui.setEditorComponent((tui, theme, keybindings) =>
+      new VimEditor(theme, keybindings)
+    );
   });
 }
 ```
