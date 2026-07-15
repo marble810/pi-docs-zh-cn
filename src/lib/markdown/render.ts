@@ -54,14 +54,14 @@ function nodeText(node: Record<string, unknown>): string {
  * Render markdown content into HTML with syntax highlighting and heading IDs.
  * Optionally rewrites internal links to docs routes.
  */
-export async function renderMarkdown(markdown: string, slug?: string): Promise<RenderedContent> {
+export async function renderMarkdown(markdown: string): Promise<RenderedContent> {
   const hl = await getHighlighter();
 
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
-    .use(() => rewriteDocLinks(slug))
+    .use(() => rewriteDocLinks())
     .use(rehypeSlug)
     .use(rehypeAutolinkHeadings, { behavior: "wrap" })
     .use(rehypeSanitize as never, sanitizeSchema)

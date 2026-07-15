@@ -5,7 +5,7 @@ import type { Root } from "hast";
  * Rewrite internal .md links to /docs/latest/<slug> and relative images to /docs-assets/.
  * Operates on HAST tree after remark-rehype.
  */
-export function rewriteDocLinks(_slug: string | undefined) {
+export function rewriteDocLinks() {
   return function transform(tree: Root): void {
     visit(tree, "element", (node) => {
       if (node.tagName === "a" && typeof node.properties?.href === "string") {

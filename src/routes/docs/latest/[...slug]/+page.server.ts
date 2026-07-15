@@ -36,7 +36,7 @@ export async function load({ params }) {
 
   try {
     const markdown = fs.readFileSync(fullPath, "utf-8");
-    const rendered = await renderMarkdown(markdown, slug);
+    const rendered = await renderMarkdown(markdown);
     html = rendered.html;
     headings = rendered.headings;
   } catch {
