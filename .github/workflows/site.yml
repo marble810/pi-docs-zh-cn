@@ -68,7 +68,8 @@ jobs:
           # Scheduled runs only inspect docs after a new Pi release. Manual
           # runs retain their existing ability to check or force a sync.
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            RELEASE_OUTPUT=$(pnpm release:check)
+            # -s: pure JSON only (no pnpm lifecycle banner for jq)
+            RELEASE_OUTPUT=$(pnpm -s release:check)
             echo "$RELEASE_OUTPUT"
             RELEASE_TAG=$(echo "$RELEASE_OUTPUT" | jq -r '.latestTag')
             NEW_RELEASE=$(echo "$RELEASE_OUTPUT" | jq -r '.hasNewRelease')
