@@ -13,6 +13,7 @@
 
 <div class="home">
   <section class="hero">
+    <img class="hero-icon" src="{base}/favicon.svg" alt="" width="64" height="64" />
     <h1 class="hero-title">Pi 中文文档</h1>
     <p class="hero-subtitle">Pi 框架的简体中文社区翻译站点</p>
 
@@ -89,6 +90,14 @@
   .hero {
     text-align: center;
     padding: var(--space-16) 0 var(--space-10);
+  }
+
+  .hero-icon {
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--space-6);
+    image-rendering: pixelated;
   }
 
   .hero-title {
