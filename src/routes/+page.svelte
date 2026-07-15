@@ -13,7 +13,11 @@
 
 <div class="home">
   <section class="hero">
-    <img class="hero-icon" src="{base}/favicon.svg" alt="" width="64" height="64" />
+    <div
+      class="hero-icon"
+      aria-hidden="true"
+      style="--hero-icon: url('{base}/favicon.svg')"
+    ></div>
     <h1 class="hero-title">Pi 中文文档</h1>
     <p class="hero-subtitle">Pi 框架的简体中文社区翻译站点</p>
 
@@ -93,11 +97,12 @@
   }
 
   .hero-icon {
-    display: block;
     width: 64px;
     height: 64px;
     margin: 0 auto var(--space-6);
-    image-rendering: pixelated;
+    background-color: var(--color-fg);
+    -webkit-mask: var(--hero-icon) center / contain no-repeat;
+    mask: var(--hero-icon) center / contain no-repeat;
   }
 
   .hero-title {
