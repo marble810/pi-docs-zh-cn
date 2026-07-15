@@ -8,7 +8,12 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <button class="mobile-menu-btn" id="mobile-menu-trigger" aria-label="打开导航菜单" onclick={() => ($mobileNavOpen = true)}>
+    <button
+      class="mobile-menu-btn"
+      id="mobile-menu-trigger"
+      aria-label="打开导航菜单"
+      onclick={() => ($mobileNavOpen = true)}
+    >
       <svg
         width="20"
         height="20"
@@ -48,7 +53,6 @@
         <span class="search-hint">搜索</span>
         <kbd class="search-kbd">⌘K</kbd>
       </button>
-
     </div>
   </div>
 </header>
@@ -184,6 +188,4 @@
     border-radius: 3px;
     background: var(--color-bg);
   }
-
-
 </style>

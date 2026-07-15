@@ -13,11 +13,7 @@
 
 <div class="home">
   <section class="hero">
-    <div
-      class="hero-icon"
-      aria-hidden="true"
-      style="--hero-icon: url('{base}/favicon.svg')"
-    ></div>
+    <div class="hero-icon" aria-hidden="true" style="--hero-icon: url('{base}/favicon.svg')"></div>
     <h1 class="hero-title">Pi 中文文档</h1>
     <p class="hero-subtitle">Pi 框架的简体中文社区翻译站点</p>
 
