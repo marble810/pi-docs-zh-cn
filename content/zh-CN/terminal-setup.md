@@ -1,4 +1,4 @@
-# 终端设置
+# 终端设置｜Terminal Setup
 
 Pi 使用 [Kitty 键盘协议](https://sw.kovidgoyal.net/kitty/keyboard-protocol/) 实现可靠的修饰键检测。大多数现代终端支持该协议，但部分终端需要配置。
 

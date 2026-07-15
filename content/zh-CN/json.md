@@ -1,4 +1,4 @@
-# JSON 事件流模式
+# JSON 事件流模式｜JSON Event Stream Mode
 
 ```bash
 pi --mode json "Your prompt"

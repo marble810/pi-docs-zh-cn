@@ -1,4 +1,4 @@
-# 会话文件格式
+# 会话文件格式｜Session File Format
 
 会话存储为JSONL(JSON行)文件。每行是一个JSON对象，包含`type`字段。会话条目通过`id`/`parentId`字段形成树结构，支持in-place分支而无需创建新文件。
 

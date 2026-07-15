@@ -7,7 +7,7 @@
   "packageManager": "pnpm@10.32.1",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --port 11453",
     "build": "pnpm generate:site && vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

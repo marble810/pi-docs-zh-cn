@@ -11,6 +11,7 @@ import { visit } from "unist-util-visit";
 import { rewriteDocLinks } from "./links.js";
 import { extractHeadings } from "./headings.js";
 import { sanitizeSchema } from "./sanitize.js";
+import { rehypeBilingualH1 } from "./bilingual-headings.js";
 import type { RenderedContent } from "./types.js";
 
 // ponytail: singleton highlighter, re-create if theme/language set grows
@@ -63,7 +64,18 @@ export async function renderMarkdown(markdown: string): Promise<RenderedContent>
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(() => rewriteDocLinks())
     .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings, { behavior: "wrap" })
+    .use(rehypeAutolinkHeadings, {
+      behavior: "append",
+      properties: {
+        className: ["heading-anchor"],
+        ariaLabel: "链接到此标题"
+      },
+      content: {
+        type: "text",
+        value: "#"
+      }
+    })
+    .use(rehypeBilingualH1)
     .use(rehypeSanitize as never, sanitizeSchema)
     .use(function shikiPlugin() {
       return (tree: Record<string, unknown>) => {

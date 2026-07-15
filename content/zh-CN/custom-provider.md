@@ -1,4 +1,4 @@
-# 自定义提供商
+# 自定义模型提供商｜Custom Providers
 
 扩展可以通过 `pi.registerProvider()` 注册自定义模型提供商。这可以实现：
 

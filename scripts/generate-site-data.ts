@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { CONTENT_ZH_DIR, GENERATED_DIR, STATIC_DIR, STATE_DIR } from "./lib/paths.js";
+import {
+  CONTENT_EN_DIR,
+  CONTENT_ZH_DIR,
+  GENERATED_DIR,
+  STATIC_DIR,
+  STATE_DIR
+} from "./lib/paths.js";
 import type {
   DocsManifest,
   DocsManifestPage,
@@ -19,6 +25,23 @@ interface ParsedDoc {
   section?: string;
   headings: string[];
   body: string;
+}
+
+/** Prefer first ATX H1 as page title (supports 中文｜English). */
+function extractH1Title(body: string, fallback: string): string {
+  const match = body.match(/^#\s+(.+)$/m);
+  return match?.[1]?.trim() || fallback;
+}
+
+/** Stable nav group id from English side of `中文｜English` titles. */
+function groupIdFromTitle(title: string): string {
+  const english = title.includes("｜") ? (title.split("｜").at(-1) ?? title) : title;
+  return (
+    english
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "group"
+  );
 }
 
 function walkDir(dir: string): string[] {
@@ -44,7 +67,8 @@ function parseDoc(filePath: string, relPath: string): ParsedDoc | null {
 
     const relativeSlug = relPath.replace(/\.(md|mdx)$/, "");
     const slug = relativeSlug === "index" ? "" : relativeSlug;
-    const title = (data.title as string) ?? relativeSlug.split("/").pop() ?? relativeSlug;
+    const fallback = relativeSlug.split("/").pop() ?? relativeSlug;
+    const title = (data.title as string) ?? extractH1Title(body, fallback);
     const description = data.description as string | undefined;
     const sectionSlug = slug ? slug.split("/")[0] : "getting-started";
 
@@ -95,22 +119,29 @@ export function generateSiteData(): void {
     "utf-8"
   );
 
-  // docs.json is the upstream navigation source of truth. Building groups from
-  // file paths loses its hierarchy and creates a one-item group for every page.
-  const sourceNav = JSON.parse(
-    fs.readFileSync(path.join(CONTENT_ZH_DIR, "docs.json"), "utf-8")
-  ) as { navigation: Array<{ title: string; items: Array<{ title: string; path: string }> }> };
+  // Prefer bilingual zh-CN/docs.json; fall back to English structure.
+  // Building groups from file paths loses hierarchy (one group per page).
+  const zhDocsJson = path.join(CONTENT_ZH_DIR, "docs.json");
+  const enDocsJson = path.join(CONTENT_EN_DIR, "docs.json");
+  const docsJsonPath = fs.existsSync(zhDocsJson) ? zhDocsJson : enDocsJson;
+  const sourceNav = JSON.parse(fs.readFileSync(docsJsonPath, "utf-8")) as {
+    navigation: Array<{ title: string; items: Array<{ title: string; path: string }> }>;
+  };
   const availableSlugs = new Set(docs.map((d) => d.slug));
+  const titleBySlug = new Map(docs.map((d) => [d.slug, d.title]));
   const toSlug = (filePath: string) => {
     const slug = filePath.replace(/\.(md|mdx)$/, "").replace(/\/index$/, "");
     return slug === "index" ? "" : slug;
   };
   const navigation: NavigationGroup[] = sourceNav.navigation
     .map((group) => ({
-      id: group.title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      id: groupIdFromTitle(group.title),
       title: group.title,
       items: group.items
-        .map((item): NavigationItem => ({ slug: toSlug(item.path), title: item.title }))
+        .map((item): NavigationItem => {
+          const slug = toSlug(item.path);
+          return { slug, title: titleBySlug.get(slug) ?? item.title };
+        })
         .filter((item) => availableSlugs.has(item.slug))
     }))
     .filter((group) => group.items.length > 0);

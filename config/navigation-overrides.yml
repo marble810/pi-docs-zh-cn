@@ -1,9 +1,13 @@
 groups:
   getting-started:
-    title: 开始使用
+    title: 开始使用｜Start here
   customization:
-    title: 自定义
+    title: 自定义｜Customization
   reference:
-    title: 参考
+    title: 参考｜Reference
+  programmatic-usage:
+    title: 程序化用法｜Programmatic Usage
+  platform-setup:
+    title: 平台设置｜Platform Setup
   development:
-    title: 开发
+    title: 开发｜Development

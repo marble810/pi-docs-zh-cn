@@ -1,4 +1,4 @@
-# Windows 设置
+# Windows 设置｜Windows Setup
 
 Pi 在 Windows 上需要一个 bash shell。按顺序检查的位置 (依次为)：
 

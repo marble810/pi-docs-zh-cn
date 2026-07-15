@@ -55,7 +55,7 @@
   }
 
   .footer-inner {
-    max-width: 1280px;
+    max-width: var(--layout-max-width);
     margin: 0 auto;
     padding: var(--space-8) var(--space-4);
     display: flex;
@@ -93,7 +93,7 @@
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     background: var(--color-code-bg);
-    padding: 1px 4px;
+    padding: var(--space-px) var(--space-1);
     border-radius: var(--radius-sm);
   }
 

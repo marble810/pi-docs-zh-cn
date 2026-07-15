@@ -47,13 +47,13 @@
 <style>
   .dialog-close-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: var(--space-2);
+    right: var(--space-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: var(--size-control-md);
+    height: var(--size-control-md);
     border: none;
     background: transparent;
     color: var(--color-muted);

@@ -1,4 +1,4 @@
-# 上下文压缩与分支摘要
+# 上下文压缩与分支摘要｜Compaction & Branch Summarization
 
 LLM 的上下文窗口有限。当对话变得过长时， pi 会使用上下文压缩来总结较早的内容，同时保留近期的工作。本页涵盖 auto-compaction 和分支摘要。
 

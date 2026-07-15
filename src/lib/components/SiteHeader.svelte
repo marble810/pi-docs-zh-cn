@@ -1,9 +1,7 @@
 <script lang="ts">
   import { base } from "$app/paths";
-  import SearchDialog from "./SearchDialog.svelte";
   import { mobileNavOpen } from "$lib/stores/ui.js";
-
-  let searchOpen = $state(false);
+  import SearchDialog from "./SearchDialog.svelte";
 </script>
 
 <header class="site-header">
@@ -29,61 +27,59 @@
     </button>
 
     <a href={base + "/"} class="logo-link">
-      <span class="logo-text">Pi Docs</span>
-      <span class="logo-badge">中文</span>
+      <img src="{base}/icon.svg" class="logo-icon" alt="Pi" width="30" height="30" />
     </a>
 
-    <nav class="header-nav">
-      <a href={base + "/docs/latest/"}>文档</a>
-    </nav>
-
-    <div class="header-actions">
-      <button class="search-btn" onclick={() => (searchOpen = true)} aria-label="搜索文档">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <span class="search-hint">搜索</span>
-        <kbd class="search-kbd">⌘K</kbd>
-      </button>
-    </div>
+    <SearchDialog inline />
   </div>
 </header>
-
-<SearchDialog bind:open={searchOpen} />
 
 <style>
   .site-header {
     position: sticky;
     top: 0;
     z-index: var(--z-header);
-    background: var(--color-header-bg);
+    background: var(--color-bg);
     height: var(--header-height);
+    box-sizing: border-box;
+    padding: var(--space-4) var(--space-8) 0;
   }
 
   .header-inner {
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    max-width: 1440px;
+    width: 100%;
+    max-width: var(--docs-cluster-width);
     margin: 0 auto;
-    padding: 0 var(--space-8);
+    padding: 0 var(--space-5);
     height: 100%;
+    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, var(--color-surface-hover), var(--color-surface));
+  }
+
+  @media (max-width: 1100px) {
+    .header-inner {
+      max-width: calc(var(--sidebar-width) + var(--content-max-width) + var(--space-4));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .site-header {
+      padding: var(--space-3) var(--space-5) 0;
+    }
+
+    .header-inner {
+      max-width: none;
+    }
   }
 
   .mobile-menu-btn {
     display: none;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--size-control-lg);
+    height: var(--size-control-lg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-surface);
@@ -100,92 +96,11 @@
   .logo-link {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    text-decoration: none;
-  }
-
-  .logo-text {
-    font-family: var(--font-mono);
-    font-weight: 400;
-    font-size: 0.82rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-fg);
-  }
-
-  .logo-badge {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    padding: 1px 5px;
-    border-radius: 2px;
-    border: 1px solid var(--color-border);
-    color: var(--color-muted);
-    font-weight: 400;
-  }
-
-  .header-nav {
-    display: flex;
-    align-items: center;
     gap: var(--space-4);
-    margin-left: var(--space-4);
-  }
-
-  .header-nav a {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-    color: var(--color-muted);
     text-decoration: none;
-    transition: color var(--transition-fast);
   }
 
-  .header-nav a:hover {
-    color: var(--color-fg);
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-left: auto;
-  }
-
-  .search-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 6px 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 3px;
-    background: var(--color-surface);
-    color: var(--color-muted);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-
-  .search-btn:hover {
-    border-color: var(--color-accent);
-    color: var(--color-fg);
-  }
-
-  .search-hint {
-    display: none;
-  }
-
-  @media (min-width: 640px) {
-    .search-hint {
-      display: inline;
-    }
-  }
-
-  .search-kbd {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    padding: 1px 4px;
-    border: 1px solid var(--color-border);
-    border-radius: 3px;
-    background: var(--color-bg);
+  .logo-icon {
+    display: block;
   }
 </style>

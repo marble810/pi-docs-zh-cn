@@ -1,4 +1,4 @@
-# RPC 模式
+# RPC 模式｜RPC Mode
 
 RPC 模式通过 stdin/stdout 上的 JSON 协议实现编程代理的无头操作。这对于将代理嵌入其他应用程序、IDE 或自定义 UI 非常有用。
 

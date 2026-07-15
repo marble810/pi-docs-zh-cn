@@ -1,143 +1,143 @@
 {
   "navigation": [
     {
-      "title": "Start here",
+      "title": "开始使用｜Start here",
       "items": [
         {
-          "title": "Overview",
+          "title": "概览｜Overview",
           "path": "index.md"
         },
         {
-          "title": "Quickstart",
+          "title": "快速入门｜Quickstart",
           "path": "quickstart.md"
         },
         {
-          "title": "Using Pi",
+          "title": "使用 Pi｜Using Pi",
           "path": "usage.md"
         },
         {
-          "title": "Providers",
+          "title": "模型提供商｜Providers",
           "path": "providers.md"
         },
         {
-          "title": "Security",
+          "title": "安全性｜Security",
           "path": "security.md"
         },
         {
-          "title": "Containerization",
+          "title": "容器化｜Containerization",
           "path": "containerization.md"
         },
         {
-          "title": "Settings",
+          "title": "设置｜Settings",
           "path": "settings.md"
         },
         {
-          "title": "Keybindings",
+          "title": "快捷键｜Keybindings",
           "path": "keybindings.md"
         },
         {
-          "title": "Sessions",
+          "title": "会话｜Sessions",
           "path": "sessions.md"
         },
         {
-          "title": "Compaction",
+          "title": "上下文压缩｜Compaction",
           "path": "compaction.md"
         }
       ]
     },
     {
-      "title": "Customization",
+      "title": "自定义｜Customization",
       "items": [
         {
-          "title": "Extensions",
+          "title": "扩展｜Extensions",
           "path": "extensions.md"
         },
         {
-          "title": "Skills",
+          "title": "技能｜Skills",
           "path": "skills.md"
         },
         {
-          "title": "Prompt Templates",
+          "title": "提示词模板｜Prompt Templates",
           "path": "prompt-templates.md"
         },
         {
-          "title": "Themes",
+          "title": "主题｜Themes",
           "path": "themes.md"
         },
         {
-          "title": "Pi Packages",
+          "title": "Pi 包｜Pi Packages",
           "path": "packages.md"
         },
         {
-          "title": "Custom Models",
+          "title": "自定义模型｜Custom Models",
           "path": "models.md"
         },
         {
-          "title": "Custom Providers",
+          "title": "自定义模型提供商｜Custom Providers",
           "path": "custom-provider.md"
         }
       ]
     },
     {
-      "title": "Reference",
+      "title": "参考｜Reference",
       "items": [
         {
-          "title": "Session Format",
+          "title": "会话文件格式｜Session Format",
           "path": "session-format.md"
         }
       ]
     },
     {
-      "title": "Programmatic Usage",
+      "title": "程序化用法｜Programmatic Usage",
       "items": [
         {
-          "title": "SDK",
+          "title": "SDK｜SDK",
           "path": "sdk.md"
         },
         {
-          "title": "RPC Mode",
+          "title": "RPC 模式｜RPC Mode",
           "path": "rpc.md"
         },
         {
-          "title": "JSON Event Stream Mode",
+          "title": "JSON 事件流模式｜JSON Event Stream Mode",
           "path": "json.md"
         },
         {
-          "title": "TUI Components",
+          "title": "TUI 组件｜TUI Components",
           "path": "tui.md"
         }
       ]
     },
     {
-      "title": "Platform Setup",
+      "title": "平台设置｜Platform Setup",
       "items": [
         {
-          "title": "Windows",
+          "title": "Windows 设置｜Windows",
           "path": "windows.md"
         },
         {
-          "title": "Termux on Android",
+          "title": "Termux (Android) 设置｜Termux on Android",
           "path": "termux.md"
         },
         {
-          "title": "tmux",
+          "title": "tmux 设置｜tmux",
           "path": "tmux.md"
         },
         {
-          "title": "Terminal Setup",
+          "title": "终端设置｜Terminal Setup",
           "path": "terminal-setup.md"
         },
         {
-          "title": "Shell Aliases",
+          "title": "Shell 别名｜Shell Aliases",
           "path": "shell-aliases.md"
         }
       ]
     },
     {
-      "title": "Development",
+      "title": "开发｜Development",
       "items": [
         {
-          "title": "Development",
+          "title": "开发｜Development",
           "path": "development.md"
         }
       ]

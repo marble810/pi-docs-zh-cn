@@ -20,6 +20,12 @@
     <div class="hero-actions">
       <a href={base + "/docs/latest/"} class="btn-primary">开始阅读</a>
       <a
+        href={meta?.sourceSite || "https://pi.dev/docs/latest"}
+        target="_blank"
+        rel="noopener"
+        class="btn-secondary">访问源网站</a
+      >
+      <a
         href="https://github.com/marble810/pi-docs-zh-cn"
         target="_blank"
         rel="noopener"
@@ -58,8 +64,8 @@
       <h3>非官方声明</h3>
       <p>
         此站点为 Pi
-        文档的简体中文社区翻译，并非官方版本。文档内容通过自动化流程从上游仓库同步，并使用 AI
-        模型辅助翻译。可能存在翻译不准确或更新延迟的情况。最新信息请参考 <a
+        文档的简体中文社区翻译，并非官方版本。文档内容通过自动化流程从上游仓库同步，并使用 DeepSeek
+        V4 Flash 进行 AI 翻译。可能存在翻译不准确或更新延迟的情况。最新信息请参考 <a
           href="https://pi.dev/docs/latest"
           target="_blank"
           rel="noopener">原始英文文档</a
@@ -70,7 +76,8 @@
     <div class="disclaimer-card">
       <h3>自动翻译说明</h3>
       <p>
-        本翻译内容由 AI 模型自动生成，经过人工校对流程但仍可能存在不一致之处。如发现翻译问题，欢迎在 <a
+        本翻译内容使用 DeepSeek V4 Flash 进行 AI
+        翻译，可能存在不准确或遗漏之处。如发现翻译问题，欢迎在 <a
           href="https://github.com/marble810/pi-docs-zh-cn"
           target="_blank"
           rel="noopener">GitHub 仓库</a
@@ -93,8 +100,8 @@
   }
 
   .hero-icon {
-    width: 64px;
-    height: 64px;
+    width: var(--size-hero-icon);
+    height: var(--size-hero-icon);
     margin: 0 auto var(--space-6);
     background-color: var(--color-fg);
     -webkit-mask: var(--hero-icon) center / contain no-repeat;
@@ -122,11 +129,11 @@
   .btn-primary {
     display: inline-flex;
     align-items: center;
-    padding: 10px 24px;
+    padding: var(--space-2-5) var(--space-6);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: 500;
-    color: white;
+    color: var(--color-on-accent);
     background: var(--color-accent);
     border-radius: var(--radius-md);
     text-decoration: none;
@@ -141,7 +148,7 @@
   .btn-secondary {
     display: inline-flex;
     align-items: center;
-    padding: 10px 24px;
+    padding: var(--space-2-5) var(--space-6);
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: 500;
@@ -177,7 +184,7 @@
     font-size: var(--text-xs);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tracking-label);
     color: var(--color-muted);
     margin: 0 0 var(--space-2);
   }
@@ -193,7 +200,7 @@
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     background: var(--color-code-bg);
-    padding: 1px 4px;
+    padding: var(--space-px) var(--space-1);
     border-radius: var(--radius-sm);
   }
 

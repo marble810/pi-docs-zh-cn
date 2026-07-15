@@ -1,4 +1,4 @@
-# Termux (Android) 设置
+# Termux (Android) 设置｜Termux (Android) Setup
 
 Pi 通过 [Termux](https://termux.dev/)（ Android 的终端模拟器和 Linux 环境）在 Android 上运行。
 

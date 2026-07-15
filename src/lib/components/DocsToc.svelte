@@ -42,21 +42,16 @@
 
 <style>
   .toc {
-    width: var(--toc-width);
-    flex-shrink: 0;
-    position: sticky;
-    top: calc(var(--header-height) + var(--space-10));
-    max-height: calc(100vh - var(--header-height) - var(--space-12));
-    overflow-y: auto;
-    padding: var(--space-10) 0 0;
+    width: 100%;
+    padding: var(--space-5) var(--space-4) var(--space-6);
   }
 
   .toc-title {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: var(--text-2xs);
     font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-wide);
     color: var(--color-muted);
     margin: 0 0 var(--space-3);
   }
@@ -68,14 +63,14 @@
   }
 
   .toc-item {
-    margin-bottom: 2px;
+    margin-bottom: var(--space-0-5);
   }
 
   .toc-link {
     display: block;
-    padding: 3px 0;
+    padding: var(--space-0-5) 0;
     font-family: var(--font-serif);
-    font-size: 0.8rem;
+    font-size: var(--text-nav);
     color: var(--color-muted);
     text-decoration: none;
     border-left: 1px solid transparent;

@@ -30,6 +30,6 @@
 
 <style>
   .main-content {
-    min-height: calc(100vh - var(--header-height) - 200px);
+    min-height: calc(100vh - var(--header-height) - var(--footer-reserve));
   }
 </style>

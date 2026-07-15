@@ -111,12 +111,14 @@ describe("Navigation overrides loading", () => {
     expect(groupIds).toContain("getting-started");
     expect(groupIds).toContain("customization");
     expect(groupIds).toContain("reference");
+    expect(groupIds).toContain("programmatic-usage");
+    expect(groupIds).toContain("platform-setup");
     expect(groupIds).toContain("development");
   });
 
-  it("provides Chinese titles for groups", () => {
-    expect(nav.groups["getting-started"].title).toBe("开始使用");
-    expect(nav.groups["reference"].title).toBe("参考");
+  it("provides bilingual titles for groups", () => {
+    expect(nav.groups["getting-started"].title).toBe("开始使用｜Start here");
+    expect(nav.groups["reference"].title).toBe("参考｜Reference");
   });
 });
 
@@ -126,6 +128,7 @@ describe("Translation prompt loading", () => {
     expect(prompt).toBeDefined();
     expect(typeof prompt).toBe("string");
     expect(prompt.length).toBeGreaterThan(0);
+    expect(prompt).toContain("中文标题｜EnglishTitle");
   });
 });
 

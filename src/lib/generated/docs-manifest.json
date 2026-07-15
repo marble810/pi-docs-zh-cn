@@ -2,169 +2,169 @@
   {
     "slug": "compaction",
     "filePath": "content/zh-CN/compaction.md",
-    "title": "compaction",
+    "title": "上下文压缩与分支摘要｜Compaction & Branch Summarization",
     "section": "compaction"
   },
   {
     "slug": "containerization",
     "filePath": "content/zh-CN/containerization.md",
-    "title": "containerization",
+    "title": "容器化｜Containerization",
     "section": "containerization"
   },
   {
     "slug": "custom-provider",
     "filePath": "content/zh-CN/custom-provider.md",
-    "title": "custom-provider",
+    "title": "自定义模型提供商｜Custom Providers",
     "section": "custom-provider"
   },
   {
     "slug": "development",
     "filePath": "content/zh-CN/development.md",
-    "title": "development",
+    "title": "开发｜Development",
     "section": "development"
   },
   {
     "slug": "extensions",
     "filePath": "content/zh-CN/extensions.md",
-    "title": "extensions",
+    "title": "扩展｜Extensions",
     "section": "extensions"
   },
   {
     "slug": "",
     "filePath": "content/zh-CN/index.md",
-    "title": "index",
+    "title": "Pi 文档｜Pi Documentation",
     "section": "getting-started"
   },
   {
     "slug": "json",
     "filePath": "content/zh-CN/json.md",
-    "title": "json",
+    "title": "JSON 事件流模式｜JSON Event Stream Mode",
     "section": "json"
   },
   {
     "slug": "keybindings",
     "filePath": "content/zh-CN/keybindings.md",
-    "title": "keybindings",
+    "title": "快捷键｜Keybindings",
     "section": "keybindings"
   },
   {
     "slug": "models",
     "filePath": "content/zh-CN/models.md",
-    "title": "models",
+    "title": "自定义模型｜Custom Models",
     "section": "models"
   },
   {
     "slug": "packages",
     "filePath": "content/zh-CN/packages.md",
-    "title": "packages",
+    "title": "Pi 包｜Pi Packages",
     "section": "packages"
   },
   {
     "slug": "prompt-templates",
     "filePath": "content/zh-CN/prompt-templates.md",
-    "title": "prompt-templates",
+    "title": "提示词模板｜Prompt Templates",
     "section": "prompt-templates"
   },
   {
     "slug": "providers",
     "filePath": "content/zh-CN/providers.md",
-    "title": "providers",
+    "title": "模型提供商｜Providers",
     "section": "providers"
   },
   {
     "slug": "quickstart",
     "filePath": "content/zh-CN/quickstart.md",
-    "title": "quickstart",
+    "title": "快速入门｜Quickstart",
     "section": "quickstart"
   },
   {
     "slug": "rpc",
     "filePath": "content/zh-CN/rpc.md",
-    "title": "rpc",
+    "title": "RPC 模式｜RPC Mode",
     "section": "rpc"
   },
   {
     "slug": "sdk",
     "filePath": "content/zh-CN/sdk.md",
-    "title": "sdk",
+    "title": "SDK｜SDK",
     "section": "sdk"
   },
   {
     "slug": "security",
     "filePath": "content/zh-CN/security.md",
-    "title": "security",
+    "title": "安全性｜Security",
     "section": "security"
   },
   {
     "slug": "session-format",
     "filePath": "content/zh-CN/session-format.md",
-    "title": "session-format",
+    "title": "会话文件格式｜Session File Format",
     "section": "session-format"
   },
   {
     "slug": "sessions",
     "filePath": "content/zh-CN/sessions.md",
-    "title": "sessions",
+    "title": "会话｜Sessions",
     "section": "sessions"
   },
   {
     "slug": "settings",
     "filePath": "content/zh-CN/settings.md",
-    "title": "settings",
+    "title": "设置｜Settings",
     "section": "settings"
   },
   {
     "slug": "shell-aliases",
     "filePath": "content/zh-CN/shell-aliases.md",
-    "title": "shell-aliases",
+    "title": "Shell 别名｜Shell Aliases",
     "section": "shell-aliases"
   },
   {
     "slug": "skills",
     "filePath": "content/zh-CN/skills.md",
-    "title": "skills",
+    "title": "技能｜Skills",
     "section": "skills"
   },
   {
     "slug": "terminal-setup",
     "filePath": "content/zh-CN/terminal-setup.md",
-    "title": "terminal-setup",
+    "title": "终端设置｜Terminal Setup",
     "section": "terminal-setup"
   },
   {
     "slug": "termux",
     "filePath": "content/zh-CN/termux.md",
-    "title": "termux",
+    "title": "Termux (Android) 设置｜Termux (Android) Setup",
     "section": "termux"
   },
   {
     "slug": "themes",
     "filePath": "content/zh-CN/themes.md",
-    "title": "themes",
+    "title": "主题｜Themes",
     "section": "themes"
   },
   {
     "slug": "tmux",
     "filePath": "content/zh-CN/tmux.md",
-    "title": "tmux",
+    "title": "tmux 设置｜tmux Setup",
     "section": "tmux"
   },
   {
     "slug": "tui",
     "filePath": "content/zh-CN/tui.md",
-    "title": "tui",
+    "title": "TUI 组件｜TUI Components",
     "section": "tui"
   },
   {
     "slug": "usage",
     "filePath": "content/zh-CN/usage.md",
-    "title": "usage",
+    "title": "使用 Pi｜Using Pi",
     "section": "usage"
   },
   {
     "slug": "windows",
     "filePath": "content/zh-CN/windows.md",
-    "title": "windows",
+    "title": "Windows 设置｜Windows Setup",
     "section": "windows"
   }
 ]

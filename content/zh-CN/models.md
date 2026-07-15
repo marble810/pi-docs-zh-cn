@@ -1,4 +1,4 @@
-# 自定义模型
+# 自定义模型｜Custom Models
 
 通过 `~/.pi/agent/models.json` 添加自定义模型提供商和模型 (Ollama、vLLM、LM Studio、代理)。
 

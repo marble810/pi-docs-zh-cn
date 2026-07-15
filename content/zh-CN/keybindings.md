@@ -1,4 +1,4 @@
-# 快捷键绑定
+# 快捷键｜Keybindings
 
 所有键盘快捷键都可通过 `~/.pi/agent/keybindings.json` 自定义。每个动作可绑定到一个或多个按键。
 

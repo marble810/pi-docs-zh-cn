@@ -1,13 +1,10 @@
 /* ============================================================
-   Pi Docs — Design Tokens
-   Serif (Noto Serif SC) for body, Sans (system) for UI,
-   Mono (JetBrains Mono / system) for code.
-   Dark mode only.
+   Pi Docs — Design Tokens (single dark theme)
+   Serif (Noto Serif SC) body, Sans UI, Mono code.
    ============================================================ */
 
 @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap");
 
-/* ---------- CSS Custom Properties ---------- */
 :root {
   /* Font stacks */
   --font-serif: "Noto Serif SC", "Georgia", "Times New Roman", serif;
@@ -17,44 +14,83 @@
   --font-mono:
     "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", "Source Han Sans SC", monospace;
 
-  /* Spacing scale */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  /* Spacing scale (4px base) */
+  --space-px: 1px;
+  --space-0-5: 0.125rem; /* 2px */
+  --space-1: 0.25rem; /* 4px */
+  --space-1-5: 0.375rem; /* 6px */
+  --space-2: 0.5rem; /* 8px */
+  --space-2-5: 0.625rem; /* 10px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
 
-  /* Radius — square only; values kept as aliases for existing var() calls */
+  /* Radius — square only; aliases for existing var() calls */
   --radius-sm: 0;
   --radius-md: 0;
   --radius-lg: 0;
   --radius-xl: 0;
 
   /* Typography scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
+  --text-2xs: 0.625rem; /* 10px — kbd, overline */
+  --text-overline: 0.6875rem; /* 11px — chrome labels */
+  --text-xs: 0.75rem; /* 12px */
+  --text-nav: 0.8125rem; /* 13px — toc / subnav */
+  --text-sm: 0.875rem; /* 14px — UI */
+  --text-nav-lg: 0.9rem; /* sidebar / mobile nav */
+  --text-code-sm: 0.78rem; /* code block */
+  --text-code-inline: 0.82em;
+  --text-base: 1rem; /* 16px root */
+  --text-body: 1.125rem; /* 18px reading */
   --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
+  --text-xl: 1.25rem; /* h3 / h4 */
   --text-2xl: 1.5rem;
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
+  --text-h1: 2.65rem;
+  --text-h2: 1.65rem;
+  --text-display: 6rem; /* error code */
+
+  /* Letter-spacing */
+  --tracking-tighter: -0.025em;
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0;
+  --tracking-label: 0.05em;
+  --tracking-wide: 0.08em;
 
   /* Line heights */
+  --leading-none: 1;
   --leading-tight: 1.25;
+  --leading-snug: 1.55;
   --leading-normal: 1.6;
   --leading-relaxed: 1.75;
+
+  /* Control / icon sizes */
+  --size-control-sm: 1.5rem; /* 24px */
+  --size-control-md: 1.75rem; /* 28px */
+  --size-control-lg: 2rem; /* 32px */
+  --size-hero-icon: 4rem; /* 64px */
+  --size-scrollbar: 0.5rem; /* 8px */
 
   /* Layout */
   --sidebar-width: 220px;
   --toc-width: 200px;
   --content-max-width: 730px;
+  --layout-max-width: 1440px;
+  /* three framed panels + gaps; used to center header + docs cluster */
+  --docs-cluster-width: calc(
+    var(--sidebar-width) + var(--content-max-width) + var(--toc-width) + var(--space-4) * 2
+  );
   --header-height: 86px;
+  --footer-reserve: 200px;
+  --search-max-width: 560px;
+  --drawer-width: 320px;
+  /* Breakpoints (docs only; media queries keep literals): 640 / 768 / 900 / 1100 */
 
   /* Layering */
   --z-header: 50;
@@ -63,18 +99,17 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
-}
 
-/* ---------- Dark theme (default & only) ---------- */
-:root {
-  --color-bg: #10171e;
+  /* Colors — dark only */
+  --color-bg: #1a1d27;
   --color-fg: rgba(213, 216, 219, 0.96);
-  --color-surface: #17212b;
-  --color-surface-hover: #202c38;
+  --color-surface: #15171f;
+  --color-surface-hover: rgb(30, 37, 47);
   --color-border: rgba(73, 80, 89, 0.62);
-  --color-accent: #8bbdb2;
+  --color-accent: #8ba9bd;
   --color-accent-hover: #b5ddd3;
   --color-accent-soft: #19342f;
+  --color-on-accent: #10171e;
   --color-muted: rgba(159, 164, 171, 0.78);
   --color-code-bg: rgba(33, 39, 48, 0.9);
   --color-code-fg: rgba(213, 216, 219, 0.8);
@@ -91,6 +126,7 @@
   --color-success-border: #396d5d;
   --color-header-bg: transparent;
   --color-overlay: rgba(0, 0, 0, 0.6);
+
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
@@ -119,7 +155,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: var(--text-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -128,8 +164,8 @@ html {
 
 body {
   font-family: var(--font-serif);
-  font-size: 18px;
-  line-height: 1.6;
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
   color: var(--color-fg);
   background-color: var(--color-bg);
   min-height: 100vh;
@@ -173,17 +209,17 @@ h6 {
 }
 
 h1 {
-  font-size: 2.65rem;
+  font-size: var(--text-h1);
   margin: var(--space-10) 0 var(--space-5);
-  letter-spacing: -0.025em;
+  letter-spacing: var(--tracking-tighter);
 }
 h2 {
-  font-size: 1.65rem;
+  font-size: var(--text-h2);
   margin: var(--space-10) 0 var(--space-3);
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-tight);
 }
 h3 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   margin: var(--space-8) 0 var(--space-2);
 }
 h4 {
@@ -234,10 +270,9 @@ hr {
   padding: 0 var(--space-4);
 }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--size-scrollbar);
+  height: var(--size-scrollbar);
 }
 
 ::-webkit-scrollbar-track {
@@ -246,9 +281,109 @@ hr {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-muted);
+}
+
+/* ---------- Bilingual title block: 中文|English ----------
+   Nav/group/inline: inline 中文|en (en one step smaller + muted).
+   Page H1 (display): stacked — Chinese on top, English below. */
+.bilingual-title {
+  display: inline;
+}
+
+.bilingual-title__zh {
+  font: inherit;
+  color: inherit;
+}
+
+.bilingual-title__sep {
+  font: inherit;
+  color: var(--color-muted);
+  margin: 0;
+  font-weight: 400;
+}
+
+.bilingual-title__en {
+  font-weight: 400;
+  color: var(--color-muted);
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Page H1 — stacked block (zh over en); anchor is a sibling # */
+.bilingual-title--display {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+  align-items: start;
+}
+
+.bilingual-title--display .bilingual-title__sep {
+  display: none;
+}
+
+.bilingual-title--display .bilingual-title__zh {
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  font-size: var(--text-h1);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--color-fg);
+}
+
+.bilingual-title--display .bilingual-title__en {
+  grid-column: 1;
+  grid-row: 2;
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  line-height: var(--leading-normal);
+  color: var(--color-muted);
+  font-weight: 400;
+}
+
+.bilingual-title--display > .heading-anchor {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+
+/* Sidebar / mobile group labels (overline chrome) — keep inline */
+.bilingual-title--group {
+  text-transform: none;
+}
+.bilingual-title--group .bilingual-title__zh {
+  text-transform: uppercase;
+  font-size: var(--text-overline);
+  letter-spacing: var(--tracking-wide);
+}
+.bilingual-title--group .bilingual-title__en {
+  text-transform: none;
+  font-size: var(--text-2xs);
+  font-family: var(--font-mono);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* Sidebar / mobile nav items — keep inline */
+.bilingual-title--nav .bilingual-title__zh {
+  font-size: inherit;
+}
+.bilingual-title--nav .bilingual-title__en {
+  font-size: var(--text-xs);
+  font-family: var(--font-serif);
+}
+
+/* Page prev/next + search results — keep inline */
+.bilingual-title--inline .bilingual-title__zh {
+  font-size: inherit;
+}
+.bilingual-title--inline .bilingual-title__en {
+  font-size: var(--text-xs);
+  font-family: var(--font-sans);
 }

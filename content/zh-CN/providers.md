@@ -1,4 +1,4 @@
-# 模型提供商
+# 模型提供商｜Providers
 
 Pi 支持通过 OAuth 的 subscription-based 提供商以及通过环境变量或认证文件的 API 密钥提供商。对于每个提供商， pi 知道所有可用的模型。该列表会随每次 pi 发布而更新。
 

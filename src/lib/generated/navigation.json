@@ -1,149 +1,149 @@
 [
   {
     "id": "start-here",
-    "title": "Start here",
+    "title": "开始使用｜Start here",
     "items": [
       {
         "slug": "",
-        "title": "Overview"
+        "title": "Pi 文档｜Pi Documentation"
       },
       {
         "slug": "quickstart",
-        "title": "Quickstart"
+        "title": "快速入门｜Quickstart"
       },
       {
         "slug": "usage",
-        "title": "Using Pi"
+        "title": "使用 Pi｜Using Pi"
       },
       {
         "slug": "providers",
-        "title": "Providers"
+        "title": "模型提供商｜Providers"
       },
       {
         "slug": "security",
-        "title": "Security"
+        "title": "安全性｜Security"
       },
       {
         "slug": "containerization",
-        "title": "Containerization"
+        "title": "容器化｜Containerization"
       },
       {
         "slug": "settings",
-        "title": "Settings"
+        "title": "设置｜Settings"
       },
       {
         "slug": "keybindings",
-        "title": "Keybindings"
+        "title": "快捷键｜Keybindings"
       },
       {
         "slug": "sessions",
-        "title": "Sessions"
+        "title": "会话｜Sessions"
       },
       {
         "slug": "compaction",
-        "title": "Compaction"
+        "title": "上下文压缩与分支摘要｜Compaction & Branch Summarization"
       }
     ]
   },
   {
     "id": "customization",
-    "title": "Customization",
+    "title": "自定义｜Customization",
     "items": [
       {
         "slug": "extensions",
-        "title": "Extensions"
+        "title": "扩展｜Extensions"
       },
       {
         "slug": "skills",
-        "title": "Skills"
+        "title": "技能｜Skills"
       },
       {
         "slug": "prompt-templates",
-        "title": "Prompt Templates"
+        "title": "提示词模板｜Prompt Templates"
       },
       {
         "slug": "themes",
-        "title": "Themes"
+        "title": "主题｜Themes"
       },
       {
         "slug": "packages",
-        "title": "Pi Packages"
+        "title": "Pi 包｜Pi Packages"
       },
       {
         "slug": "models",
-        "title": "Custom Models"
+        "title": "自定义模型｜Custom Models"
       },
       {
         "slug": "custom-provider",
-        "title": "Custom Providers"
+        "title": "自定义模型提供商｜Custom Providers"
       }
     ]
   },
   {
     "id": "reference",
-    "title": "Reference",
+    "title": "参考｜Reference",
     "items": [
       {
         "slug": "session-format",
-        "title": "Session Format"
+        "title": "会话文件格式｜Session File Format"
       }
     ]
   },
   {
     "id": "programmatic-usage",
-    "title": "Programmatic Usage",
+    "title": "程序化用法｜Programmatic Usage",
     "items": [
       {
         "slug": "sdk",
-        "title": "SDK"
+        "title": "SDK｜SDK"
       },
       {
         "slug": "rpc",
-        "title": "RPC Mode"
+        "title": "RPC 模式｜RPC Mode"
       },
       {
         "slug": "json",
-        "title": "JSON Event Stream Mode"
+        "title": "JSON 事件流模式｜JSON Event Stream Mode"
       },
       {
         "slug": "tui",
-        "title": "TUI Components"
+        "title": "TUI 组件｜TUI Components"
       }
     ]
   },
   {
     "id": "platform-setup",
-    "title": "Platform Setup",
+    "title": "平台设置｜Platform Setup",
     "items": [
       {
         "slug": "windows",
-        "title": "Windows"
+        "title": "Windows 设置｜Windows Setup"
       },
       {
         "slug": "termux",
-        "title": "Termux on Android"
+        "title": "Termux (Android) 设置｜Termux (Android) Setup"
       },
       {
         "slug": "tmux",
-        "title": "tmux"
+        "title": "tmux 设置｜tmux Setup"
       },
       {
         "slug": "terminal-setup",
-        "title": "Terminal Setup"
+        "title": "终端设置｜Terminal Setup"
       },
       {
         "slug": "shell-aliases",
-        "title": "Shell Aliases"
+        "title": "Shell 别名｜Shell Aliases"
       }
     ]
   },
   {
     "id": "development",
-    "title": "Development",
+    "title": "开发｜Development",
     "items": [
       {
         "slug": "development",
-        "title": "Development"
+        "title": "开发｜Development"
       }
     ]
   }

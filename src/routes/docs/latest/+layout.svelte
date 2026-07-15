@@ -61,15 +61,29 @@
     grid-template-columns: var(--sidebar-width) minmax(0, var(--content-max-width)) var(
         --toc-width
       );
-    column-gap: var(--space-12);
-    max-width: 1440px;
+    column-gap: var(--space-4);
+    justify-content: center;
+    align-items: start;
+    width: 100%;
     margin: 0 auto;
     min-height: calc(100vh - var(--header-height));
-    padding: 0 var(--space-8);
+    padding: var(--space-4) var(--space-8) var(--space-8);
+  }
+
+  /* Framed panels: sidebar / main / toc */
+  .docs-sidebar-col,
+  .docs-main-col,
+  .docs-toc-col {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
   }
 
   .docs-sidebar-col {
     display: none;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    height: calc(100vh - var(--header-height) - var(--space-8));
+    overflow: hidden;
   }
 
   @media (min-width: 900px) {
@@ -80,11 +94,15 @@
 
   .docs-main-col {
     min-width: 0;
-    padding: var(--space-16) 0 var(--space-16);
+    padding: var(--space-10) var(--space-8) var(--space-12);
   }
 
   .docs-toc-col {
     display: none;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    max-height: calc(100vh - var(--header-height) - var(--space-8));
+    overflow-y: auto;
   }
 
   @media (min-width: 1100px) {
@@ -102,12 +120,18 @@
   @media (max-width: 768px) {
     .docs-layout {
       display: block;
-      padding: 0 var(--space-5);
+      padding: var(--space-4) var(--space-5) var(--space-8);
     }
 
     .docs-main-col {
-      padding: var(--space-10) 0 var(--space-16);
+      padding: var(--space-8) var(--space-5) var(--space-12);
       max-width: 100%;
+    }
+
+    .docs-sidebar-col,
+    .docs-toc-col {
+      border: 0;
+      background: transparent;
     }
   }
 
@@ -116,7 +140,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: min(320px, 80vw);
+    width: min(var(--drawer-width), 80vw);
     height: 100dvh;
     background: var(--color-bg);
     border-right: 1px solid var(--color-border);

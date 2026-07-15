@@ -6,6 +6,8 @@ node_modules
 .DS_Store
 *.log
 coverage
+content/
+state/
 pnpm-lock.yaml
 src/lib/generated/
 static/search-index.json

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import type { NavigationGroup } from "../../../scripts/lib/types.js";
+  import BilingualTitle from "./BilingualTitle.svelte";
 
   let { navigation, onNavigate }: { navigation: NavigationGroup[]; onNavigate?: () => void } =
     $props();
@@ -9,7 +10,9 @@
 <div class="mobile-nav" role="navigation" aria-label="移动端导航">
   {#each navigation as group}
     <div class="mobile-nav-group">
-      <h4 class="mobile-nav-heading">{group.title}</h4>
+      <h4 class="mobile-nav-heading">
+        <BilingualTitle text={group.title} size="group" />
+      </h4>
       <ul class="mobile-nav-list">
         {#each group.items as item}
           <li>
@@ -18,7 +21,7 @@
               class="mobile-nav-link"
               onclick={onNavigate}
             >
-              {item.title}
+              <BilingualTitle text={item.title} size="nav" />
             </a>
           </li>
         {/each}
@@ -38,13 +41,13 @@
 
   .mobile-nav-heading {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: var(--text-2xs);
     font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-wide);
     color: var(--color-muted);
     margin: 0 0 var(--space-3);
-    padding: 0 12px;
+    padding: 0 var(--space-3);
   }
 
   .mobile-nav-list {
@@ -55,9 +58,9 @@
 
   .mobile-nav-link {
     display: block;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
     font-family: var(--font-serif);
-    font-size: 0.9rem;
+    font-size: var(--text-nav-lg);
     color: var(--color-fg);
     text-decoration: none;
   }

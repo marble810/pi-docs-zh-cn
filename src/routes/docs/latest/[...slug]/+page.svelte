@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-  <title>{data.title || "文档"} — Pi 中文文档</title>
+  <title>{data.title || "文档"}|Pi 中文文档</title>
   {#if data.description}
     <meta name="description" content={data.description} />
   {/if}

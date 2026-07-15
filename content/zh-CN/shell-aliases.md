@@ -1,4 +1,4 @@
-# Shell 别名
+# Shell 别名｜Shell Aliases
 
 Pi 在 non-interactive 模式下运行 bash (`bash -c`)，默认情况下不会展开别名。
 

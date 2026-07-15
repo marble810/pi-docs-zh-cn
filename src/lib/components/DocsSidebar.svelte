@@ -2,6 +2,7 @@
   import { base } from "$app/paths";
   import { page } from "$app/stores";
   import type { NavigationGroup } from "../../../scripts/lib/types.js";
+  import BilingualTitle from "./BilingualTitle.svelte";
 
   let { navigation }: { navigation: NavigationGroup[] } = $props();
   let currentSlug = $derived(
@@ -16,7 +17,9 @@
   <div class="sidebar-inner">
     {#each navigation as group}
       <div class="nav-group">
-        <h3 class="nav-group-title">{group.title}</h3>
+        <h3 class="nav-group-title">
+          <BilingualTitle text={group.title} size="group" />
+        </h3>
         <ul class="nav-list">
           {#each group.items as item}
             <li>
@@ -25,7 +28,7 @@
                 class="nav-link"
                 class:active={currentSlug === item.slug}
               >
-                {item.title}
+                <BilingualTitle text={item.title} size="nav" />
               </a>
               {#if item.children?.length}
                 <ul class="nav-sublist">
@@ -36,7 +39,7 @@
                         class="nav-link nav-sublink"
                         class:active={currentSlug === child.slug}
                       >
-                        {child.title}
+                        <BilingualTitle text={child.title} size="nav" />
                       </a>
                     </li>
                   {/each}
@@ -52,16 +55,13 @@
 
 <style>
   .sidebar {
-    width: var(--sidebar-width);
-    flex-shrink: 0;
+    width: 100%;
+    height: 100%;
     overflow-y: auto;
-    height: calc(100vh - var(--header-height));
-    position: sticky;
-    top: var(--header-height);
   }
 
   .sidebar-inner {
-    padding: var(--space-10) 0 var(--space-8);
+    padding: var(--space-5) var(--space-4) var(--space-6);
   }
 
   .nav-group {
@@ -69,12 +69,11 @@
   }
 
   .nav-group-title {
-    font-family: var(--font-sans);
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: var(--text-2xs);
     font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-wide);
     color: var(--color-muted);
     margin: 0 0 var(--space-3);
     padding: 0;
@@ -88,12 +87,12 @@
 
   .nav-link {
     display: block;
-    padding: 3px 0;
+    padding: var(--space-0-5) 0;
     font-family: var(--font-serif);
-    font-size: 0.9rem;
+    font-size: var(--text-nav-lg);
     color: var(--color-muted);
     text-decoration: none;
-    border-radius: 0;
+    border-radius: var(--radius-md);
     transition: background var(--transition-fast);
   }
 
@@ -108,14 +107,18 @@
     font-weight: 400;
   }
 
+  :global(.sidebar .bilingual-title__zh) {
+    color: var(--color-fg);
+  }
+
   .nav-sublist {
     list-style: none;
     padding: 0;
-    margin: 2px 0 0 var(--space-3);
+    margin: var(--space-0-5) 0 0 var(--space-3);
   }
 
   .nav-sublink {
-    font-size: 0.8rem;
-    padding: 2px 0;
+    font-size: var(--text-nav);
+    padding: var(--space-0-5) 0;
   }
 </style>

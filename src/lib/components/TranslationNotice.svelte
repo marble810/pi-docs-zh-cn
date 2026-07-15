@@ -17,7 +17,8 @@
     <line x1="12" y1="8" x2="12.01" y2="8" />
   </svg>
   <p>
-    此页面为 Pi 文档的 <strong>简体中文社区翻译</strong>，内容可能与非官方源存在偏差。最新信息请参考
+    此页面为 Pi 文档的 <strong>简体中文社区翻译</strong>，本翻译内容使用 DeepSeek V4 Flash 进行 AI
+    翻译，可能存在不准确或遗漏之处。最新信息请参考
     <a href="https://pi.dev/docs/latest" target="_blank" rel="noopener">原始英文文档</a>。
   </p>
 </div>
@@ -40,7 +41,7 @@
 
   .notice-icon {
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: var(--space-0-5);
   }
 
   .translation-notice p {

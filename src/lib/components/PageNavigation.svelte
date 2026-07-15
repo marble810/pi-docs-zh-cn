@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from "$app/paths";
   import type { DocsManifestPage } from "../../../scripts/lib/types.js";
+  import BilingualTitle from "./BilingualTitle.svelte";
 
   let { current, allPages }: { current?: DocsManifestPage; allPages: DocsManifestPage[] } =
     $props();
@@ -18,7 +19,9 @@
       {#if prev}
         <a href={base + "/docs/latest/" + prev.slug} class="page-nav-link">
           <span class="page-nav-direction">上一页</span>
-          <span class="page-nav-title">{prev.title}</span>
+          <span class="page-nav-title">
+            <BilingualTitle text={prev.title} size="inline" />
+          </span>
         </a>
       {/if}
     </div>
@@ -26,7 +29,9 @@
       {#if next}
         <a href={base + "/docs/latest/" + next.slug} class="page-nav-link">
           <span class="page-nav-direction">下一页</span>
-          <span class="page-nav-title">{next.title}</span>
+          <span class="page-nav-title">
+            <BilingualTitle text={next.title} size="inline" />
+          </span>
         </a>
       {/if}
     </div>
@@ -55,7 +60,7 @@
   .page-nav-link {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0-5);
     text-decoration: none;
   }
 

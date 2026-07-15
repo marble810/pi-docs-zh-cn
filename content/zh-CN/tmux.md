@@ -1,4 +1,4 @@
-# tmux 设置
+# tmux 设置｜tmux Setup
 
 Pi可在 tmux 中工作，但 tmux 默认会剥离某些键的修饰符信息。未配置时，`Shift+Enter`和`Ctrl+Enter`通常与普通的`Enter`无法区分。
 

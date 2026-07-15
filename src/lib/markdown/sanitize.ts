@@ -68,7 +68,7 @@ export const sanitizeSchema: Options = {
   ],
   attributes: {
     "*": ["className", "id", "lang"],
-    a: ["href", "target", "rel", "title"],
+    a: ["href", "target", "rel", "title", "ariaLabel", "aria-label"],
     img: ["src", "alt", "title", "width", "height", "loading"],
     code: ["className"],
     pre: ["className"],

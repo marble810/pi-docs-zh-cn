@@ -1,4 +1,4 @@
-# 开发
+# 开发｜Development
 
 请参阅 [AGENTS.md](https://github.com/earendil-works/pi-mono/blob/main/AGENTS.md) 以获取更多指南。
 

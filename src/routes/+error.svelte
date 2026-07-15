@@ -26,11 +26,11 @@
   }
 
   .error-code {
-    font-size: 6rem;
+    font-size: var(--text-display);
     font-weight: 700;
     color: var(--color-muted);
     margin: 0;
-    line-height: 1;
+    line-height: var(--leading-none);
   }
 
   .error-message {
@@ -51,9 +51,9 @@
     font-family: var(--font-sans);
     font-size: var(--text-sm);
     font-weight: 500;
-    padding: 10px 24px;
+    padding: var(--space-2-5) var(--space-6);
     background: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
     border-radius: var(--radius-md);
     text-decoration: none;
   }

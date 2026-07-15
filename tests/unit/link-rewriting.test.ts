@@ -14,6 +14,15 @@ describe("rewriteDocHref", () => {
     expect(rewriteDocHref("index.md")).toBe("/docs/latest/");
   });
 
+  it("prefixes GitHub Pages base path", () => {
+    expect(rewriteDocHref("settings.md", "/pi-docs-zh-cn")).toBe(
+      "/pi-docs-zh-cn/docs/latest/settings"
+    );
+    expect(rewriteDocHref("custom-provider.md#oauth", "/pi-docs-zh-cn")).toBe(
+      "/pi-docs-zh-cn/docs/latest/custom-provider#oauth"
+    );
+  });
+
   it("leaves external and non-md links alone", () => {
     expect(rewriteDocHref("https://example.com/x.md")).toBeNull();
     expect(rewriteDocHref("#section")).toBeNull();

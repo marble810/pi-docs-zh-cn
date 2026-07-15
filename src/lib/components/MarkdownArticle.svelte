@@ -9,8 +9,8 @@
 <style>
   .markdown-article {
     font-family: var(--font-serif);
-    font-size: 1.125rem;
-    line-height: 1.6;
+    font-size: var(--text-body);
+    line-height: var(--leading-normal);
     color: var(--color-fg);
     max-width: 100%;
   }
@@ -19,11 +19,16 @@
     margin-top: 0;
   }
 
+  /* Stacked bilingual page title (layout tokens live in app.css) */
+  .markdown-article :global(h1.bilingual-title--display) {
+    margin-bottom: var(--space-6);
+  }
+
   .markdown-article :global(a) {
     color: inherit;
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, var(--color-accent) 65%, transparent);
-    text-underline-offset: 0.14em;
+    text-underline-offset: var(--space-0-5);
   }
 
   .markdown-article :global(a:hover) {
@@ -31,13 +36,46 @@
     text-decoration-color: currentColor;
   }
 
+  /* Heading permalink: plain # symbol, not a wrapped title link */
+  .markdown-article :global(a.heading-anchor) {
+    display: inline-flex;
+    align-items: center;
+    margin-left: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--color-muted);
+    text-decoration: none;
+    opacity: 0;
+    transition:
+      opacity var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .markdown-article :global(h1:hover > a.heading-anchor),
+  .markdown-article :global(h2:hover > a.heading-anchor),
+  .markdown-article :global(h3:hover > a.heading-anchor),
+  .markdown-article :global(h4:hover > a.heading-anchor),
+  .markdown-article :global(a.heading-anchor:focus-visible),
+  .markdown-article :global(a.heading-anchor:hover) {
+    opacity: 1;
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .markdown-article :global(h1.bilingual-title--display > a.heading-anchor) {
+    margin-left: 0;
+    font-size: var(--text-xl);
+  }
+
   .markdown-article :global(code) {
     font-family: var(--font-mono);
-    font-size: 0.82em;
+    font-size: var(--text-code-inline);
     background: var(--color-code-bg);
     border: 1px solid var(--color-border);
-    padding: 1px 5px;
-    border-radius: 2px;
+    padding: var(--space-px) var(--space-1-5);
+    border-radius: var(--radius-sm);
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
@@ -46,18 +84,18 @@
     background: var(--color-code-block-bg) !important;
     color: var(--color-code-block-fg);
     border: 1px solid var(--color-border);
-    border-radius: 3px;
-    padding: 18px;
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
     overflow-x: auto;
     margin: var(--space-5) 0;
-    font-size: 0.78rem;
-    line-height: 1.55;
+    font-size: var(--text-code-sm);
+    line-height: var(--leading-snug);
   }
 
   .markdown-article :global(pre code) {
     background: transparent;
     border: 0;
-    border-radius: 0;
+    border-radius: var(--radius-sm);
     padding: 0;
     font-size: inherit;
   }
@@ -96,14 +134,5 @@
     padding-left: var(--space-4);
     margin: var(--space-5) 0;
     color: var(--color-muted);
-  }
-
-  .markdown-article :global(.heading-wrapper) {
-    text-decoration: none;
-    color: inherit;
-  }
-
-  .markdown-article :global(.heading-wrapper:hover) {
-    text-decoration: none;
   }
 </style>
