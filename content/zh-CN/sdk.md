@@ -1,31 +1,27 @@
-> Pi 可以帮助您使用 SDK。请让它为您构建一个集成方案。
+> pi 可以帮助您使用 SDK。让它为您的用例构建一个集成。
 
-# SDK｜SDK
+# SDK
 
-SDK 提供对 Pi 代理能力的编程访问。使用它可以将 Pi 嵌入到其他应用程序中，构建自定义界面，或与自动化工作流集成。
+SDK 提供对 pi 代理能力的编程访问。使用它可以将 pi 嵌入到其他应用程序中，构建自定义界面，或集成到自动化工作流中。
 
 **示例用例：**
-- 构建自定义 UI (Web、桌面、移动端)
+- 构建自定义 UI (Web、桌面、移动)
 - 将代理能力集成到现有应用程序中
-- 创建带有代理推理的自动化流水线
+- 使用代理推理创建自动化管道
 - 构建生成 sub-agents 的自定义工具
 - 以编程方式测试代理行为
 
-请参阅 [examples/sdk/](../examples/sdk/) 获取从最小化到完全控制的可用示例。
+参见 [examples/sdk/](../examples/sdk/)，其中包含从最小到完全控制的实用示例。
 
-## 快速入门
+## 快速入门｜ Quick Start
 
 ```typescript
-import { AuthStorage, createAgentSession, ModelRegistry, SessionManager } from "@earendil-works/pi-coding-agent";
+import { createAgentSession, ModelRuntime, SessionManager } from "@earendil-works/pi-coding-agent";
 
-// Set up credential storage and model registry
-const authStorage = AuthStorage.create();
-const modelRegistry = ModelRegistry.create(authStorage);
-
+const modelRuntime = await ModelRuntime.create();
 const { session } = await createAgentSession({
   sessionManager: SessionManager.inMemory(),
-  authStorage,
-  modelRegistry,
+  modelRuntime,
 });
 
 session.subscribe((event) => {
@@ -37,21 +33,21 @@ session.subscribe((event) => {
 await session.prompt("What files are in the current directory?");
 ```
 
-## 安装
+## 安装｜ Installation
 
 ```bash
 npm install @earendil-works/pi-coding-agent
 ```
 
-SDK 已包含在主包中，无需单独安装。
+SDK 包含在主包中，无需单独安装。
 
-## 核心概念
+## 核心概念｜ Core Concepts
 
 ### createAgentSession()
 
 创建单个 `AgentSession` 的主工厂函数。
 
-`createAgentSession()` 使用 `ResourceLoader` 提供扩展、技能、提示词模板、主题和上下文文件。如果未提供，则使用 `DefaultResourceLoader` 进行标准发现。
+`createAgentSession()` 使用 `ResourceLoader` 来提供扩展、技能、提示词模板、主题和上下文文件。如果你不提供，它会使用 `DefaultResourceLoader` 进行标准发现。
 
 ```typescript
 import { createAgentSession, SessionManager } from "@earendil-works/pi-coding-agent";
@@ -69,7 +65,7 @@ const { session } = await createAgentSession({
 
 ### AgentSession
 
-会话管理代理生命周期、消息历史、模型状态、上下文压缩和事件流。
+会话管理代理的生命周期、消息历史、模型状态、上下文压缩和事件流。
 
 ```typescript
 interface AgentSession {
@@ -115,14 +111,14 @@ interface AgentSession {
 }
 ```
 
-会话替换 API （例如 new-session、resume、fork 和 import ）位于 `AgentSessionRuntime` 上，而非 `AgentSession` 上。
+会话替换 API （如 new-session、resume、fork 和 import ）位于 `AgentSessionRuntime` 上，而不是 `AgentSession` 上。
 
 ### createAgentSessionRuntime() 和 AgentSessionRuntime
 
-当需要替换活动会话并重建 cwd-bound 运行时状态时，使用运行时 API。
-这与 built-in 交互模式、打印模式和 RPC 模式使用的层相同。
+当你需要替换活动会话并重建 cwd-bound 运行时状态时，使用运行时 API。
+这也是 built-in 交互、打印和 RPC 模式所使用的同一层。
 
-`createAgentSessionRuntime()` 接收一个运行时工厂以及初始 cwd/会话目标。工厂闭包捕获 process-global 固定输入，为有效 cwd 重建 cwd-bound 服务，根据这些服务解析会话选项，并返回完整的运行时结果。
+`createAgentSessionRuntime()` 接收一个运行时工厂以及初始的 cwd/会话目标。该工厂封装了 process-global 固定输入，为有效 cwd 重新创建 cwd-bound 服务，针对这些服务解析会话选项，并返回完整的运行时结果。
 
 ```typescript
 import {
@@ -154,7 +150,7 @@ const runtime = await createAgentSessionRuntime(createRuntime, {
 });
 ```
 
-`AgentSessionRuntime` 负责跨以下场景替换活动运行时：
+`AgentSessionRuntime` 负责替换以下场景中的活动运行时：
 
 - `newSession()`
 - `switchSession()`
@@ -164,11 +160,11 @@ const runtime = await createAgentSessionRuntime(createRuntime, {
 
 重要行为：
 
-- 这些操作后 `runtime.session` 发生变化
+- 这些操作之后，`runtime.session` 会发生改变
 - 事件订阅绑定到特定的 `AgentSession`，因此在替换后 re-subscribe
-- 如果使用扩展，请为新会话再次调用 `runtime.session.bindExtensions(...)`
-- 创建时返回 `runtime.diagnostics` 的诊断信息
-- 如果运行时创建或替换失败，方法将抛出异常，由调用者决定如何处理
+- 如果你使用扩展，请为新的会话再次调用 `runtime.session.bindExtensions(...)`
+- 创建操作会返回关于 `runtime.diagnostics` 的诊断信息
+- 如果运行时创建或替换失败，该方法会抛出异常，由调用方决定如何处理
 
 ```typescript
 let session = runtime.session;
@@ -181,9 +177,9 @@ session = runtime.session;
 unsubscribe = session.subscribe(() => {});
 ```
 
-### 提示词与消息队列
+### 提示与消息队列｜ Prompting and Message Queueing
 
-`PromptOptions` 控制提示词展开、流式传输时的队列行为以及提示词预检通知：
+`PromptOptions` 控制提示词展开、流式传输时的排队行为以及提示词预检通知：
 
 ```typescript
 interface PromptOptions {
@@ -195,12 +191,12 @@ interface PromptOptions {
 }
 ```
 
-每次 `prompt()` 调用会执行一次 `preflightResult`：
+每次调用 `prompt()` 时，`preflightResult` 会被调用一次：
 
-- 当提示词被接受、排队或立即处理时 `true`
-- 当提示词在预检阶段被拒绝时 `false`
+- `true` 当提示词被接受、排队或立即处理时触发
+- `false` 当提示词在接收前被预检拒绝时触发
 
-它在 `prompt()` 解析之前触发。`prompt()` 仍然只在完整接受的运行完成后才解析，包括重试。接受后的失败通过常规事件和消息流报告，而不是通过 `preflightResult(false)`。
+它在 `prompt()` 解析之前触发。`prompt()` 仍然只会在整个接受的运行完成后解析，包括重试。接受后的失败通过正常的事件和消息流报告，而不是通过 `preflightResult(false)`。
 
 `prompt()` 方法处理提示词模板、扩展命令和消息发送：
 
@@ -219,13 +215,13 @@ await session.prompt("After you're done, also check X", { streamingBehavior: "fo
 ```
 
 **行为：**
-- **扩展命令** (e.g., `/mycommand`)：立即执行，即使在流式传输期间。它们通过 `pi.sendMessage()` 管理自己的 LLM 交互。
-- **基于文件的提示词模板** (来自 `.md` 文件)：在发送或排队前展开为其内容。
-- **在不使用 `streamingBehavior` 的流式传输过程中**：抛出错误。请直接使用 `steer()` 或 `followUp()`，或指定该选项。
-- **`preflightResult(true)`**：表示提示词已被接受、排队或立即处理。
-- **`preflightResult(false)`**：表示预检在接收前被拒绝。
+- **扩展命令** (e.g。，`/mycommand`)：立即执行，即使在流式传输期间也是如此。它们通过 `pi.sendMessage()` 管理自己的 LLM 交互。
+- **基于文件的提示词模板** (来自 `.md` 文件)：在发送或排队前展开为内容。
+- **在没有 `streamingBehavior` 的流式传输期间**：抛出错误。请直接使用 `steer()` 或 `followUp()`，或指定该选项。
+- **`preflightResult(true)`**：表示提示词被接受、排队或立即处理。
+- **`preflightResult(false)`**：表示预检在接收前拒绝。
 
-在流式传输期间进行显式排队：
+对于流式传输期间的显式排队：
 
 ```typescript
 // Queue a steering message for delivery after the current assistant turn finishes its tool calls
@@ -235,9 +231,9 @@ await session.steer("New instruction");
 await session.followUp("After you're done, also do this");
 ```
 
-`steer()` 和 `followUp()` 都会展开 file-based 提示词模板，但会在扩展命令时出错 (扩展命令无法排队)。
+`steer()` 和 `followUp()` 都会展开 file-based 提示词模板，但在扩展命令上会报错 (扩展命令无法排队)。
 
-### 代理和 AgentState
+### 代理和AgentState｜代理 and AgentState
 
 `Agent` 类 (来自 `@earendil-works/pi-agent-core`) 处理核心 LLM 交互。通过 `session.agent` 访问。
 
@@ -263,7 +259,7 @@ session.agent.state.tools = tools; // copies the top-level array
 await session.agent.waitForIdle();
 ```
 
-### 事件
+### 事件｜ Events
 
 订阅事件以接收流式输出和生命周期通知。
 
@@ -328,9 +324,9 @@ session.subscribe((event) => {
 });
 ```
 
-## 选项参考
+## 选项参考｜ Options Reference
 
-### 目录
+### 目录｜ Directories
 
 ```typescript
 const { session } = await createAgentSession({
@@ -346,10 +342,10 @@ const { session } = await createAgentSession({
 - 项目扩展 (`.pi/extensions/`)
 - 项目技能：
   - `.pi/skills/`
-  - `.agents/skills/` 在 `cwd` 及其祖先目录中 (向上直到 git repo 根目录，或当不在仓库中时到文件系统根目录)
+  - `.agents/skills/` 位于 `cwd` 及祖先目录中 (向上直到 git repo 根目录，或文件系统根目录（当不在仓库中时）)
 - 项目提示词 (`.pi/prompts/`)
-- 上下文文件 (`AGENTS.md` 从当前工作目录向上遍历)
-- 会话目录命名
+- 上下文文件 (`AGENTS.md` 从当前工作目录向上查找)
+- 会话目录命名｜会话 directory naming
 
 `agentDir` 被 `DefaultResourceLoader` 用于：
 - 全局扩展 (`extensions/`)
@@ -359,20 +355,19 @@ const { session } = await createAgentSession({
 - 全局提示词 (`prompts/`)
 - 全局上下文文件 (`AGENTS.md`)
 - 设置 (`settings.json`)
-- 自定义模型(`models.json`)
-- 凭据(`auth.json`)
-- 会话(`sessions/`)
+- 自定义模型 (`models.json`)
+- 凭据 (`auth.json`)
+- 会话 (`sessions/`)
 
-当你传递自定义的`ResourceLoader`时，`cwd`和`agentDir`不再控制资源发现。它们仍然影响会话命名和工具路径解析。
+当你传入自定义 `ResourceLoader` 时，`cwd` 和 `agentDir` 不再控制资源发现。它们仍会影响会话命名和工具路径解析。
 
-### 模型
+### 模型｜ Model
 
 ```typescript
 import { getModel } from "@earendil-works/pi-ai";
-import { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import { ModelRuntime } from "@earendil-works/pi-coding-agent";
 
-const authStorage = AuthStorage.create();
-const modelRegistry = ModelRegistry.create(authStorage);
+const modelRuntime = await ModelRuntime.create();
 
 // Find specific built-in model (doesn't check if API key exists)
 const opus = getModel("anthropic", "claude-opus-4-5");
@@ -380,10 +375,10 @@ if (!opus) throw new Error("Model not found");
 
 // Find any model by provider/id, including custom models from models.json
 // (doesn't check if API key exists)
-const customModel = modelRegistry.find("my-provider", "my-model");
+const customModel = modelRuntime.getModel("my-provider", "my-model");
 
-// Get only models that have valid API keys configured
-const available = await modelRegistry.getAvailable();
+// Get only models that have valid authentication configured
+const available = await modelRuntime.getAvailable();
 
 const { session } = await createAgentSession({
   model: opus,
@@ -395,17 +390,16 @@ const { session } = await createAgentSession({
     { model: haiku, thinkingLevel: "off" },
   ],
   
-  authStorage,
-  modelRegistry,
+  modelRuntime,
 });
 ```
 
 如果未提供模型：
-1. 尝试从会话(恢复（如果是继续会话)）
+1. 尝试从会话中恢复 (如果继续会话)
 2. 使用设置中的默认值
 3. 回退到第一个可用模型
 
-要匹配CLI模型解析，请使用导出的解析器辅助函数：
+要匹配 CLI 模型解析，请使用导出的解析器辅助函数：
 
 ```typescript
 import {
@@ -415,67 +409,68 @@ import {
 
 const cliModel = resolveCliModel({
   cliModel: "anthropic/claude-opus-4-5:high",
-  modelRegistry,
+  modelRuntime,
 });
 if (cliModel.error) throw new Error(cliModel.error);
 if (cliModel.warning) console.warn(cliModel.warning);
 
 const { scopedModels, diagnostics } = await resolveModelScopeWithDiagnostics(
   ["anthropic/*:high", "gpt-5"],
-  modelRegistry,
+  modelRuntime,
 );
 for (const diagnostic of diagnostics) {
   console.warn(diagnostic.message);
 }
 ```
 
-`resolveCliModel()`使用所有注册的模型，因此`--api-key`风格的first-time设置可以在存储的身份验证存在之前解析模型。`resolveModelScopeWithDiagnostics()`匹配`--models`和`enabledModels`的语义，同时返回警告而不是打印它们。
+`resolveCliModel()` 使用所有已注册模型，以便 `--api-key` 风格的 first-time 设置在存储认证之前解析模型。`resolveModelScopeWithDiagnostics()` 匹配 `--models` 和 `enabledModels` 语义，同时返回警告而不是打印它们。
 
-> 参见[examples/sdk/02-custom-model.ts](../examples/sdk/02-custom-model.ts)
+> 参见 [examples/sdk/02-custom-model.ts](../examples/sdk/02-custom-model.ts)
 
-### API密钥和 OAuth
+### API 密钥与 OAuth
 
-API密钥解析优先级(由AuthStorage处理)：
-1. 运行时覆盖(通过`setRuntimeApiKey`，不持久化)
-2. `auth.json`中的存储凭据(API密钥或 OAuth 令牌)
-3. 环境变量(`ANTHROPIC_API_KEY`、`OPENAI_API_KEY`等)
-4. 回退解析器(用于来自`models.json`的自定义提供商密钥)
+身份验证解析优先级 (由 `ModelRuntime` 处理):
+1. 运行时覆盖 (通过 `setRuntimeApiKey`，不持久化)
+2. 存储在 `auth.json` 中的凭据 (API 密钥或 OAuth 令牌)
+3. 环境变量 (`ANTHROPIC_API_KEY`、`OPENAI_API_KEY` 等)
+4. 回退解析器 (用于来自 `models.json` 的自定义模型提供商密钥)
 
 ```typescript
-import { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import { InMemoryCredentialStore } from "@earendil-works/pi-ai";
+import { createAgentSession, ModelRuntime } from "@earendil-works/pi-coding-agent";
 
 // Default: uses ~/.pi/agent/auth.json and ~/.pi/agent/models.json
-const authStorage = AuthStorage.create();
-const modelRegistry = ModelRegistry.create(authStorage);
+const modelRuntime = await ModelRuntime.create();
 
-const { session } = await createAgentSession({
-  sessionManager: SessionManager.inMemory(),
-  authStorage,
-  modelRegistry,
-});
+// Provider-owned auth methods and current status
+for (const provider of modelRuntime.getProviders()) {
+  const status = await modelRuntime.checkAuth(provider.id);
+  console.log(provider.name, provider.auth, status);
+}
 
 // Runtime API key override (not persisted to disk)
-authStorage.setRuntimeApiKey("anthropic", "sk-my-temp-key");
+modelRuntime.setRuntimeApiKey("anthropic", "sk-my-temp-key");
 
-// Custom auth storage location
-const customAuth = AuthStorage.create("/my/app/auth.json");
-const customRegistry = ModelRegistry.create(customAuth, "/my/app/models.json");
-
-const { session } = await createAgentSession({
-  sessionManager: SessionManager.inMemory(),
-  authStorage: customAuth,
-  modelRegistry: customRegistry,
+// Custom credential and model locations
+const customRuntime = await ModelRuntime.create({
+  authPath: "/my/app/auth.json",
+  modelsPath: "/my/app/models.json",
 });
 
-// No custom models.json (built-in models only)
-const simpleRegistry = ModelRegistry.inMemory(authStorage);
+// Or inject any pi-ai CredentialStore
+const credentials = new InMemoryCredentialStore();
+const inMemoryRuntime = await ModelRuntime.create({ credentials });
+
+const { session } = await createAgentSession({
+  modelRuntime: customRuntime,
+});
 ```
 
-> 参见[examples/sdk/09-api-keys-and-oauth.ts](../examples/sdk/09-api-keys-and-oauth.ts)
+> 参见 [examples/sdk/09-api-keys-and-oauth.ts](../examples/sdk/09-api-keys-and-oauth.ts)
 
-### 系统提示词
+### 系统提示词｜系统提示词
 
-使用`ResourceLoader`覆盖系统提示词：
+使用 `ResourceLoader` 覆盖系统提示词：
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@earendil-works/pi-coding-agent";
@@ -488,19 +483,19 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> 参见[examples/sdk/03-custom-prompt.ts](../examples/sdk/03-custom-prompt.ts)
+> 参见 [examples/sdk/03-custom-prompt.ts](../examples/sdk/03-custom-prompt.ts)
 
-### 工具
+### 工具｜ Tools
 
-指定要启用哪些built-in工具：
+指定要启用的 built-in 工具：
 
 - 内置工具名称：`read`、`bash`、`edit`、`write`、`grep`、`find`、`ls`
-- 默认built-ins：`read`、`bash`、`edit`、`write`
+- 默认 built-ins：`read`、`bash`、`edit`、`write`
 - `noTools: "all"` 禁用所有工具
-- `noTools: "builtin"` 禁用默认built-ins，同时保留扩展和自定义工具启用
-- `excludeTools` 在应用任何`tools`允许列表后，禁用特定的built-in、扩展或自定义工具名称
+- `noTools: "builtin"` 禁用默认的 built-ins，同时保持扩展和自定义工具启用
+- `excludeTools` 在应用任何 `tools` 允许列表后禁用特定的 built-in、扩展或自定义工具名称
 
-`edit` 工具为Pi的TUI显示返回`details.diff`，并为SDK消费者返回`details.patch`作为标准统一补丁。
+`edit` 工具返回 `details.diff` 用于 Pi 的 TUI 显示，并返回 `details.patch` 作为供 SDK 使用者使用的标准统一补丁。
 
 ```typescript
 import { createAgentSession } from "@earendil-works/pi-coding-agent";
@@ -521,9 +516,9 @@ const { session } = await createAgentSession({
 });
 ```
 
-#### 具有自定义工作目录的工具
+#### 自定义工作目录的工具｜ Tools with Custom cwd
 
-当传递自定义`cwd`时，`createAgentSession()`为该工作目录构建选定的built-in工具。
+当您传递自定义 `cwd` 时，`createAgentSession()` 会为该工作目录构建选定的 built-in 工具。
 
 ```typescript
 import { createAgentSession, SessionManager } from "@earendil-works/pi-coding-agent";
@@ -544,9 +539,9 @@ const { session } = await createAgentSession({
 });
 ```
 
-> 参见[examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
+> 参见 [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
 
-### 自定义工具
+### 自定义工具｜ Custom Tools
 
 ```typescript
 import { Type } from "typebox";
@@ -572,17 +567,17 @@ const { session } = await createAgentSession({
 });
 ```
 
-对独立定义和数组（如`customTools: [myTool]`）使用`defineTool()`。内联`pi.registerTool({ ... })`已正确推断参数类型。
+对于独立定义和类似 `customTools: [myTool]` 的数组，请使用 `defineTool()`。内联的 `pi.registerTool({ ... })` 已经正确推断参数类型。
 
-通过`customTools`传递的自定义工具与extension-registered工具组合。由ResourceLoader加载的扩展也可以通过`pi.registerTool()`注册工具。
+通过 `customTools` 传递的自定义工具与 extension-registered 工具合并。由 ResourceLoader 加载的扩展也可以通过 `pi.registerTool()` 注册工具。
 
-如果传递`tools`，请包含每个要启用的自定义或扩展工具名称，例如`tools: ["read", "bash", "my_tool"]`。
+如果您传递了 `tools`，请包含每个要启用的自定义或扩展工具名称，例如 `tools: ["read", "bash", "my_tool"]`。
 
-> 参见[examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
+> 参见 [examples/sdk/05-tools.ts](../examples/sdk/05-tools.ts)
 
-### 扩展
+### 扩展｜ Extensions
 
-扩展由`ResourceLoader`加载。`DefaultResourceLoader`从`~/.pi/agent/extensions/`、`.pi/extensions/`和settings.json扩展源发现扩展。
+扩展由 `ResourceLoader` 加载。`DefaultResourceLoader` 从 `~/.pi/agent/extensions/`、`.pi/extensions/` 和 settings.json 扩展源中发现扩展。
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@earendil-works/pi-coding-agent";
@@ -602,9 +597,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-扩展可以注册工具、订阅事件、添加命令等。有关完整API，请参见[extensions.md](extensions.md)。
+扩展可以注册工具、订阅事件、添加命令等。完整的 API 请参见 [extensions.md](extensions.md)。
 
-**命名内联扩展：**默认情况下，内联工厂在启动扩展列表中显示为`<inline:1>`、`<inline:2>`等。若要显示描述性名称，请包装工厂：
+**命名内联扩展：** 默认情况下，内联工厂在启动扩展列表中显示为 `<inline:1>`、`<inline:2>` 等。要显示描述性名称，请包装工厂：
 
 ```typescript
 import type { InlineExtension } from "@earendil-works/pi-coding-agent";
@@ -623,9 +618,9 @@ const loader = new DefaultResourceLoader({
 });
 ```
 
-这将显示为`<inline:my-provider>`而不是`<inline:1>`。为向后兼容，仍接受裸工厂函数。
+这将显示为 `<inline:my-provider>` 而不是 `<inline:1>`。为向后兼容，仍接受裸工厂函数。
 
-**事件总线：**扩展可通过`pi.events`通信。如果需要在外部发出或监听，请将共享的`eventBus`传递给`DefaultResourceLoader`：
+**事件总线：** 扩展可以通过 `pi.events` 通信。如果需要从外部触发或监听，请将共享的 `eventBus` 传递给 `DefaultResourceLoader`：
 
 ```typescript
 import { createEventBus, DefaultResourceLoader } from "@earendil-works/pi-coding-agent";
@@ -639,9 +634,9 @@ await loader.reload();
 eventBus.on("my-extension:status", (data) => console.log(data));
 ```
 
-> 参见[examples/sdk/06-extensions.ts](../examples/sdk/06-extensions.ts)和[docs/extensions.md](extensions.md)
+> 参见 [examples/sdk/06-extensions.ts](../examples/sdk/06-extensions.ts) 和 [docs/extensions.md](extensions.md)
 
-### 技能
+### 技能｜ Skills
 
 ```typescript
 import {
@@ -669,9 +664,9 @@ await loader.reload();
 const { session } = await createAgentSession({ resourceLoader: loader });
 ```
 
-> 参见[examples/sdk/04-skills.ts](../examples/sdk/04-skills.ts)
+> 参见 [examples/sdk/04-skills.ts](../examples/sdk/04-skills.ts)
 
-### 上下文文件
+### 上下文文件｜ Context Files
 
 ```typescript
 import { createAgentSession, DefaultResourceLoader } from "@earendil-works/pi-coding-agent";
@@ -691,7 +686,7 @@ const { session } = await createAgentSession({ resourceLoader: loader });
 
 > 参见 [examples/sdk/07-context-files.ts](../examples/sdk/07-context-files.ts)
 
-### 斜杠命令
+### 斜杠命令｜ Slash Commands
 
 ```typescript
 import {
@@ -720,7 +715,7 @@ const { session } = await createAgentSession({ resourceLoader: loader });
 
 > 参见 [examples/sdk/08-prompt-templates.ts](../examples/sdk/08-prompt-templates.ts)
 
-### 会话管理
+### 会话管理｜会话 Management
 
 会话使用带有 `id`/`parentId` 链接的树结构，支持 in-place 分支。
 
@@ -822,9 +817,9 @@ sm.branchWithSummary(id, "Summary...");  // Branch with context summary
 sm.createBranchedSession(leafId);       // Extract path to new file
 ```
 
-> 参见 [examples/sdk/11-sessions.ts](../examples/sdk/11-sessions.ts) 和 [会话 Format](session-format.md)
+> 参见 [examples/sdk/11-sessions.ts](../examples/sdk/11-sessions.ts) 和 [会话格式](session-format.md)
 
-### 设置管理
+### 设置管理｜ Settings Management
 
 ```typescript
 import { createAgentSession, SettingsManager, SessionManager } from "@earendil-works/pi-coding-agent";
@@ -861,23 +856,23 @@ const { session } = await createAgentSession({
 **项目特定设置：**
 
 设置从两个位置加载并合并：
-1. 全局： `~/.pi/agent/settings.json`
-2. 项目： `<cwd>/.pi/settings.json`
+1. 全局：`~/.pi/agent/settings.json`
+2. 项目：`<cwd>/.pi/settings.json`
 
-项目覆盖全局。嵌套对象合并键。设置器默认修改全局设置。
+项目覆盖全局。嵌套对象合并键值。设置器默认修改全局设置。
 
 **持久化和错误处理语义：**
 
-- 设置的 getter/setter 对于 in-memory 状态是同步的。
-- 设置器异步地将持久化写入操作加入队列。
-- 当需要持久化边界时调用 `await settingsManager.flush()` (例如，在进程退出前或测试中断言文件内容之前)。
-- `SettingsManager` 不会打印设置的 I/O 错误。使用 `settingsManager.drainErrors()` 并在应用层报告它们。
+- 设置获取器/设置器对in-memory状态是同步的。
+- 设置器异步地将持久化写入排入队列。
+- 当需要持久性边界时调用`await settingsManager.flush()`(例如，在进程退出前或在测试中断言文件内容之前)。
+- `SettingsManager`不会打印设置 I/O 错误。使用`settingsManager.drainErrors()`并在你的应用层报告它们。
 
-> 参见 [examples/sdk/10-settings.ts](../examples/sdk/10-settings.ts)
+> 参见[examples/sdk/10-settings.ts](../examples/sdk/10-settings.ts)
 
 ## ResourceLoader
 
-使用 `DefaultResourceLoader` 发现扩展、技能、提示词、主题和上下文文件。
+使用`DefaultResourceLoader`发现扩展、技能、提示词、主题和上下文文件。
 
 ```typescript
 import {
@@ -900,7 +895,7 @@ const contextFiles = loader.getAgentsFiles().agentsFiles;
 
 ## 返回值
 
-`createAgentSession()` 返回：
+`createAgentSession()`返回：
 
 ```typescript
 interface CreateAgentSessionResult {
@@ -927,25 +922,21 @@ interface LoadExtensionsResult {
 import { getModel } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import {
-  AuthStorage,
   createAgentSession,
   DefaultResourceLoader,
   defineTool,
-  ModelRegistry,
+  ModelRuntime,
   SessionManager,
   SettingsManager,
 } from "@earendil-works/pi-coding-agent";
 
-// Set up auth storage (custom location)
-const authStorage = AuthStorage.create("/custom/agent/auth.json");
-
-// Runtime API key override (not persisted)
+const modelRuntime = await ModelRuntime.create({
+  authPath: "/custom/agent/auth.json",
+  modelsPath: "/custom/agent/models.json",
+});
 if (process.env.MY_KEY) {
-  authStorage.setRuntimeApiKey("anthropic", process.env.MY_KEY);
+  modelRuntime.setRuntimeApiKey("anthropic", process.env.MY_KEY);
 }
-
-// Model registry (no custom models.json)
-const modelRegistry = ModelRegistry.create(authStorage);
 
 // Inline tool
 const statusTool = defineTool({
@@ -982,8 +973,7 @@ const { session } = await createAgentSession({
 
   model,
   thinkingLevel: "off",
-  authStorage,
-  modelRegistry,
+  modelRuntime,
 
   tools: ["read", "bash", "status"],
   customTools: [statusTool],
@@ -1004,11 +994,11 @@ await session.prompt("Get status and list files.");
 
 ## 运行模式
 
-SDK导出运行模式工具函数，用于在`createAgentSession()`之上构建自定义界面：
+SDK导出运行模式工具，用于在`createAgentSession()`之上构建自定义界面：
 
 ### InteractiveMode
 
-完整的TUI交互模式，包含编辑器、聊天历史记录以及所有built-in命令：
+完整TUI交互模式，带有编辑器、聊天历史以及所有built-in命令：
 
 ```typescript
 import {
@@ -1048,7 +1038,7 @@ await mode.run();
 
 ### runPrintMode
 
-单次运行模式：发送提示、输出结果、退出：
+单次模式：发送提示词，输出结果，退出：
 
 ```typescript
 import {
@@ -1115,30 +1105,30 @@ const runtime = await createAgentSessionRuntime(createRuntime, {
 await runRpcMode(runtime);
 ```
 
-关于JSON协议，请参阅[RPC文档](rpc.md)。
+关于JSON协议，参见[RPC文档](rpc.md)。
 
 ## RPC模式替代方案
 
-对于不使用SDK构建的subprocess-based集成，请直接使用CLI：
+对于未使用SDK构建的subprocess-based集成，直接使用CLI：
 
 ```bash
 pi --mode rpc --no-session
 ```
 
-关于JSON协议，请参阅[RPC文档](rpc.md)。
+有关JSON协议，请参阅[RPC文档](rpc.md)。
 
-在以下情况下，首选SDK：
-- 你需要类型安全性
+当以下情况时，首选SDK：
+- 你需要类型安全
 - 你在同一个Node.js进程中
 - 你需要直接访问代理状态
 - 你想以编程方式自定义工具/扩展
 
-在以下情况下，首选RPC模式：
-- 你从其他语言进行集成
+当以下情况时，首选RPC模式：
+- 你从另一种语言进行集成
 - 你想要进程隔离
 - 你在构建一个language-agnostic客户端
 
-## 导出
+## 导出｜ Exports
 
 主入口点导出：
 
@@ -1149,8 +1139,8 @@ createAgentSessionRuntime
 AgentSessionRuntime
 
 // Auth and Models
-AuthStorage
-ModelRegistry
+ModelRuntime // implements pi-ai Models and owns credential storage
+ModelRegistry // synchronous extension compatibility facade
 resolveCliModel
 resolveModelScopeWithDiagnostics
 
@@ -1190,4 +1180,4 @@ type PromptTemplate
 type Tool
 ```
 
-关于扩展类型，请参阅[extensions.md](extensions.md)以获取完整的API。
+有关扩展类型，请参阅[extensions.md](extensions.md)以获取完整的API。
