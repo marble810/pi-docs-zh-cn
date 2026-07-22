@@ -1,14 +1,14 @@
-# JSON 事件流模式｜JSON Event Stream Mode
+# JSON 事件流模式
 
 ```bash
 pi --mode json "Your prompt"
 ```
 
-将所有会话事件作为JSON行输出到标准输出。适用于将 pi 集成到其他工具或自定义 UI 中。
+将会话中的所有事件以JSON行的形式输出到标准输出。适用于将 pi 集成到其他工具或自定义 UI 中。
 
-## 事件类型
+## 事件类型｜ Event Types
 
-事件定义在[`AgentSessionEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts#L102)：
+事件定义在[`AgentSessionEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts#L102)中：
 
 ```typescript
 type AgentSessionEvent =
@@ -17,10 +17,14 @@ type AgentSessionEvent =
   | { type: "compaction_start"; reason: "manual" | "threshold" | "overflow" }
   | { type: "compaction_end"; reason: "manual" | "threshold" | "overflow"; result: CompactionResult | undefined; aborted: boolean; willRetry: boolean; errorMessage?: string }
   | { type: "auto_retry_start"; attempt: number; maxAttempts: number; delayMs: number; errorMessage: string }
-  | { type: "auto_retry_end"; success: boolean; attempt: number; finalError?: string };
+  | { type: "auto_retry_end"; success: boolean; attempt: number; finalError?: string }
+  | { type: "summarization_retry_scheduled"; attempt: number; maxAttempts: number; delayMs: number; errorMessage: string }
+  | { type: "summarization_retry_attempt_start"; source: "branchSummary" }
+  | { type: "summarization_retry_attempt_start"; source: "compaction"; reason: "manual" | "threshold" | "overflow" }
+  | { type: "summarization_retry_finished" };
 ```
 
-`queue_update`在待处理的 steering 和follow-up队列发生变化时发出完整信息。`compaction_start`和`compaction_end`涵盖手动和自动上下文压缩。
+`queue_update`在待处理的 steering 和follow-up队列发生变化时发出完整的队列内容。`compaction_start`和`compaction_end`涵盖手动和自动上下文压缩。
 
 来自[`AgentEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/agent/src/types.ts#L179)的基础事件：
 
@@ -42,7 +46,7 @@ type AgentEvent =
   | { type: "tool_execution_end"; toolCallId: string; toolName: string; result: any; isError: boolean };
 ```
 
-## 消息类型
+## 消息类型｜ Message Types
 
 来自[`packages/ai/src/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/types.ts#L134)的基础消息：
 - `UserMessage` (第 134 行)
@@ -55,15 +59,15 @@ type AgentEvent =
 - `BranchSummaryMessage` (第 55 行)
 - `CompactionSummaryMessage` (第 62 行)
 
-## 输出格式
+## 输出格式｜ Output Format
 
-每行是一个 JSON 对象。第一行是会话头：
+每一行是一个JSON对象。第一行是会话头部：
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"...","cwd":"/path"}
 ```
 
-随后是按顺序发生的事件：
+随后是事件，按发生顺序出现：
 
 ```json
 {"type":"agent_start"}
@@ -75,7 +79,7 @@ type AgentEvent =
 {"type":"agent_end","messages":[...]}
 ```
 
-## 示例
+## 示例｜ Example
 
 ```bash
 pi --mode json "List files" 2>/dev/null | jq -c 'select(.type == "message_end")'
