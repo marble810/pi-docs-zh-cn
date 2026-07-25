@@ -1,26 +1,26 @@
 # 上下文压缩与分支摘要｜上下文压缩 & Branch Summarization
 
-LLM 的上下文窗口有限。当对话变得过长时， pi 使用上下文压缩来总结较旧的内容，同时保留近期工作。本页介绍auto-compaction和分支摘要。
+LLM 的上下文窗口有限。当对话过长时， pi 使用上下文压缩来总结较旧的内容，同时保留最近的工作。本页涵盖auto-compaction和分支摘要。
 
 **源文件** ([pi-mono](https://github.com/earendil-works/pi-mono)):
 - [`packages/coding-agent/src/core/compaction/compaction.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/compaction.ts) - 自动上下文压缩逻辑
 - [`packages/coding-agent/src/core/compaction/branch-summarization.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts) - 分支摘要
-- [`packages/coding-agent/src/core/compaction/utils.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/utils.ts) - 共享工具 (文件跟踪、序列化)
+- [`packages/coding-agent/src/core/compaction/utils.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/utils.ts) - 共享工具 (文件追踪、序列化)
 - [`packages/coding-agent/src/core/session-manager.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/session-manager.ts) - 条目类型 (`CompactionEntry`, `BranchSummaryEntry`)
 - [`packages/coding-agent/src/core/extensions/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/extensions/types.ts) - 扩展事件类型
 
-对于项目中的TypeScript定义，请查看`node_modules/@earendil-works/pi-coding-agent/dist/`。
+对于项目中的TypeScript定义，请检查`node_modules/@earendil-works/pi-coding-agent/dist/`。
 
 ## 概述｜ Overview
 
 Pi有两种摘要机制：
 
-| 机制｜ Mechanism | 触发｜ Trigger | 用途｜ Purpose |
+| 机制 | 触发条件 | 目的 |
 |-----------|---------|---------|
-| 上下文压缩 | 上下文超过阈值，或`/compact` | 总结旧消息以释放上下文空间 |
-| 分支摘要 | `/tree` 导航 | 切换分支时保留上下文 |
+| 上下文压缩 | 上下文超过阈值，或`/compact` | 总结旧消息以释放上下文 |
+| 分支摘要 | `/tree`导航 | 切换分支时保留上下文 |
 
-两者都使用相同的结构化摘要格式，并累积跟踪文件操作。
+两者都使用相同的结构化摘要格式，并累积跟踪文件操作。上下文压缩和branch-summary请求使用新的路由会话 ID ，并且在模型提供商支持的情况下，禁用prompt-cache写入，因为这些one-off提示不太可能被重复使用。
 
 ## 上下文压缩｜上下文压缩
 
@@ -32,17 +32,17 @@ Pi有两种摘要机制：
 contextTokens > contextWindow - reserveTokens
 ```
 
-默认情况下，`reserveTokens` 为 16384 个 token ，(可在 `~/.pi/agent/settings.json` 或 `<project-dir>/.pi/settings.json` 中配置)。这为 LLM 的响应留出空间。
+默认情况下，`reserveTokens` 为 16384 个 token (可在 `~/.pi/agent/settings.json` 或 `<project-dir>/.pi/settings.json`) 中配置。这为 LLM 的响应留出了空间。
 
-您也可以使用 `/compact [instructions]` 手动触发，其中可选指令用于聚焦摘要。
+你也可以使用 `/compact [instructions]` 手动触发，其中可选指令用于聚焦摘要。
 
-### 如何工作｜ How It Works
+### 工作原理｜ How It Works
 
-1. **查找切割点**：从最新消息向后遍历，累加 token 估算值，直到达到 `keepRecentTokens` (默认 20k ，可在 `~/.pi/agent/settings.json` 或 `<project-dir>/.pi/settings.json` 中配置)
-2. **提取消息**：收集从上一个保留边界 (或会话开始) 到切割点之间的消息
-3. **生成摘要**：调用 LLM 以结构化格式进行摘要，并在存在时将之前的摘要作为迭代上下文传递
+1. **查找截断点**：从最新消息向后遍历，累积 token 估计值，直到达到 `keepRecentTokens` (默认 20k ，可在 `~/.pi/agent/settings.json` 或 `<project-dir>/.pi/settings.json`) 中配置
+2. **提取消息**：从之前保留的边界 (或会话开始) 到截断点之间收集消息
+3. **生成摘要**：调用 LLM 以结构化格式进行摘要，当存在之前的摘要时，将其作为迭代上下文传递
 4. **追加条目**：保存包含摘要和 `firstKeptEntryId` 的 `CompactionEntry`
-5. **重新加载**：会话重新加载，使用摘要和从 `firstKeptEntryId` 开始的消息
+5. **重载**：会话重载，使用从 `firstKeptEntryId` 开始的摘要 + 消息
 
 ```
 Before compaction:
@@ -76,13 +76,13 @@ What the LLM sees:
     prompt   from cmp          messages from firstKeptEntryId
 ```
 
-在重复压缩时，摘要范围从上一次压缩的保留边界 (`firstKeptEntryId`) 开始，而不是从压缩条目本身开始；如果在路径中找不到该保留条目，则回退到上一次压缩之后的条目。这通过将更早压缩中幸存的消息也包含在下次摘要传递中，从而保留这些消息。Pi 还会在写入新的 `CompactionEntry` 之前，根据重建的会话上下文重新计算 `tokensBefore`，因此 token 计数反映了实际被替换的 pre-compaction 上下文。
+在重复上下文压缩时，摘要范围从之前压缩的保留边界 (`firstKeptEntryId`) 开始，而不是从压缩条目本身开始，如果在路径中找不到该保留条目，则回退到前一次压缩之后的条目。这通过将前一次压缩中幸存的消息包含在下一轮摘要中来保留它们。Pi 还会在写入新的 `CompactionEntry` 之前，根据重建的会话上下文重新计算 `tokensBefore`，从而使 token 计数反映实际被替换的 pre-compaction 上下文。
 
-### 分割轮次｜ Split Turns
+### 拆分轮次｜ Split Turns
 
-一个“轮次”从用户消息开始，包含所有助手响应和工具调用，直到下一条用户消息。通常，压缩在轮次边界处切割。
+一个“轮次”以用户消息开始，并包含所有助手响应和工具调用，直到下一个用户消息。通常，上下文压缩在轮次边界处截断。
 
-当单个轮次超过 `keepRecentTokens` 时，切割点 mid-turn 落在一条助手消息上。这就是“分割轮次”：
+当单个轮次超过 `keepRecentTokens` 时，截断点会落在 mid-turn 的助手消息上。这就是“拆分轮次”：
 
 ```
 Split turn (one huge turn exceeds budget):
@@ -102,19 +102,19 @@ Split turn (one huge turn exceeds budget):
   turnPrefixMessages = [usr, ass, tool, ass, tool, tool]
 ```
 
-对于分割轮次， pi 生成两个摘要并合并它们：
-1. **历史摘要**：之前的上下文 (如果有)
-2. **轮次前缀摘要**：分割轮次的早期部分
+对于拆分轮次， pi 生成两个摘要并合并它们：
+1. **历史摘要**：之前的上下文 (如果有的话)
+2. **轮次前缀摘要**：拆分轮次的早期部分
 
-### 切割点规则｜ Cut Point Rules
+### 截断点规则｜ Cut Point Rules
 
-有效的切割点有：
+有效的截断点包括：
 - 用户消息
 - 助手消息
 - BashExecution 消息
 - 自定义消息 (custom_message, branch_summary)
 
-切勿在工具结果处切割 (它们必须与其工具调用保持在一起)。
+切勿在工具结果处截断 (它们必须与对应的工具调用一起保留)。
 
 ### CompactionEntry 结构
 
@@ -141,23 +141,23 @@ interface CompactionDetails {
 }
 ```
 
-扩展可以将任何 JSON 可序列化的数据存储在 `details` 中。默认的上下文压缩会跟踪文件操作，但自定义扩展实现可以使用自己的结构。生成的摘要和 extension-provided 摘要会在可用时存储其 LLM `usage`，以便会话总计包含摘要工作。
+扩展可以在 `details` 中存储任何 JSON 可序列化的数据。默认的上下文压缩会跟踪文件操作，但自定义扩展实现可以使用自己的结构。生成的和 extension-provided 摘要会在可用时存储其 LLM `usage`，以便会话总数包含摘要工作。
 
-有关实现，请参阅 [`prepareCompaction()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/compaction.ts) 和 [`compact()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/compaction.ts)。对于直接编程式摘要，`generateSummary()` 返回摘要文本，`generateSummaryWithUsage()` 返回 `{ text, usage }`。
+请参阅 [`prepareCompaction()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/compaction.ts) 和 [`compact()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/compaction.ts) 了解实现。对于直接编程式摘要，`generateSummary()` 返回摘要文本，`generateSummaryWithUsage()` 返回 `{ text, usage }`。
 
 ## 分支摘要｜ Branch Summarization
 
 ### 触发时机｜ When It Triggers
 
-当你使用 `/tree` 导航到不同的分支时， pi 会提供摘要你即将离开的工作。这会将左侧分支的上下文注入到新分支中。
+当你使用 `/tree` 导航到另一个分支时， pi 会提供对你离开的工作进行摘要的选项。这将从左侧分支将上下文注入到新分支。
 
 ### 工作原理｜ How It Works
 
-1. **查找共同祖先**：由旧位置和新位置确定最深 node shared
-2. **收集条目**：从旧叶节点向上回溯到共同祖先
-3. **按预算准备**：包含最多 token 预算的消息，(最新优先)
-4. **生成摘要**：使用结构化格式调用 LLM
-5. **附加条目**：在导航点保存 `BranchSummaryEntry`
+1. **查找共同祖先**：通过新旧位置找到最深的 node shared
+2. **收集条目**：从旧叶节点向上遍历到共同祖先
+3. **按预算准备**：包含符合 token 预算的消息，(最新优先)
+4. **生成摘要**：以结构化格式调用 LLM
+5. **追加条目**：在导航点保存 `BranchSummaryEntry`
 
 ```
 Tree before navigation:
@@ -178,11 +178,11 @@ After navigation with summary:
 
 ### 累积文件跟踪｜ Cumulative File Tracking
 
-上下文压缩和分支摘要都会累积跟踪文件。在生成摘要时， pi 从以下来源提取文件操作：
-- 被摘要的消息中的工具调用
+上下文压缩和分支摘要都会累积跟踪文件。生成摘要时， pi 从以下内容中提取文件操作：
+- 被摘要消息中的工具调用
 - 之前的上下文压缩或分支摘要 `details` (如有)
 
-这意味着文件跟踪会在多次上下文压缩或嵌套的分支摘要中累积，保留读取和修改文件的完整历史。
+这意味着文件跟踪在多次上下文压缩或嵌套的分支摘要间累积，保留了读取和修改文件的完整历史。
 
 ### BranchSummaryEntry 结构
 
@@ -208,9 +208,9 @@ interface BranchSummaryDetails {
 }
 ```
 
-与上下文压缩类似，扩展可以在 `details` 中存储自定义数据。
+与上下文压缩相同，扩展可以在 `details` 中存储自定义数据。
 
-有关实现，请参阅 [`collectEntriesForBranchSummary()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts)、[`prepareBranchEntries()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts) 和 [`generateBranchSummary()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts)。
+请参阅 [`collectEntriesForBranchSummary()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts)、[`prepareBranchEntries()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts) 和 [`generateBranchSummary()`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/compaction/branch-summarization.ts) 了解实现。
 
 ## 摘要格式｜ Summary Format
 
@@ -264,17 +264,17 @@ path/to/changed.ts
 [Tool result]: Output from tool
 ```
 
-这可以防止模型将其视为要继续的对话。
+这可以防止模型将其视为要延续的对话。
 
-在序列化过程中，工具结果会被截断为 2000 个字符。超出此限制的内容会被替换为一个标记，指示截断了多少个字符。这使摘要请求保持在合理的令牌预算内，因为工具结果(尤其是来自`read`和`bash`)通常是上下文大小的最大贡献者。
+在序列化过程中，工具结果会被截断为 2000 个字符。超出该限制的内容将被替换为一个标记，指示被截断了多少字符。这使摘要请求保持在合理的 token 预算内，因为工具结果(尤其是来自`read`和`bash`)通常是上下文大小的最大贡献者。
 
 ## 通过扩展自定义摘要｜ Custom Summarization via Extensions
 
-扩展可以拦截并自定义压缩和分支摘要。有关事件类型的定义，请参阅[`extensions/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/extensions/types.ts)。
+扩展可以拦截并自定义上下文压缩和分支摘要。事件类型定义请参见[`extensions/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/extensions/types.ts)。
 
 ### 会话_before_compact
 
-在auto-compaction或`/compact`之前触发。可以取消或提供自定义摘要。请参阅类型文件中的`SessionBeforeCompactEvent`和`CompactionPreparation`。
+在auto-compaction或`/compact`之前触发。可以取消或提供自定义摘要。请参见类型文件中的`SessionBeforeCompactEvent`和`CompactionPreparation`。
 
 ```typescript
 pi.on("session_before_compact", async (event, ctx) => {
@@ -344,7 +344,7 @@ pi.on("session_before_compact", async (event, ctx) => {
 });
 ```
 
-请参阅[custom-compaction.ts](../examples/extensions/custom-compaction.ts)了解使用不同模型的完整示例。
+使用不同模型的完整示例请参见[custom-compaction.ts](../examples/extensions/custom-compaction.ts)。
 
 ### 会话_before_tree
 
@@ -376,11 +376,11 @@ pi.on("session_before_tree", async (event, ctx) => {
 });
 ```
 
-请参阅类型文件中的`SessionBeforeTreeEvent`和`TreePreparation`。
+请参见类型文件中的`SessionBeforeTreeEvent`和`TreePreparation`。
 
 ## 设置｜ Settings
 
-在`~/.pi/agent/settings.json`或`<project-dir>/.pi/settings.json`中配置压缩：
+在`~/.pi/agent/settings.json`或`<project-dir>/.pi/settings.json`中配置上下文压缩：
 
 ```json
 {
@@ -392,10 +392,10 @@ pi.on("session_before_tree", async (event, ctx) => {
 }
 ```
 
-| 设置｜ Setting | 默认值｜ Default | 描述｜ Description |
+| 设置 | 默认值 | 描述 |
 |---------|---------|-------------|
 | `enabled` | `true` | 启用auto-compaction |
-| `reserveTokens` | `16384` | 为LLM响应预留的令牌数 |
-| `keepRecentTokens` | `20000` | 保留最近令牌数(未总结) |
+| `reserveTokens` | `16384` | 为LLM响应预留的 token 数 |
+| `keepRecentTokens` | `20000` | 保留最近令牌数 (不进行摘要) |
 
-用`"enabled": false`禁用auto-compaction。您仍可用`/compact`手动压缩。
+使用 `"enabled": false` 禁用 auto-compaction。你仍可通过 `/compact` 手动压缩。
