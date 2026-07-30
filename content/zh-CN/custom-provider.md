@@ -1,10 +1,10 @@
 # 自定义模型提供商｜ Custom Providers
 
-扩展可通过 `pi.registerProvider()` 注册自定义模型提供商。这允许：
+扩展可以通过 `pi.registerProvider()` 注册自定义模型提供商。这可以实现：
 
-- **代理** - 通过公司代理或 API 网关路由请求
+- **代理** - 通过企业代理或 API 网关路由请求
 - **自定义端点** - 使用 self-hosted 或私有模型部署
-- **OAuth/SSO** - 为企业提供商添加认证流程
+- **OAuth/SSO** - 为企业提供商添加身份验证流程
 - **自定义 API** - 为 non-standard LLM API 实现流式传输
 
 ## 示例扩展｜ Example Extensions
@@ -26,11 +26,11 @@
 - [上下文溢出错误](#context-overflow-errors)
 - [测试你的实现](#testing-your-implementation)
 - [配置参考](#config-reference)
-- [模型定义参考｜ Model Definition Reference](#model-definition-reference)
+- [模型定义参考](#model-definition-reference)
 
 ## 快速参考｜ Quick Reference
 
-扩展可以注册一个完整的pi-ai`Provider`，或者使用旧的provider-config形式。当需要自定义身份验证、过滤、刷新或流式传输行为时，首选完整的模型提供商。Pi在已注册的原生模型提供商之上组合了`models.json`覆盖。
+扩展可以注册完整的 pi-ai `Provider`，或使用旧的 provider-config 形式。当需要自定义身份验证、过滤、刷新或流式行为时，首选完整的提供商。Pi 在已注册的原生提供商之上组合 `models.json` 覆盖。
 
 ```typescript
 import { createProvider, openAICompletionsApi } from "@earendil-works/pi-ai";
@@ -88,11 +88,11 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-扩展工厂也可以是`async`。对于动态模型发现，在工厂中获取并注册模型，而不是`session_start`。pi 在启动继续之前等待工厂，因此模型提供商在交互式启动期间和`pi --list-models`时可用。
+扩展工厂也可以是 `async`。对于动态模型发现，在工厂中获取并注册模型，而不是 `session_start`。pi 在启动继续之前等待工厂，因此模型提供商在交互式启动期间以及 `pi --list-models` 中可用。
 
-## 覆盖现有模型提供商｜ Override Existing 模型提供商
+## 覆盖现有提供商｜ Override Existing 模型提供商
 
-最简单的用例：通过代理重定向现有模型提供商。
+最简单的用例：通过代理重定向现有提供商。
 
 ```typescript
 // All Anthropic requests now go through your proxy
@@ -116,11 +116,11 @@ pi.registerProvider("google", {
 });
 ```
 
-当仅提供`baseUrl`和/或`headers`(没有`models`)时，该模型提供商的所有现有模型都保留并使用新的端点。
+当只提供 `baseUrl` 和/或 `headers` 时 (没有 `models`)，该提供商的所有现有模型将保留并使用新的端点。
 
-## 注册新的模型提供商｜ Register New 模型提供商
+## 注册新提供商｜ Register New 模型提供商
 
-要添加全新的模型提供商，请指定`models`以及所需的配置。
+要添加一个全新的提供商，请指定 `models` 以及所需的配置。
 
 如果模型列表来自远程端点，请使用异步扩展工厂：
 
@@ -155,7 +155,7 @@ export default async function (pi: ExtensionAPI) {
 }
 ```
 
-这会在启动完成前注册获取到的模型。
+这会在启动完成之前注册获取到的模型。
 
 ```typescript
 pi.registerProvider("my-llm", {
@@ -181,13 +181,13 @@ pi.registerProvider("my-llm", {
 });
 ```
 
-当提供`models`时，它会**替换**该模型提供商的所有现有模型。
+当提供 `models` 时，它 **替换**该提供商的所有现有模型。
 
-`apiKey`和自定义标头值使用与`models.json`相同的配置值语法：开头的`!command`为整个值执行命令，`$ENV_VAR`和`${ENV_VAR}`插入环境变量，`$`发出字面量``apiKey`和自定义标头值使用与`models.json`相同的配置值语法：开头的`!command`为整个值执行命令，`$ENV_VAR`和`${ENV_VAR}`插入环境变量，`$`发出字面量，`$!`发出字面量`!`。
+`apiKey` 和自定义标头值使用与 `models.json` 相同的配置值语法：开头的 `!command` 对整值执行命令，`$ENV_VAR` 和 `${ENV_VAR}` 插入环境变量，`$` 输出字面量 ``apiKey` 和自定义标头值使用与 `models.json` 相同的配置值语法：开头的 `!command` 对整值执行命令，`$ENV_VAR` 和 `${ENV_VAR}` 插入环境变量，`$` 输出字面量 ，`$!` 输出字面量 `!`。
 
-## 取消注册模型提供商｜ Unregister 模型提供商
+## 注销提供商｜ Unregister 模型提供商
 
-使用`pi.unregisterProvider(name)`移除之前通过`pi.registerProvider(name, ...)`注册的模型提供商：
+使用 `pi.unregisterProvider(name)` 移除之前通过 `pi.registerProvider(name, ...)` 注册的提供商：
 
 ```typescript
 // Register
@@ -212,27 +212,27 @@ pi.registerProvider("my-llm", {
 pi.unregisterProvider("my-llm");
 ```
 
-取消注册会移除该模型提供商的动态模型、API键回退、OAuth 模型提供商注册以及自定义流处理程序注册。任何被覆盖的built-in模型或模型提供商行为都将恢复。
+注销会移除该提供商的动态模型、API 密钥回退、OAuth 提供商注册以及自定义流处理器注册。任何被覆盖的 built-in 模型或提供商行为都会被恢复。
 
-在初始扩展加载阶段之后进行的调用会立即生效，因此不需要`/reload`。
+在初始扩展加载阶段之后进行的调用会立即应用，因此不需要 `/reload`。
 
 ### API 类型
 
-`api`字段决定了使用哪种流式传输实现：
+`api` 字段决定使用哪种流实现：
 
 | API | 用于 |
 |-----|---------|
 | `anthropic-messages` | Anthropic Claude API 及兼容版本 |
-| `openai-completions` | OpenAI Chat Completions API 和兼容版本 |
-| `openai-responses` | OpenAI Responses API |
+| `openai-completions` | OpenAI 聊天补全 API 及兼容版本 |
+| `openai-responses` | OpenAI 响应 API |
 | `azure-openai-responses` | Azure OpenAI Responses API |
 | `openai-codex-responses` | OpenAI Codex Responses API |
-| `mistral-conversations` | Mistral SDK 对话/聊天流式 |
+| `mistral-conversations` | Mistral SDK 对话/聊天流式传输 |
 | `google-generative-ai` | Google Generative AI API |
 | `google-vertex` | Google Vertex AI API |
 | `bedrock-converse-stream` | Amazon Bedrock Converse API |
 
-大多数 OpenAI 兼容的模型提供商与 `openai-completions` 配合使用。对于 model-specific 思考级别，使用 model-level `thinkingLevelMap`；对于模型提供商特性，使用 `compat`。`xhigh` 和 `max` 级别是 opt-in，需要 non-null 映射条目，并可能被不支持的空白分隔：
+大多数兼容 OpenAI 的提供商可以使用 `openai-completions`。对于 model-specific 思维层次，使用 model-level `thinkingLevelMap`，对于提供商的特殊行为，使用 `compat`。`xhigh` 和 `max` 层次是 opt-in，需要 non-null 映射条目，并且可能被不支持的间隙分隔。
 
 ```typescript
 models: [{
@@ -258,18 +258,18 @@ models: [{
 }]
 ```
 
-对于 OpenRouter 风格的 `reasoning: { effort }` 控制，使用 `openrouter`。对于 Together 风格的 `reasoning: { enabled }` 控制，使用 `together`；结合 `supportsReasoningEffort` 时，它还会发送 `reasoning_effort`。对于本地的 Qwen 兼容服务器（读取 `chat_template_kwargs.enable_thinking` 并需要 `preserve_thinking`），使用 `qwen-chat-template`。
-对于 OpenAI 兼容的模型提供商（通过系统提示词、最后一个工具定义以及最后一个用户、助手或 tool-result 文本内容上的 `cache_control` 暴露 Anthropic 风格的提示词缓存），使用 `cacheControlFormat: "anthropic"`。
+使用 `openrouter` 实现 OpenRouter 风格的 `reasoning: { effort }` 控制。使用 `together` 实现 Together 风格的 `reasoning: { enabled }` 控制；配合 `supportsReasoningEffort`，它还会发送 `reasoning_effort`。对于本地兼容 Qwen 的服务器，它们读取 `chat_template_kwargs.enable_thinking` 并需要 `preserve_thinking`，请使用 `qwen-chat-template`。
+使用 `cacheControlFormat: "anthropic"` 用于兼容 OpenAI 的提供商，这些提供商通过系统提示词、最后一个工具定义以及最后一个用户、助手或 tool-result 文本内容上的 `cache_control` 暴露 Anthropic 风格的提示缓存。
 
-对于使用 `api: "anthropic-messages"` 的 Anthropic 兼容模型提供商，在那些上游模型需要自适应思考的模型或提供商上设置 `compat.forceAdaptiveThinking: true` (`thinking.type: "adaptive"` 加上 `output_config.effort`)。内置的自适应 Claude 模型会自动设置此选项。仅对那些发出空思考签名并期望在重放时使用 `signature: ""` 的提供商设置 `compat.allowEmptySignature: true`。
+对于使用 `api: "anthropic-messages"` 的兼容 Anthropic 的提供商，在其上游模型需要自适应思维 (`thinking.type: "adaptive"` 加上 `output_config.effort`) 的模型或提供商上设置 `compat.forceAdaptiveThinking: true`。内置的自适应 Claude 模型会自动设置此值。仅对发出空白思维签名并期望在重放时收到 `signature: ""` 的提供商设置 `compat.allowEmptySignature: true`。
 
 > 迁移说明： Mistral 已从 `openai-completions` 迁移到 `mistral-conversations`。
-> 对于原生 Mistral 模型，使用 `mistral-conversations`。
-> 如果您有意通过 `openai-completions` 路由 Mistral 兼容/自定义端点，请根据需要显式设置 `compat` 标志。
+> 对原生 Mistral 模型使用 `mistral-conversations`。
+> 如果你有意通过 `openai-completions` 路由兼容 Mistral 的自定义端点，请根据需要显式设置 `compat` 标志。
 
-### 认证头｜ Auth Header
+### 认证请求头｜ Auth Header
 
-如果您的模型提供商期望 `Authorization: Bearer <key>` 但没有使用标准的 API，请设置 `authHeader: true`：
+如果您的提供商期望 `Authorization: Bearer <key>` 但未使用标准的 API，请设置 `authHeader: true`：
 
 ```typescript
 pi.registerProvider("custom-api", {
@@ -281,7 +281,7 @@ pi.registerProvider("custom-api", {
 });
 ```
 
-密钥在每个请求时解析。显式请求 `Authorization` 标头优先于生成的值。
+该密钥会针对每个请求解析。显式请求的 `Authorization` 请求头会优先于生成的值。
 
 ## OAuth 支持｜ OAuth Support
 
@@ -349,7 +349,7 @@ pi.registerProvider("corporate-ai", {
 
 注册后，用户可以通过 `/login corporate-ai` 进行认证。
 
-### OAuthLoginCallbacks
+### OAuth 登录回调｜ OAuthLoginCallbacks
 
 `callbacks` 对象为 provider-owned 流程提供了与 UI 无关的交互：
 
@@ -380,7 +380,7 @@ interface OAuthLoginCallbacks {
 }
 ```
 
-### OAuthCredentials
+### OAuth 凭据｜ OAuthCredentials
 
 凭据持久化存储在 `~/.pi/agent/auth.json` 中：
 
@@ -392,9 +392,9 @@ interface OAuthCredentials {
 }
 ```
 
-## 自定义流式传输｜ Custom Streaming API
+## 自定义流式 API
 
-对于提供 non-standard API 的模型提供商，实现 `streamSimple`。在编写自己的实现之前，请先研究现有的提供商实现：
+对于拥有 non-standard API 的模型提供商，实现 `streamSimple`。在编写自己的实现之前，请先研究现有的模型提供商实现：
 
 **参考实现：**
 - [anthropic.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/providers/anthropic.ts) - Anthropic Messages API
@@ -404,7 +404,7 @@ interface OAuthCredentials {
 - [google.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/providers/google.ts) - Google Generative AI
 - [amazon-bedrock.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/providers/amazon-bedrock.ts) - AWS Bedrock
 
-### 流式传输模式｜ Stream Pattern
+### 流式模式｜ Stream Pattern
 
 所有模型提供商都遵循相同的模式：
 
@@ -442,7 +442,7 @@ function streamMyProvider(
         totalTokens: 0,
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
       },
-      stopReason: "stop",
+      stopReason: "pending",
       timestamp: Date.now(),
     };
 
@@ -451,12 +451,18 @@ function streamMyProvider(
       stream.push({ type: "start", partial: output });
 
       // Make API request and process response...
-      // Push content events as they arrive...
+      // Push content events as they arrive and set stopReason from the terminal event.
+      if (output.stopReason === "pending") {
+        throw new Error("Provider stream ended without a stop reason");
+      }
+      if (output.stopReason === "error" || output.stopReason === "aborted") {
+        throw new Error(output.errorMessage || "An unknown error occurred");
+      }
 
       // Push done event
       stream.push({
         type: "done",
-        reason: output.stopReason as "stop" | "length" | "toolUse",
+        reason: output.stopReason,
         message: output
       });
       stream.end();
@@ -476,26 +482,26 @@ function streamMyProvider(
 
 通过 `stream.push()` 按以下顺序推送事件：
 
-1. `{ type: "start", partial: output }` - 流开始
+1. `{ type: "start", partial: output }` - 流式开始
 
-2. 内容事件 (可重复，为每个块追踪 `contentIndex`)：
+2. 内容事件 (可重复，跟踪每个块的 `contentIndex`):
    - `{ type: "text_start", contentIndex, partial }` - 文本块开始
-   - `{ type: "text_delta", contentIndex, delta, partial }` - 文本块片段
+   - `{ type: "text_delta", contentIndex, delta, partial }` - 文本块
    - `{ type: "text_end", contentIndex, content, partial }` - 文本块结束
    - `{ type: "thinking_start", contentIndex, partial }` - 思考开始
-   - `{ type: "thinking_delta", contentIndex, delta, partial }` - 思考片段
+   - `{ type: "thinking_delta", contentIndex, delta, partial }` - 思考块
    - `{ type: "thinking_end", contentIndex, content, partial }` - 思考结束
    - `{ type: "toolcall_start", contentIndex, partial }` - 工具调用开始
-   - `{ type: "toolcall_delta", contentIndex, delta, partial }` - 工具调用 JSON 片段
+   - `{ type: "toolcall_delta", contentIndex, delta, partial }` - 工具调用 JSON 块
    - `{ type: "toolcall_end", contentIndex, toolCall, partial }` - 工具调用结束
 
-3. `{ type: "done", reason, message }` 或 `{ type: "error", reason, error }` - 流结束
+3. `{ type: "done", reason, message }` 或 `{ type: "error", reason, error }` - 流式结束
 
 每个事件中的 `partial` 字段包含当前的 `AssistantMessage` 状态。在接收数据时更新 `output.content`，然后将 `output` 作为 `partial` 包含在内。
 
 ### 内容块｜ Content Blocks
 
-随着内容块的到达，将其添加到 `output.content`：
+将内容块添加到 `output.content` 中，在它们到达时：
 
 ```typescript
 // Text block
@@ -560,14 +566,14 @@ calculateCost(model, output.usage);
 
 ### 上下文溢出错误｜ Context Overflow Errors
 
-当请求超过模型的上下文窗口时， pi 可以通过压缩对话并重试来自动恢复。仅当 pi 识别到失败为溢出时，此恢复才会生效。
+当请求超出模型的上下文窗口时， pi 可以通过压缩对话并重试来自动恢复。仅当 pi 识别到失败为溢出时，此恢复才会触发。
 
-检测在最终确定的助手消息上运行：
+检测在最终的助手消息上运行：
 
 - `stopReason === "error"`
-- `errorMessage` 匹配 pi 已知的溢出模式之一 (参见 [`packages/ai/src/utils/overflow.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/utils/overflow.ts))
+- `errorMessage` 匹配 pi 已知的溢出模式之一 (请参阅 [`packages/ai/src/utils/overflow.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/utils/overflow.ts))
 
-如果您的模型提供商返回的溢出错误包含 pi 无法识别的消息，请从注册该提供商的同一扩展中标准化该错误。使用 `message_end` 处理程序重写助手消息，使其 `errorMessage` 以 pi 可识别的短语开头。通用回退 `context_length_exceeded` 是最安全的选择。
+如果您的提供者返回的溢出错误消息 pi 无法识别，请从注册该提供者的同一扩展中规范化该错误。使用 `message_end` 处理程序重写助手消息，使其 `errorMessage` 以 pi 可识别的短语开头。通用回退 `context_length_exceeded` 是最安全的选择。
 
 ```typescript
 const MY_PROVIDER_OVERFLOW_PATTERN = /your provider's overflow phrase/i;
@@ -599,18 +605,18 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-`message_end` 在 pi 跟踪助手消息以获取 auto-compaction 之前运行，因此重写后的 `errorMessage` 是 pi 检查的内容。有了这个机制， pi 将：
+`message_end` 在 pi 跟踪 auto-compaction 的助手消息之前运行，因此重写后的 `errorMessage` 是 pi 检查的内容。有了这个， pi 将：
 
 1. 从 `errorMessage` 检测溢出。
-2. 从实时上下文中丢弃失败的助手消息。
+2. 从活跃上下文中丢弃失败的助手消息。
 3. 运行上下文压缩。
 4. 重试请求一次。
 
-谨慎保护重写操作：
+谨慎保护重写：
 
-- 将其限定在您的提供商 (`message.provider` 和 `ctx.model?.provider`) 内，以便其他提供商的无关错误不受影响。
-- 匹配 provider-specific 模式，而不是 pi 的通用溢出模式。重写 rate-limit 或限流错误 (`rate limit`, `too many requests`) 会错误地触发上下文压缩，而不是 pi 的正常 retry-with-backoff 路径。
-- 当 `errorMessage` 已包含 `context_length_exceeded` 时跳过，以便处理程序是幂等的。
+- 将其范围限定为您的提供者 (`message.provider` 和 `ctx.model?.provider`)，以便不受其他提供者的无关错误影响。
+- 匹配 provider-specific 模式，而不是 pi 的通用溢出模式。重写 rate-limit 或节流错误 (`rate limit`, `too many requests`) 会错误地触发上下文压缩，而不是 pi 正常的 retry-with-backoff 路径。
+- 当 `errorMessage` 已包含 `context_length_exceeded` 时跳过，以使处理程序为幂等。
 
 ### 注册｜ Registration
 
@@ -626,25 +632,25 @@ pi.registerProvider("my-provider", {
 });
 ```
 
-## 测试实现｜ Testing Your Implementation
+## 测试您的实现｜ Testing Your Implementation
 
-使用 built-in 提供商所使用的相同测试套件测试您的提供商。从 [packages/ai/test/](https://github.com/earendil-works/pi-mono/tree/main/packages/ai/test) 复制并调整这些测试文件：
+使用与 built-in 提供者相同的测试套件测试您的提供者。从以下位置复制并调整这些测试文件：[packages/ai/test/](https://github.com/earendil-works/pi-mono/tree/main/packages/ai/test):
 
-| 测试｜ Test | 目的 |
+| 测试 | 目的 |
 |------|---------|
-| `stream.test.ts` | 基本流式输出、文本输出 |
-| `tokens.test.ts` | Token 计数与使用量 |
-| `abort.test.ts` | AbortSignal处理 |
-| `empty.test.ts` | 空响应/最小响应 |
+| `stream.test.ts` | 基本流式传输，文本输出 |
+| `tokens.test.ts` | Token 计数与用量 |
+| `abort.test.ts` | AbortSignal 处理 |
+| `empty.test.ts` | 空/最小响应 |
 | `context-overflow.test.ts` | 上下文窗口限制 |
 | `image-limits.test.ts` | 图像输入处理 |
-| `unicode-surrogate.test.ts` | Unicode 边界情况 |
-| `tool-call-without-result.test.ts` | 工具调用边界情况 |
+| `unicode-surrogate.test.ts` | Unicode 边缘情况 |
+| `tool-call-without-result.test.ts` | 工具调用边缘情况 |
 | `image-tool-result.test.ts` | 工具结果中的图像 |
 | `total-tokens.test.ts` | 总 Token 计算 |
-| `cross-provider-handoff.test.ts` | 模型提供商之间的上下文交接 |
+| `cross-provider-handoff.test.ts` | 模型提供商之间的上下文传递 |
 
-使用你的提供商/模型对运行测试，验证兼容性。
+使用您的提供商/模型对运行测试以验证兼容性。
 
 ## 配置参考｜ Config Reference
 
@@ -762,5 +768,5 @@ interface ProviderModelConfig {
 }
 ```
 
-`openrouter` 发送 `reasoning: { effort }`。`deepseek` 发送 `thinking: { type: "enabled" | "disabled" }`，启用时还发送 `reasoning_effort`。`together` 发送 `reasoning: { enabled }`，并且当 `supportsReasoningEffort` 启用时也发送 `reasoning_effort`。`qwen` 用于 DashScope 风格的 top-level `enable_thinking`。对于读取 `chat_template_kwargs.enable_thinking` 且需要 `preserve_thinking` 的本地 Qwen 兼容服务器，请使用 `qwen-chat-template`。对于可配置的 `chat_template_kwargs`，例如 DeepSeek V3.x 位于 vLLM 之后且带有 `chatTemplateKwargs: { "thinking": { "$var": "thinking.enabled" } }`，请使用 `chat-template`。
+`openrouter` 发送 `reasoning: { effort }`。`deepseek` 发送 `thinking: { type: "enabled" | "disabled" }` 和 `reasoning_effort`（启用时）。`together` 发送 `reasoning: { enabled }`，并且在 `supportsReasoningEffort` 启用时也发送 `reasoning_effort`。`qwen` 用于 DashScope 风格的 top-level `enable_thinking`。使用 `qwen-chat-template` 用于本地 Qwen 兼容服务器，这些服务器读取 `chat_template_kwargs.enable_thinking` 并需要 `preserve_thinking`。使用 `chat-template` 用于可配置的 `chat_template_kwargs`，例如位于 vLLM 之后、带有 `chatTemplateKwargs: { "thinking": { "$var": "thinking.enabled" } }` 的 DeepSeek V3.x。
 `cacheControlFormat: "anthropic"` 将 Anthropic 风格的 `cache_control` 标记应用于系统提示词、最后一个工具定义以及最后一个用户、助手或 tool-result 文本内容。

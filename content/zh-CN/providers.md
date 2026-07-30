@@ -1,71 +1,72 @@
-# Providers
+# 模型提供商
 
-Pi 支持通过 OAuth 的 subscription-based 模型提供商和通过环境变量或认证文件的 API 密钥模型提供商。内置目录随 pi 发布；已配置的模型提供商可以刷新较新的目录并将其缓存到 `~/.pi/agent/models-store.json` 中以供离线使用。
+Pi 支持通过 OAuth 的 subscription-based 提供商，以及通过环境变量或认证文件的 API 密钥提供商。内置目录随 pi 提供；配置的提供商可以刷新较新的目录并将其缓存到 `~/.pi/agent/models-store.json` 中以供离线使用。
 
-## Table of Contents
+## 目录
 
 - [订阅](#subscriptions)
 - [API 密钥](#api-keys)
 - [认证文件](#auth-file)
-- [云模型提供商](#cloud-providers)
+- [云提供商](#cloud-providers)
 - [llama.cpp](#llamacpp)
-- [自定义模型提供商](#custom-providers)
+- [自定义提供商](#custom-providers)
 - [解析顺序](#resolution-order)
 
-## 订阅｜ Subscriptions
+## 订阅
 
-在交互式模式下使用 `/login`，然后选择模型提供商：
+在交互模式下使用 `/login`，然后选择一个提供商：
 
 - ChatGPT Plus/Pro (Codex)
 - Claude Pro/Max
 - GitHub Copilot
 - xAI (Grok/X 订阅)
-- OpenRouter (通过 OAuth 生成的 API 密钥从 OpenRouter 积分中计费)
-- Radius ｜ Radius
+- OpenRouter (通过 OAuth 生成的 API 密钥，从 OpenRouter 积分中计费)
+- Radius
 
-使用 `/logout` 清除凭据。令牌在过期时存储在 `~/.pi/agent/auth.json` 和 auto-refresh 中。而 OpenRouter 则生成一个不会自动过期的 user-controlled API 密钥。
+使用 `/logout` 清除凭据。令牌存储在 `~/.pi/agent/auth.json` 中，过期时由 auto-refresh 处理。OpenRouter 则会生成一个不会自动过期的 user-controlled API 密钥。
 
 ### OpenAI Codex
 
 - 需要 ChatGPT Plus 或 Pro 订阅
-- 由 OpenAI 官方认可：[适用于 OSS 的 Codex](https://developers.openai.com/community/codex-for-oss)
+- 由 OpenAI 官方认可：[Codex for OSS](https://developers.openai.com/community/codex-for-oss)
 
-### Claude Pro/Max ｜ Claude Pro/Max
+### Claude Pro/Max
 
-Anthropic 订阅认证对 Claude Pro/Max 账户生效。第三方代理运行框架的使用消耗 [额外用量](https://claude.ai/settings/usage)，并按令牌计费，不计入 Claude 套餐限制。
+Anthropic 订阅认证适用于 Claude Pro/Max 账户。第三方代理运行框架使用量会从 [额外使用量](https://claude.ai/settings/usage) 中扣除，并按 token 计费，不计入 Claude 计划限额。
 
 ### GitHub Copilot
 
-- 按 Enter 键以使用 github.com，或输入您的 GitHub Enterprise Server 域
-- 如果遇到“model not supported”错误，请在 VS Code 中启用该模型： Copilot Chat → 模型选择器 → 选择模型 → “Enable”
+- 按 Enter 使用 github.com，或输入你的 GitHub Enterprise Server 域名
+- 如果出现“model not supported”，请在 VS Code 中启用： Copilot Chat → 模型选择器 → 选择模型 → “启用”
 
 ### xAI (Grok/X subscription)
 
 - 运行 `/login xai`，然后选择 **使用订阅**
-- `XAI_API_KEY` 仍然可以通过 **使用 API 密钥** 使用
+- `XAI_API_KEY` 仍可通过 **使用 API 密钥** 使用
 
 ### OpenRouter
 
 - 运行 `/login openrouter`，然后选择 **使用 OpenRouter 登录** 以打开 OpenRouter PKCE 授权流程
-- 该授权会创建一个从您的 OpenRouter 积分中计费的 user-controlled OpenRouter API 密钥
-- `OPENROUTER_API_KEY` 仍然可以通过 **使用 API 密钥** 使用
+- 该授权会创建一个 user-controlled OpenRouter API 密钥，从你的 OpenRouter 积分中扣费
+- 在远程/无头机器上 (e.g。通过 SSH) 浏览器无法访问回环回调；请将最终的重定向 URL (或授权码) 粘贴到登录提示中
+- `OPENROUTER_API_KEY` 仍可通过 **使用 API 密钥** 使用
 
-### Radius ｜ Radius
+### Radius
 
-Radius 是一个动态的 `pi-messages` 网关。`/login radius` 将 OAuth 令牌存储在 `auth.json` 中；网关目录会独立刷新并缓存在 `models-store.json` 中。自定义 Radius 网关可以通过 `"oauth": "radius"` 和网关 `baseUrl` 在 `models.json` 中声明。
+Radius 是一个动态的 `pi-messages` 网关。`/login radius` 将 OAuth token 存储在 `auth.json` 中；网关目录独立刷新并缓存到 `models-store.json`。自定义 Radius 网关可以在 `models.json` 中使用 `"oauth": "radius"` 和网关 `baseUrl` 声明。
 
-## API Keys
+## API 密钥
 
-### 环境变量或认证文件｜ Environment Variables or Auth File
+### 环境变量或认证文件
 
-在交互模式下使用 `/login`，选择一个模型提供商将 API 密钥存储在 `auth.json` 中，或通过环境变量设置凭据：
+以交互模式使用 `/login`，选择一个模型提供商将 API 密钥存储到 `auth.json`，或通过环境变量设置凭据：
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 pi
 ```
 
-| 模型提供商｜模型提供商 | 环境变量 | `auth.json` 键 |
+| 模型提供商 | 环境变量 | `auth.json` 密钥 |
 |----------|----------------------|------------------|
 | Anthropic | `ANTHROPIC_API_KEY` | `anthropic` |
 | Ant Ling | `ANT_LING_API_KEY` | `ant-ling` |
@@ -83,7 +84,7 @@ pi
 | xAI | `XAI_API_KEY` | `xai` |
 | OpenRouter | `OPENROUTER_API_KEY` | `openrouter` |
 | Vercel AI Gateway | `AI_GATEWAY_API_KEY` | `vercel-ai-gateway` |
-| ZAI 编码计划 (全球) | `ZAI_API_KEY` | `zai` |
+| ZAI Coding Plan (全局) | `ZAI_API_KEY` | `zai` |
 | ZAI 编码计划 (中国) | `ZAI_CODING_CN_API_KEY` | `zai-coding-cn` |
 | OpenCode Zen | `OPENCODE_API_KEY` | `opencode` |
 | OpenCode Go | `OPENCODE_API_KEY` | `opencode-go` |
@@ -99,13 +100,13 @@ pi
 | Xiaomi MiMo | `XIAOMI_API_KEY` | `xiaomi` |
 | Xiaomi MiMo Token Plan (中国) | `XIAOMI_TOKEN_PLAN_CN_API_KEY` | `xiaomi-token-plan-cn` |
 | Xiaomi MiMo Token Plan (阿姆斯特丹) | `XIAOMI_TOKEN_PLAN_AMS_API_KEY` | `xiaomi-token-plan-ams` |
-| 小米 MiMo Token 计划 (新加坡) | `XIAOMI_TOKEN_PLAN_SGP_API_KEY` | `xiaomi-token-plan-sgp` |
+| Xiaomi MiMo Token Plan (新加坡) | `XIAOMI_TOKEN_PLAN_SGP_API_KEY` | `xiaomi-token-plan-sgp` |
 
-环境变量和 `auth.json` 密钥的参考文档：[`const envMap`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/env-api-keys.ts) 在 [`packages/ai/src/env-api-keys.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/env-api-keys.ts) 中。
+关于环境变量和`auth.json`密钥的参考：[`const envMap`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/env-api-keys.ts)位于[`packages/ai/src/env-api-keys.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/env-api-keys.ts)。
 
-#### 身份验证文件
+#### 认证文件
 
-将凭据存储在 `~/.pi/agent/auth.json` 中：
+将凭据存储在`~/.pi/agent/auth.json`中：
 
 ```json
 {
@@ -127,9 +128,9 @@ pi
 }
 ```
 
-该文件以 `0600` 权限创建 (仅用户读写)。身份验证文件中的凭据优先级高于环境变量。
+该文件使用`0600`权限创建，(仅用户读写)。认证文件凭据优先于环境变量。
 
-API 密钥凭据还可以包含 provider-scoped 环境值。解析凭据密钥、提供商/模型标头以及提供商配置（如 Cloudflare 账户 ID、Azure OpenAI 设置、Vertex 项目/位置、Bedrock 设置、`PI_CACHE_RETENTION` 和 `HTTP_PROXY`/`HTTPS_PROXY`）时，这些值会在进程环境变量之前使用。
+API密钥凭据还可以包括provider-scoped环境值。在解析凭据密钥、提供者/模型标头以及提供者配置（如 Cloudflare 账户 ID、Azure OpenAI设置、Vertex 项目/位置、Bedrock 设置、`PI_CACHE_RETENTION`和`HTTP_PROXY`/`HTTPS_PROXY`）时，这些值优先于进程环境变量。
 
 ```json
 {
@@ -145,35 +146,35 @@ API 密钥凭据还可以包含 provider-scoped 环境值。解析凭据密钥�
 }
 ```
 
-当 pi 应使用与项目 shell 环境不同的提供商设置时使用此选项。
+当 Pi 需要使用与项目 Shell 环境不同的提供者设置时，请使用此选项。
 
 ### 密钥解析
 
-`key` 字段支持命令执行、环境变量插值和字面量：
+`key`字段支持命令执行、环境变量插值和字面量：
 
-- **Shell 命令：** 以 `"!command"` 开头的值将整个值作为命令执行，并使用 stdout (在进程生命周期内缓存)
+- **Shell 命令：**以`"!command"`开头的值作为命令执行，并使用标准输出，(缓存用于进程生命周期)
  ```json
   { "type": "api_key", "key": "!security find-generic-password -ws 'anthropic'" }
   { "type": "api_key", "key": "!op read 'op://vault/item/credential'" }
   ```
-- **环境变量插值：** `"$ENV_VAR"` 或 `"${ENV_VAR}"` 使用命名变量的值。插值可在较大的字面量内部使用。
+- **环境变量插值：** `"$ENV_VAR"`或`"${ENV_VAR}"`使用命名变量的值。插值在较大的字面量内工作。
  ```json
   { "type": "api_key", "key": "$MY_ANTHROPIC_KEY" }
   { "type": "api_key", "key": "${KEY_PREFIX}_${KEY_SUFFIX}" }
   ```
-  `$FOO_BAR` is the variable `FOO_BAR`; use `${FOO}_BAR` when `BAR` 是字面文本。缺失的环境变量会导致值无法解析。
-- **转义：** `"$"` 输出字面 `"$"`；`"$!"` 输出字面 `"!"`，而不触发命令执行。
+  `$FOO_BAR` is the variable `FOO_BAR`; use `${FOO}_BAR` when `BAR`是字面文本。缺少环境变量会使值无法解析。
+- **转义：** `"$"`输出一个字面量`"$"`；`"$!"`输出一个字面量`"!"`而不触发命令执行。
  ```json
   { "type": "api_key", "key": "$literal-dollar-prefix" }
   { "type": "api_key", "key": "$!literal-bang-prefix" }
   ```
-- **字面值：** 直接使用。纯大写字符串如 `MY_API_KEY` 是字面量；使用 `$MY_API_KEY` 表示环境变量。
+- **字面值：**直接使用。纯大写字符串如`MY_API_KEY`是字面量；对于环境变量，请使用`$MY_API_KEY`。
  ```json
   { "type": "api_key", "key": "sk-ant-..." }
   { "type": "api_key", "key": "public" }
   ```
 
-OAuth 凭据在 `/login` 后也会存储在此处，并自动管理。
+OAuth 凭据在`/login`之后也存储在此处，并自动管理。
 
 ## 云提供商
 
@@ -195,7 +196,7 @@ export AZURE_OPENAI_DEPLOYMENT_NAME_MAP=gpt-4=my-gpt4,gpt-4o=my-gpt4o
 
 ### Amazon Bedrock
 
-使用 `/login amazon-bedrock` 存储 Bedrock API 密钥，或配置以下环境 AWS 凭据源之一：
+使用`/login amazon-bedrock`存储 Bedrock API密钥，或配置以下环境AWS凭据源之一：
 
 ```bash
 # Option 1: AWS Profile
@@ -212,20 +213,20 @@ export AWS_BEARER_TOKEN_BEDROCK=...
 export AWS_REGION=us-west-2
 ```
 
-同时支持 ECS 任务角色 (`AWS_CONTAINER_CREDENTIALS_*`) 和 IRSA (`AWS_WEB_IDENTITY_TOKEN_FILE`)。
+还支持ECS任务角色(`AWS_CONTAINER_CREDENTIALS_*`)和IRSA(`AWS_WEB_IDENTITY_TOKEN_FILE`)。
 
 ```bash
 pi --provider amazon-bedrock --model us.anthropic.claude-sonnet-4-20250514-v1:0
 ```
 
-对于 ID 包含可识别模型名称的 Claude 模型，提示缓存会自动启用 (基础模型和 system-defined 推理配置文件)。对于应用程序推理配置文件 (其 ARN 不包含模型名称)，设置 `AWS_BEDROCK_FORCE_CACHE=1` 以启用缓存点：
+对于 ID 包含可识别模型名称的 Claude 模型，(基础模型和system-defined推理配置文件)会自动启用提示缓存。对于应用程序推理配置文件(其 ARN 不包含模型名称)，请设置`AWS_BEDROCK_FORCE_CACHE=1`以启用缓存点：
 
 ```bash
 export AWS_BEDROCK_FORCE_CACHE=1
 pi --provider amazon-bedrock --model arn:aws:bedrock:us-east-1:123456789012:application-inference-profile/abc123
 ```
 
-如果您正在连接到 Bedrock API 代理，则可以使用以下环境变量：
+如果您连接到 Bedrock API代理，可以使用以下环境变量：
 
 ```bash
 # Set the URL for the Bedrock proxy (standard AWS SDK env var)
@@ -240,7 +241,7 @@ export AWS_BEDROCK_FORCE_HTTP1=1
 
 ### Cloudflare AI Gateway
 
-`CLOUDFLARE_API_KEY` 可通过 `/login` 设置。账户 ID 和网关 slug 可作为环境变量设置，或在 API 密钥凭证的 `env` 对象中设置，该对象位于 `auth.json` 中。
+`CLOUDFLARE_API_KEY`可以通过`/login`设置。账户 ID 和网关 slug 可以设置为环境变量，或在`auth.json`中API密钥凭据的`env`对象中设置。
 
 ```bash
 export CLOUDFLARE_API_KEY=...           # or use /login
@@ -249,22 +250,22 @@ export CLOUDFLARE_GATEWAY_ID=...        # create at dash.cloudflare.com → AI �
 pi --provider cloudflare-ai-gateway --model "claude-sonnet-4-5"
 ```
 
-通过 Cloudflare AI Gateway 路由到 OpenAI、Anthropic 和 Workers AI。Workers AI 使用统一 API (`/compat`) 和前缀模型 ID (`workers-ai/@cf/...`)。OpenAI 使用 OpenAI 直通路由 (`/openai`)，带有原生 OpenAI 模型 ID ，例如 `gpt-5.1`。Anthropic 使用 Anthropic 直通路由 (`/anthropic`)，带有原生 Anthropic 模型 ID ，例如 `claude-sonnet-4-5`。
+通过 Cloudflare AI Gateway 连接到 OpenAI、Anthropic 和 Workers AI。Workers AI 使用统一的 API (`/compat`) 和带前缀的模型 ID (`workers-ai/@cf/...`)。OpenAI 使用 OpenAI 透传路由 (`/openai`) 和原生 OpenAI 模型 ID （如 `gpt-5.1`）。Anthropic 使用 Anthropic 透传路由 (`/anthropic`) 和原生 Anthropic 模型 ID （如 `claude-sonnet-4-5`）。
 
 AI Gateway 身份验证使用 `CLOUDFLARE_API_KEY` 作为 `cf-aig-authorization`。上游身份验证可以是以下之一：
 
-| 模式 | 请求身份验证 | 上游身份验证 |
+| 模式 | 请求认证 | 上游认证 |
 |------|--------------|---------------|
 | Workers AI | 仅 Cloudflare 令牌 | Cloudflare 原生 |
-| 统一计费 | 仅 Cloudflare 令牌 | Cloudflare 处理上游身份验证并扣除积分 |
-| 已存储 BYOK | 仅 Cloudflare 令牌 | Cloudflare 注入存储在 AI Gateway 仪表板中的提供商密钥 |
+| 统一计费 | 仅 Cloudflare 令牌 | Cloudflare 处理上游认证并扣除额度 |
+| 存储的 BYOK | 仅 Cloudflare 令牌 | Cloudflare 注入存储在 AI Gateway 仪表盘中的提供商密钥 |
 | 内联 BYOK | Cloudflare 令牌加上上游 `Authorization` 标头 | 请求提供上游提供商密钥 |
 
-对于正常的 pi 使用，更倾向于统一计费或已存储 BYOK。内联 BYOK 需要为 Cloudflare AI Gateway 提供商配置额外的上游 `Authorization` 标头，例如通过 `models.json` 提供商/模型覆盖。
+对于正常使用，建议使用统一计费或存储的 BYOK。内联 BYOK 需要为 Cloudflare AI Gateway 提供商配置额外的上游 `Authorization` 标头，例如通过 `models.json` 提供商/模型覆盖。
 
-### Cloudflare Workers AI
+### Cloudflare Workers AI ｜ Cloudflare Workers AI
 
-`CLOUDFLARE_API_KEY` 可通过 `/login` 设置。`CLOUDFLARE_ACCOUNT_ID` 可作为环境变量设置，或在 API 密钥凭证的 `env` 对象中设置，该对象位于 `auth.json` 中。
+`CLOUDFLARE_API_KEY` 可以通过 `/login` 设置。`CLOUDFLARE_ACCOUNT_ID` 可以设置为环境变量，或在 `auth.json` 的 API 密钥凭证的 `env` 对象中设置。
 
 ```bash
 export CLOUDFLARE_API_KEY=...           # or use /login
@@ -272,11 +273,11 @@ export CLOUDFLARE_ACCOUNT_ID=...
 pi --provider cloudflare-workers-ai --model "@cf/moonshotai/kimi-k2.6"
 ```
 
-Pi 自动为 [前缀缓存](https://developers.cloudflare.com/workers-ai/features/prompt-caching/) 折扣设置 `x-session-affinity`。
+Pi 自动设置 `x-session-affinity` 以便享受 [前缀缓存](https://developers.cloudflare.com/workers-ai/features/prompt-caching/) 折扣。
 
 ### Google Vertex AI ｜ Google Vertex AI
 
-Uses Application Default Credentials:
+使用应用默认凭据：
 
 ```bash
 gcloud auth application-default login
@@ -284,25 +285,25 @@ export GOOGLE_CLOUD_PROJECT=your-project
 export GOOGLE_CLOUD_LOCATION=us-central1
 ```
 
-或者将 `GOOGLE_APPLICATION_CREDENTIALS` 设置为服务账号密钥文件。
+或者将 `GOOGLE_APPLICATION_CREDENTIALS` 设置为服务账户密钥文件。
 
 ## llama.cpp
 
-Pi 支持 llama.cpp 路由器服务器。通过 `/login llama.cpp` 进行配置，使用 `/llama` 管理已加载的模型，并使用 `/model` 选择已加载的模型。
+Pi 支持 llama.cpp 路由器服务器。使用 `/login llama.cpp` 进行配置，使用 `/llama` 管理已加载的模型，使用 `/model` 选择已加载的模型。
 
-有关服务器设置、模型目录布局、环境变量和命令用法的信息，请参见 [llama.cpp](llama-cpp.md)。
+有关服务器设置、模型目录布局、环境变量和命令用法，请参阅 [llama.cpp](llama-cpp.md)。
 
-## Custom Providers ｜ Custom Providers
+## 自定义模型提供商｜ Custom Providers
 
-**通过 models.json：** 添加 Ollama、LM Studio、vLLM 或任何使用受支持的 API 的模型提供商 (OpenAI Completions、OpenAI Responses、Anthropic Messages、Google Generative AI)。请参见 [models.md](models.md)。
+**通过 models.json：** 添加 Ollama、LM Studio、vLLM 或任何支持 API (OpenAI Completions、OpenAI Responses、Anthropic Messages、Google Generative AI) 的提供商。请参阅 [models.md](models.md)。
 
-**通过扩展：** 对于需要自定义 API 实现或 OAuth 流程的模型提供商，请创建一个扩展。请参见 [custom-provider.md](custom-provider.md) 和 [examples/extensions/custom-provider-gitlab-duo](../examples/extensions/custom-provider-gitlab-duo/)。
+**通过扩展：** 对于需要自定义 API 实现或 OAuth 流程的提供商，请创建一个扩展。请参阅 [custom-provider.md](custom-provider.md) 和 [examples/extensions/custom-provider-gitlab-duo](../examples/extensions/custom-provider-gitlab-duo/)。
 
-## Resolution Order ｜ Resolution Order
+## 解析顺序｜ Resolution Order
 
-解析模型提供商的凭据时：
+解析提供商的凭据时：
 
-1. CLI `--api-key` flag
+1. CLI `--api-key` 标志
 2. `auth.json` 条目 (API 密钥或 OAuth 令牌)
-3. Environment variable
-4. 来自 `models.json` 的自定义模型提供商密钥
+3. 环境变量
+4. 来自 `models.json` 的自定义提供商密钥
