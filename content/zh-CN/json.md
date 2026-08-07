@@ -1,32 +1,32 @@
-# JSON 事件流模式
+# JSON 事件流模式｜ Event Stream Mode
 
 ```bash
 pi --mode json "Your prompt"
 ```
 
-将会话中的所有事件以JSON行的形式输出到标准输出。适用于将 pi 集成到其他工具或自定义 UI 中。
+将所有会话事件以 JSON 行输出到标准输出。适用于将 pi 集成到其他工具或自定义 UI 中。
 
 ## 事件类型｜ Event Types
 
-事件定义在[`AgentSessionEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts#L102)中：
+线事件使用 `JsonAgentSessionEvent`。它与
+[`AgentSessionEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts)
+匹配，但流式消息更新省略了累积快照：
 
 ```typescript
-type AgentSessionEvent =
-  | AgentEvent
-  | { type: "queue_update"; steering: readonly string[]; followUp: readonly string[] }
-  | { type: "compaction_start"; reason: "manual" | "threshold" | "overflow" }
-  | { type: "compaction_end"; reason: "manual" | "threshold" | "overflow"; result: CompactionResult | undefined; aborted: boolean; willRetry: boolean; errorMessage?: string }
-  | { type: "auto_retry_start"; attempt: number; maxAttempts: number; delayMs: number; errorMessage: string }
-  | { type: "auto_retry_end"; success: boolean; attempt: number; finalError?: string }
-  | { type: "summarization_retry_scheduled"; attempt: number; maxAttempts: number; delayMs: number; errorMessage: string }
-  | { type: "summarization_retry_attempt_start"; source: "branchSummary" }
-  | { type: "summarization_retry_attempt_start"; source: "compaction"; reason: "manual" | "threshold" | "overflow" }
-  | { type: "summarization_retry_finished" };
+type WithoutPartial<T> = T extends { partial: unknown } ? Omit<T, "partial"> : T;
+
+type JsonAgentSessionEvent =
+  | Exclude<AgentSessionEvent, { type: "message_update" }>
+  | {
+      type: "message_update";
+      assistantMessageEvent: WithoutPartial<AssistantMessageEvent>;
+    };
 ```
 
-`queue_update`在待处理的 steering 和follow-up队列发生变化时发出完整的队列内容。`compaction_start`和`compaction_end`涵盖手动和自动上下文压缩。
+`queue_update` 在待处理的 steering 和 follow-up 队列发生变化时发出完整内容。`compaction_start` 和 `compaction_end` 涵盖手动和自动上下文压缩。
 
-来自[`AgentEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/agent/src/types.ts#L179)的基础事件：
+其他基础事件来自
+[`AgentEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/agent/src/types.ts)：
 
 ```typescript
 type AgentEvent =
@@ -48,12 +48,12 @@ type AgentEvent =
 
 ## 消息类型｜ Message Types
 
-来自[`packages/ai/src/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/types.ts#L134)的基础消息：
+来自 [`packages/ai/src/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/types.ts#L134) 的基础消息：
 - `UserMessage` (第 134 行)
 - `AssistantMessage` (第 140 行)
 - `ToolResultMessage` (第 152 行)
 
-来自[`packages/coding-agent/src/core/messages.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts#L29)的扩展消息：
+来自 [`packages/coding-agent/src/core/messages.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/messages.ts#L29) 的扩展消息：
 - `BashExecutionMessage` (第 29 行)
 - `CustomMessage` (第 46 行)
 - `BranchSummaryMessage` (第 55 行)
@@ -61,23 +61,28 @@ type AgentEvent =
 
 ## 输出格式｜ Output Format
 
-每一行是一个JSON对象。第一行是会话头部：
+每一行都是一个 JSON 对象。第一行是会话头：
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"...","cwd":"/path"}
 ```
 
-随后是事件，按发生顺序出现：
+随后是发生的事件：
 
 ```json
 {"type":"agent_start"}
 {"type":"turn_start"}
 {"type":"message_start","message":{"role":"assistant","content":[],...}}
-{"type":"message_update","message":{...},"assistantMessageEvent":{"type":"text_delta","delta":"Hello",...}}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Hello"}}
 {"type":"message_end","message":{...}}
 {"type":"turn_end","message":{...},"toolResults":[]}
 {"type":"agent_end","messages":[...]}
 ```
+
+`message_update` 记录是 delta-only。它们省略了累积的 `message` 字段和
+`assistantMessageEvent.partial`，以保持流大小线性。如果需要，使用 `contentIndex` 和 `delta`
+ 来组装实时文本、思考或 tool-call 参数。`message_end` 包含
+最终的权威消息。
 
 ## 示例｜ Example
 
