@@ -43,7 +43,12 @@ function loadCache(): Map<string, TranslationMemoryEntry> {
   const lines = fs.readFileSync(cachePath, "utf-8").trim().split("\n");
   for (const line of lines) {
     if (!line) continue;
-    const entry = JSON.parse(line) as TranslationMemoryEntry;
+    let entry: TranslationMemoryEntry;
+    try {
+      entry = JSON.parse(line) as TranslationMemoryEntry;
+    } catch {
+      continue; // skip corrupt lines instead of failing the whole run
+    }
     if (entry.translation?.trim()) cache.set(entry.key, entry);
   }
   return cache;
@@ -179,13 +184,13 @@ export async function translateWithFallback(
             maxOutputTokens: protocolConfig.maxOutputTokens
           };
           const subResult = await provider.translateBatch(request, candidate);
-          const subFailed = validateTranslationBatch(subSegs, subResult);
+          const { result: validated, failed: subFailed } = validateWithRepair(subSegs, subResult);
           if (subFailed.size > 0) {
-            if (subFailed.size === subResult.translations.length)
+            if (subFailed.size === validated.translations.length)
               throw new Error(`All ${subFailed.size} segments failed validation`);
-            subResult.translations = subResult.translations.filter((t) => !subFailed.has(t.id));
+            validated.translations = validated.translations.filter((t) => !subFailed.has(t.id));
           }
-          subResults.push(subResult);
+          subResults.push(validated);
         }
 
         const result: TranslationBatchResult = {
@@ -198,13 +203,18 @@ export async function translateWithFallback(
             latencyMs: subResults.reduce((sum, r) => sum + r.metadata.latencyMs, 0)
           }
         };
-        const finalFailed = validateTranslationBatch(segsForThisModel, result);
+        const { result: finalValidated, failed: finalFailed } = validateWithRepair(
+          segsForThisModel,
+          result
+        );
         if (finalFailed.size > 0) {
-          if (finalFailed.size === result.translations.length)
+          if (finalFailed.size === finalValidated.translations.length)
             throw new Error(`All ${finalFailed.size} segments failed validation`);
-          result.translations = result.translations.filter((t) => !finalFailed.has(t.id));
+          finalValidated.translations = finalValidated.translations.filter(
+            (t) => !finalFailed.has(t.id)
+          );
         }
-        return result;
+        return finalValidated;
       }
 
       const request: TranslationBatchRequest = {
@@ -216,13 +226,13 @@ export async function translateWithFallback(
         maxOutputTokens: protocolConfig.maxOutputTokens
       };
       const result = await provider.translateBatch(request, candidate);
-      const failed = validateTranslationBatch(segsForThisModel, result);
+      const { result: validated, failed } = validateWithRepair(segsForThisModel, result);
       if (failed.size > 0) {
-        if (failed.size === result.translations.length)
+        if (failed.size === validated.translations.length)
           throw new Error(`All ${failed.size} segments failed validation`);
-        result.translations = result.translations.filter((t) => !failed.has(t.id));
+        validated.translations = validated.translations.filter((t) => !failed.has(t.id));
       }
-      return result;
+      return validated;
     } catch (err) {
       const info = provider.classifyError(err);
       failures.push(`${candidate.id}: ${info.kind}`);
@@ -299,6 +309,92 @@ function validateTranslationBatch(
   return failedSegments;
 }
 
+// Placeholders are content-preserving protected tokens. When the model
+// duplicates one (e.g. {{PRODUCT_1}} emitted twice for a single source
+// occurrence), dropping the extra occurrences is a safe mechanical repair:
+// the token value is identical, so removing the duplicate cannot change the
+// translated meaning. Only repairs when the target placeholder multiset is a
+// superset of the source's (same set, counts >= expected) — anything else is
+// left for validation to reject.
+function repairPlaceholderDuplicates(
+  segments: TranslationSegment[],
+  result: TranslationBatchResult
+): TranslationBatchResult {
+  const byId = new Map(segments.map((s) => [s.id, s]));
+  const repaired = result.translations.map((t) => {
+    const seg = byId.get(t.id);
+    if (!seg) return t;
+
+    const expected = new Map<string, number>();
+    for (const token of seg.protectedTokens) {
+      expected.set(token.placeholder, (expected.get(token.placeholder) ?? 0) + 1);
+    }
+
+    const actual = new Map<string, number>();
+    for (const p of t.text.match(/\{\{[^}]+\}\}/g) ?? []) {
+      actual.set(p, (actual.get(p) ?? 0) + 1);
+    }
+
+    // Same placeholder set required; counts may only exceed the expected ones.
+    let repairable = true;
+    const excess = new Map<string, number>();
+    for (const [p, count] of actual) {
+      const exp = expected.get(p) ?? 0;
+      if (exp === 0 || count < exp) {
+        repairable = false;
+        break;
+      }
+      if (count > exp) excess.set(p, count - exp);
+    }
+    for (const p of expected.keys()) {
+      if (!actual.has(p)) {
+        repairable = false;
+        break;
+      }
+    }
+    if (!repairable || excess.size === 0) return t;
+
+    let text = t.text;
+    for (const [placeholder, n] of excess) {
+      const inner = placeholder.slice(2, -2).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const consecutive = new RegExp(`(\\{\\{${inner}\\}\\})\\s*\\1`, "g");
+      for (let i = 0; i < n; i++) {
+        if (consecutive.test(text)) {
+          text = text.replace(consecutive, "$1");
+        } else {
+          const lastIdx = text.lastIndexOf(placeholder);
+          text = text.slice(0, lastIdx) + text.slice(lastIdx + placeholder.length);
+        }
+      }
+    }
+    return { ...t, text };
+  });
+  return { ...result, translations: repaired };
+}
+
+// Validate a batch, then opportunistically repair duplicated placeholders and
+// re-validate. Throws only when the response shape itself is broken (empty /
+// missing / extra / duplicate segment IDs) — same contract as
+// validateTranslationBatch, which those shape errors bypassed by throwing.
+function validateWithRepair(
+  segments: TranslationSegment[],
+  result: TranslationBatchResult
+): { result: TranslationBatchResult; failed: Set<string> } {
+  let failed = validateTranslationBatch(segments, result);
+  if (failed.size > 0) {
+    const repaired = repairPlaceholderDuplicates(segments, result);
+    const failedAfter = validateTranslationBatch(segments, repaired);
+    if (failedAfter.size < failed.size) {
+      console.log(
+        `   🔧 Repaired ${failed.size - failedAfter.size} placeholder-duplicate segment(s)`
+      );
+      result = repaired;
+      failed = failedAfter;
+    }
+  }
+  return { result, failed };
+}
+
 export async function runConcurrent<T, R>(
   items: T[],
   concurrency: number,
@@ -306,13 +402,16 @@ export async function runConcurrent<T, R>(
 ): Promise<R[]> {
   const results = new Array<R>(items.length);
   let nextIndex = 0;
+  const workerCount = Math.min(concurrency, items.length);
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (nextIndex < items.length) {
-        const index = nextIndex++;
-        results[index] = await worker(items[index], index);
-      }
-    })
+    Array.from({ length: workerCount }, () =>
+      (async () => {
+        while (nextIndex < items.length) {
+          const index = nextIndex++;
+          results[index] = await worker(items[index], index);
+        }
+      })()
+    )
   );
   return results;
 }
@@ -347,48 +446,61 @@ async function processSingleBatch(
     return { translated: cachedResults, cacheEntries: [] };
   }
 
-  try {
-    const result = await translateWithFallback(
-      provider,
-      { segments: uncached, glossary: glossary.terms, preserve: glossary.preserve, prompt },
-      candidates
-    );
-
-    const batchTranslated: TranslatedSegment[] = result.translations.map((t) => ({
-      segmentId: t.id,
-      translation: t.text,
-      modelUsed: result.metadata.actualModel
-    }));
-
-    const resultMap = new Map(result.translations.map((t) => [t.id, t]));
-    const cacheEntries: TranslationMemoryEntry[] = uncached
-      .filter((s) => resultMap.has(s.id))
-      .map((s) => {
-        const rt = resultMap.get(s.id)!;
-        return {
-          key: buildCacheKey(s, versions),
-          source: s.source,
-          translation: rt.text,
-          metadata: {
-            targetLocale: "zh-CN",
-            filePath: s.filePath,
-            sectionPath: s.sectionPath,
-            modelRequested: result.metadata.requestedModel,
-            modelUsed: result.metadata.actualModel,
-            translatedAt: new Date().toISOString()
-          }
-        };
-      });
-
-    return { translated: [...cachedResults, ...batchTranslated], cacheEntries };
-  } catch (err) {
-    if (err instanceof AllModelsFailedError) {
-      console.log(
-        `   🚫 Batch: all models failed — skipping, ${uncached.length} segments untranslated`
+  const batchRetries = 2; // initial attempt + 2 in-run retries before giving up
+  let attempt = 0;
+  while (true) {
+    attempt++;
+    try {
+      const result = await translateWithFallback(
+        provider,
+        { segments: uncached, glossary: glossary.terms, preserve: glossary.preserve, prompt },
+        candidates
       );
-      return { translated: cachedResults, cacheEntries: [] };
+
+      const batchTranslated: TranslatedSegment[] = result.translations.map((t) => ({
+        segmentId: t.id,
+        translation: t.text,
+        modelUsed: result.metadata.actualModel
+      }));
+
+      const resultMap = new Map(result.translations.map((t) => [t.id, t]));
+      const cacheEntries: TranslationMemoryEntry[] = uncached
+        .filter((s) => resultMap.has(s.id))
+        .map((s) => {
+          const rt = resultMap.get(s.id)!;
+          return {
+            key: buildCacheKey(s, versions),
+            source: s.source,
+            translation: rt.text,
+            metadata: {
+              targetLocale: "zh-CN",
+              filePath: s.filePath,
+              sectionPath: s.sectionPath,
+              modelRequested: result.metadata.requestedModel,
+              modelUsed: result.metadata.actualModel,
+              translatedAt: new Date().toISOString()
+            }
+          };
+        });
+
+      return { translated: [...cachedResults, ...batchTranslated], cacheEntries };
+    } catch (err) {
+      if (err instanceof AllModelsFailedError) {
+        if (attempt <= batchRetries) {
+          const backoff = attempt * 10; // 10s, 20s
+          console.log(
+            `   🔁 Batch retry ${attempt}/${batchRetries} in ${backoff}s (${uncached.length} segments)`
+          );
+          await new Promise((r) => setTimeout(r, backoff * 1000));
+          continue;
+        }
+        console.log(
+          `   🚫 Batch: all models failed — skipping, ${uncached.length} segments untranslated`
+        );
+        return { translated: cachedResults, cacheEntries: [] };
+      }
+      throw err;
     }
-    throw err;
   }
 }
 
@@ -536,4 +648,4 @@ export async function serializedCommit(
   return __commitChain;
 }
 
-export { groupIntoBatches, buildCacheKey };
+export { groupIntoBatches };

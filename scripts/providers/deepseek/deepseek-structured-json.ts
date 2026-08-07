@@ -33,11 +33,17 @@ export function buildStructuredJsonBody(
   max_tokens: number;
   messages: Array<{ role: string; content: string }>;
   response_format: { type: "json_object" };
+  thinking: { type: "disabled" };
 } {
   return {
     model,
     temperature: 0.01,
     max_tokens: batch.maxOutputTokens,
+    // deepseek-v4-flash enables thinking by default; translation is a
+    // non-reasoning task and thinking mode both inflates output-token cost
+    // (reasoning tokens are billed as output) and degrades structured JSON
+    // fidelity (empty content, truncated JSON, duplicated placeholders).
+    thinking: { type: "disabled" },
     messages: [
       {
         role: "system",

@@ -58,6 +58,10 @@ jobs:
 
       - name: Check release and upstream
         id: decide
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FORCE_SYNC: ${{ github.event.inputs.force_sync }}
+          FORCE_RETRANSLATE: ${{ github.event.inputs.force_retranslate }}
         run: |
           NEEDS_SYNC="false"
           TRANS_NEEDED="false"
@@ -67,7 +71,7 @@ jobs:
 
           # Scheduled runs only inspect docs after a new Pi release. Manual
           # runs retain their existing ability to check or force a sync.
-          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+          if [[ "$EVENT_NAME" == "schedule" ]]; then
             # -s: pure JSON only (no pnpm lifecycle banner for jq)
             RELEASE_OUTPUT=$(pnpm -s release:check)
             echo "$RELEASE_OUTPUT"
@@ -88,11 +92,11 @@ jobs:
           OUTPUT=$(pnpm sync:check 2>&1)
           echo "$OUTPUT"
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ github.event.inputs.force_sync }}" == "true" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ "$FORCE_SYNC" == "true" ]]; then
               NEEDS_SYNC="true"
             fi
-            if [[ "${{ github.event.inputs.force_retranslate }}" == "true" ]]; then
+            if [[ "$FORCE_RETRANSLATE" == "true" ]]; then
               TRANS_NEEDED="true"
             fi
           fi
@@ -143,22 +147,41 @@ jobs:
         shell: bash
         run: |
           ARGS="--force"
-          if [[ "${{ github.event.inputs.force_retranslate }}" == "true" ]]; then
+          if [[ "$FORCE_RETRANSLATE" == "true" ]]; then
             ARGS="$ARGS --retranslate"
           fi
 
+          PREV_COUNT=""
+          STALLED=0
           for attempt in $(seq 1 20); do
             echo "Sync attempt $attempt/20"
             pnpm sync:run $ARGS
             if jq -e '.status == "completed"' state/pending-sync.json >/dev/null; then
               exit 0
             fi
+
+            # Abort early when the model keeps failing the same segments:
+            # 3 consecutive attempts without progress means retrying will only
+            # burn more tokens.
+            COUNT=$(jq '.completedSegmentIds | length' state/pending-sync.json)
+            if [[ "$PREV_COUNT" == "$COUNT" ]]; then
+              STALLED=$((STALLED + 1))
+            else
+              STALLED=0
+            fi
+            PREV_COUNT="$COUNT"
+            if [[ $STALLED -ge 3 ]]; then
+              echo "No progress for 3 consecutive attempts ($COUNT segments completed). Aborting."
+              exit 1
+            fi
+
             sleep $(( attempt < 6 ? attempt * 60 : 300 ))
           done
 
           echo "Translation did not reach 100% after 20 attempts."
           exit 1
         env:
+          FORCE_RETRANSLATE: ${{ github.event.inputs.force_retranslate }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           DEEPSEEK_BASE_URL: ${{ vars.DEEPSEEK_BASE_URL || 'https://api.deepseek.com' }}
           DEEPSEEK_MODEL: deepseek-v4-flash

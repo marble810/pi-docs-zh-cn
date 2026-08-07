@@ -227,6 +227,48 @@ describe("translation validation", () => {
       )
     ).rejects.toThrow("All models failed");
   });
+
+  it("repairs duplicated placeholders instead of failing the batch", async () => {
+    resetCounters();
+    const source = "Pi";
+    const { text: normalizedSource, tokens } = protectTokens(source);
+    expect(tokens).toHaveLength(1);
+    const segment = {
+      ...makeSeg("a.md", source),
+      normalizedSource,
+      protectedTokens: tokens
+    };
+    // Model echoes the protected token twice — a mechanical error that the
+    // repair step should fix (drop the extra occurrence) and accept.
+    const duplicated = tokens[0].placeholder + tokens[0].placeholder;
+    const result = await translateWithFallback(
+      providerReturning(duplicated),
+      { segments: [segment], glossary: {}, preserve: [], prompt: "" },
+      [candidate]
+    );
+    expect(result.translations).toHaveLength(1);
+    expect(result.translations[0].text).toBe(normalizedSource);
+  });
+
+  it("does not repair when the placeholder set differs from the source", async () => {
+    resetCounters();
+    const source = "Pi";
+    const { text: normalizedSource, tokens } = protectTokens(source);
+    expect(tokens).toHaveLength(1);
+    const segment = {
+      ...makeSeg("a.md", source),
+      normalizedSource,
+      protectedTokens: tokens
+    };
+    // Dropped placeholder: repair must not invent the missing token.
+    await expect(
+      translateWithFallback(
+        providerReturning(""),
+        { segments: [segment], glossary: {}, preserve: [], prompt: "" },
+        [candidate]
+      )
+    ).rejects.toThrow("All models failed");
+  });
 });
 
 describe("serialized batch persistence", () => {

@@ -1,0 +1,8 @@
+---
+# GitHub Actions workflow files legitimately exceed the yamllint default
+# 80-char limit: SHA-pinned `uses:` lines and `${{ }}` expressions cannot be
+# wrapped. 200 keeps a guardrail while matching Prettier-formatted output.
+extends: default
+rules:
+  line-length:
+    max: 200
