@@ -1,4 +1,4 @@
-# JSON 事件流模式｜ Event Stream Mode
+# JSON 事件流模式
 
 ```bash
 pi --mode json "Your prompt"
@@ -6,9 +6,9 @@ pi --mode json "Your prompt"
 
 将所有会话事件以 JSON 行输出到标准输出。适用于将 pi 集成到其他工具或自定义 UI 中。
 
-## 事件类型｜ Event Types
+## 事件类型
 
-线事件使用 `JsonAgentSessionEvent`。它与
+Wire 事件使用 `JsonAgentSessionEvent`。它与
 [`AgentSessionEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/agent-session.ts)
 匹配，但流式消息更新省略了累积快照：
 
@@ -19,11 +19,12 @@ type JsonAgentSessionEvent =
   | Exclude<AgentSessionEvent, { type: "message_update" }>
   | {
       type: "message_update";
+      usage: Usage;
       assistantMessageEvent: WithoutPartial<AssistantMessageEvent>;
     };
 ```
 
-`queue_update` 在待处理的 steering 和 follow-up 队列发生变化时发出完整内容。`compaction_start` 和 `compaction_end` 涵盖手动和自动上下文压缩。
+`queue_update` 在待处理的 steering 和 follow-up 队列发生变化时发出完整信息。`compaction_start` 和 `compaction_end` 涵盖手动和自动上下文压缩。
 
 其他基础事件来自
 [`AgentEvent`](https://github.com/earendil-works/pi-mono/blob/main/packages/agent/src/types.ts)：
@@ -46,7 +47,7 @@ type AgentEvent =
   | { type: "tool_execution_end"; toolCallId: string; toolName: string; result: any; isError: boolean };
 ```
 
-## 消息类型｜ Message Types
+## 消息类型
 
 来自 [`packages/ai/src/types.ts`](https://github.com/earendil-works/pi-mono/blob/main/packages/ai/src/types.ts#L134) 的基础消息：
 - `UserMessage` (第 134 行)
@@ -67,22 +68,23 @@ type AgentEvent =
 {"type":"session","version":3,"id":"uuid","timestamp":"...","cwd":"/path"}
 ```
 
-随后是发生的事件：
+随后是事件发生时的事件记录：
 
 ```json
 {"type":"agent_start"}
 {"type":"turn_start"}
 {"type":"message_start","message":{"role":"assistant","content":[],...}}
-{"type":"message_update","assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Hello"}}
+{"type":"message_update","usage":{...},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Hello"}}
 {"type":"message_end","message":{...}}
 {"type":"turn_end","message":{...},"toolResults":[]}
 {"type":"agent_end","messages":[...]}
 ```
 
 `message_update` 记录是 delta-only。它们省略了累积的 `message` 字段和
-`assistantMessageEvent.partial`，以保持流大小线性。如果需要，使用 `contentIndex` 和 `delta`
- 来组装实时文本、思考或 tool-call 参数。`message_end` 包含
-最终的权威消息。
+`assistantMessageEvent.partial`，以保持流大小线性。top-level `usage` 字段包含
+最新的累积 provider-reported 使用量，当提供商仅在完成时报告
+使用量时，该字段可能保持为零。使用 `contentIndex` 和 `delta` 来组装实时文本、思考或 tool-call
+参数（如果需要）。`message_end` 包含最终的权威消息。
 
 ## 示例｜ Example
 

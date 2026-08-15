@@ -1,18 +1,18 @@
-> pi 可以创建扩展。请让它为你的用例构建一个。
+> pi 可以创建扩展。请让它为您的用例构建一个。
 
 # 扩展｜ Extensions
 
-扩展是 TypeScript 模块，用于扩展 pi 的行为。它们可以订阅生命周期事件、注册可由 LLM 调用的自定义工具、添加命令等。
+扩展是 TypeScript 模块，用于扩展 pi 的行为。它们可以订阅生命周期事件、注册 LLM 可调用的自定义工具、添加命令等。
 
-> **/reload 的放置位置：** 将扩展放在 `~/.pi/agent/extensions/` (全局) 或 `.pi/extensions/` (project-local) 中，用于 auto-discovery。仅将 `pi -e ./path.ts` 用于快速测试。位于 auto-discovered 位置的扩展可以使用 `/reload` 进行 hot-reloaded。
+> **/reload 的放置位置：** 将扩展放在 `~/.pi/agent/extensions/` (全局) 或 `.pi/extensions/` (project-local) 用于 auto-discovery。仅将 `pi -e ./path.ts` 用于快速测试。auto-discovered 位置中的扩展可以使用 `/reload` 进行 hot-reloaded。
 
-**主要功能：**
-- **自定义工具** - 注册 LLM 可以通过 `pi.registerTool()` 调用的工具
+**关键能力：**
+- **自定义工具** - 注册 LLM 可通过 `pi.registerTool()` 调用的工具
 - **事件拦截** - 阻止或修改工具调用、注入上下文、自定义上下文压缩
-- **用户交互** - 通过 `ctx.ui` (选择、确认、输入、通知) 提示用户
-- **自定义 UI 组件** - 通过 `ctx.ui.custom()` 提供带键盘输入的完整 TUI 组件，用于复杂交互
+- **用户交互** - 通过 `ctx.ui` (select, confirm, input, notify) 提示用户
+- **自定义 UI 组件** - 完整的 TUI 组件，通过 `ctx.ui.custom()` 支持键盘输入，用于复杂交互
 - **自定义命令** - 通过 `pi.registerCommand()` 注册类似 `/mycommand` 的命令
-- **会话持久化** - 通过 `pi.appendEntry()` 存储重启后仍保留的状态
+- **会话持久化** - 通过 `pi.appendEntry()` 存储可在重启后保留的状态
 - **自定义渲染** - 控制工具调用/结果和消息在 TUI 中的显示方式
 
 **示例用例：**
@@ -24,11 +24,11 @@
 - 交互式工具 (问题、向导、自定义对话框)
 - 有状态工具 (待办列表、连接池)
 - 外部集成 (文件监视器、Webhook、CI 触发器)
-- 等待期间玩游戏 (参见 `snake.ts` 示例)
+- 等待时的游戏 (参见 `snake.ts` 示例)
 
-参见 [examples/extensions/](../examples/extensions/) 获取可工作的实现。
+参见 [examples/extensions/](../examples/extensions/) 获取可运行的实现。
 
-## 目录｜ Table of Contents
+## 目录
 
 - [快速开始](#quick-start)
 - [扩展位置](#extension-locations)
@@ -53,7 +53,7 @@
 - [模式行为](#mode-behavior)
 - [示例参考](#examples-reference)
 
-## 快速开始｜ Quick Start
+## 快速开始
 
 创建 `~/.pi/agent/extensions/my-extension.ts`：
 
@@ -106,11 +106,11 @@ export default function (pi: ExtensionAPI) {
 pi -e ./my-extension.ts
 ```
 
-## 扩展位置｜扩展 Locations
+## 扩展位置
 
 > **安全：** 扩展以您的完整系统权限运行，并且可以执行任意代码。仅从您信任的来源安装。
 
-扩展是来自可信位置的 auto-discovered。项目本地的 `.pi/extensions` 条目仅在项目被信任后才会加载。
+扩展是来自受信任位置的 auto-discovered。项目本地的 `.pi/extensions` 条目仅在项目被信任后才会加载。
 
 | 位置 | 范围 |
 |----------|-------|
@@ -136,24 +136,24 @@ pi -e ./my-extension.ts
 
 要通过 npm or git as pi 包共享扩展，请参阅 [packages.md](packages.md)。
 
-## 可用导入
+## 可用导入｜ Available Imports
 
 | 包 | 用途 |
 |---------|---------|
-| `@earendil-works/pi-coding-agent` | 扩展类型 (`ExtensionAPI`, `ExtensionContext`, 事件) |
+| `@earendil-works/pi-coding-agent` | 扩展类型 (`ExtensionAPI`、`ExtensionContext`、事件) |
 | `typebox` | 工具参数的架构定义 |
 | `@earendil-works/pi-ai` | AI 工具 (`StringEnum` 用于 Google 兼容枚举) |
 | `@earendil-works/pi-tui` | TUI 组件用于自定义渲染 |
 
-npm dependencies 也可以。在扩展 (或父目录)旁边添加 `package.json`，运行 `npm install`，来自 `node_modules/` 的导入将自动解析。
+npm dependencies 也可以。在扩展旁边添加 `package.json` (或放在父目录中)，运行 `npm install`，来自 `node_modules/` 的导入将自动解析。
 
-对于使用 `pi install` (npm or git) 安装的分布式 pi 包，运行时依赖必须位于 `dependencies` 中。包安装默认使用生产安装 (`npm install --omit=dev`)，因此 `devDependencies` 在运行时不可用；当配置了 `npmCommand` 时， git packages 使用普通 `install` 以兼容包装器。
+对于通过 `pi install` (npm or git) 安装的分布式 pi 包，运行时依赖必须放在 `dependencies` 中。包安装默认使用生产安装 (`npm install --omit=dev`)，因此 `devDependencies` 在运行时不可用；当配置了 `npmCommand` 时， git packages 使用普通 `install` 以兼容包装器。
 
-Node.js built-ins (`node:fs`, `node:path` 等)也可用。
+Node.js built-ins (`node:fs`、`node:path` 等) 也可用。
 
 ## 编写扩展｜ Writing an 扩展
 
-扩展导出接收 `ExtensionAPI` 的默认工厂函数。该工厂可以是同步或异步的：
+扩展导出默认工厂函数，该函数接收 `ExtensionAPI`。工厂可以是同步或异步的：
 
 ```typescript
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -178,11 +178,11 @@ export default function (pi: ExtensionAPI) {
 
 扩展通过 [jiti](https://github.com/unjs/jiti) 加载，因此 TypeScript 无需编译即可工作。
 
-如果工厂返回 `Promise`， pi 会在继续启动前等待它。这意味着异步初始化会在 `session_start` 之前、`resources_discover` 之前以及通过 `pi.registerProvider()` 排队的模型提供商注册刷新之前完成。
+如果工厂返回 `Promise`， pi 会等待它完成后再继续启动。这意味着异步初始化会在 `session_start` 之前、`resources_discover` 之前以及通过 `pi.registerProvider()` 排队的提供商注册刷新之前完成。
 
 ### 异步工厂函数｜ Async factory functions
 
-对于 one-time 启动工作（如获取远程配置或动态发现可用模型），请使用异步工厂。
+使用异步工厂进行 one-time 启动工作，例如获取远程配置或动态发现可用模型。
 
 ```typescript
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -221,7 +221,7 @@ export default async function (pi: ExtensionAPI) {
 
 扩展工厂可能在从未启动会话的调用中运行。不要从工厂启动后台资源，如进程、套接字、文件监视器或定时器。
 
-将后台资源启动推迟到 `session_start` 或需要该资源的命令/工具/事件时。注册一个幂等的 `session_shutdown` 处理器，以关闭您启动的任何 session-scoped 资源。
+将后台资源的启动延迟到 `session_start` 或需要该资源的命令/工具/事件时。注册一个幂等的 `session_shutdown` 处理器，以关闭您启动的任何 session-scoped 资源。
 
 ### 扩展样式｜扩展 Styles
 
@@ -268,7 +268,7 @@ export default async function (pi: ExtensionAPI) {
 }
 ```
 
-在扩展目录中运行 `npm install`，然后来自 `node_modules/` 的导入将自动工作。
+在扩展目录中运行 `npm install`，然后从 `node_modules/` 的导入将自动工作。
 
 ## 事件｜ Events
 
@@ -351,7 +351,7 @@ exit (Ctrl+C, Ctrl+D, SIGHUP, SIGTERM)
 
 #### project_trust
 
-在 pi 决定是否信任具有动态配置的项目之前触发 (`.pi` 或 `.agents/skills`)。它在启动期间以及会话替换 (例如 `/resume`) 进入当前进程中尚未解析信任的工作目录时运行。只有用户/全局扩展和 CLI `-e` 扩展参与；project-local 扩展在信任解析之前不会加载。
+在 pi 决定是否信任具有动态配置 (`.pi` 或 `.agents/skills`) 的项目之前触发。它在启动时以及当会话替换 (例如 `/resume`) 进入当前进程中尚未解析信任的工作目录时运行。只有用户/全局扩展和 CLI `-e` 扩展参与；project-local 扩展在信任解析之前不会加载。
 
 ```typescript
 pi.on("project_trust", async (event, ctx) => {
@@ -364,7 +364,7 @@ pi.on("project_trust", async (event, ctx) => {
 });
 ```
 
-`project_trust` 处理器必须返回 `{ trusted: "yes" | "no" | "undecided" }`。返回 `"yes"` 或 `"no"` 的用户/全局或 CLI 扩展拥有决定权；第一个是/否决定获胜并抑制 built-in 信任提示。使用 `remember: true` 持久化是/否决定；否则它仅适用于当前进程。返回 `"undecided"` 让后续处理器或 built-in 信任流程决定。在提示前检查 `ctx.hasUI`。如果没有处理器返回是/否，则继续正常的信任解析：首先应用保存的 `trust.json` 决定，然后 `defaultProjectTrust` 控制 pi 是询问、信任还是默认拒绝。
+`project_trust` 处理器必须返回 `{ trusted: "yes" | "no" | "undecided" }`。返回 `"yes"` 或 `"no"` 的用户/全局或 CLI 扩展拥有决定权；第一个是/否决定获胜并抑制 built-in 信任提示。使用 `remember: true` 持久化是/否决定；否则它仅适用于当前进程。返回 `"undecided"` 以让后续处理器或 built-in 信任流程决定。在提示之前检查 `ctx.hasUI`。如果没有处理器返回是/否，则继续正常的信任解析：首先应用已保存的 `trust.json` 决定，然后 `defaultProjectTrust` 控制 pi 是询问、信任还是默认拒绝。
 
 ### 资源事件｜ Resource Events
 
@@ -387,7 +387,7 @@ pi.on("resources_discover", async (event, _ctx) => {
 
 ### 会话事件｜会话 Events
 
-参见 [会话格式](session-format.md) 了解会话存储内部机制，以及 SessionManager API。
+参见 [会话格式](session-format.md) 了解会话存储内部机制以及 SessionManager API。
 
 #### 会话_start
 
@@ -403,7 +403,7 @@ pi.on("session_start", async (event, ctx) => {
 
 #### 会话_info_changed
 
-当通过 `/name`、RPC 或 `pi.setSessionName()` 设置当前会话显示名称时触发。
+当当前会话显示名称通过 `/name`、RPC 或 `pi.setSessionName()` 设置时触发。
 
 ```typescript
 pi.on("session_info_changed", async (event, ctx) => {
@@ -431,9 +431,9 @@ pi.on("session_before_switch", async (event, ctx) => {
 成功切换或 new-session 操作后， pi 为旧扩展实例发出 `session_shutdown`，为新会话重新加载并重新绑定扩展，然后发出带有 `reason: "new" | "resume"` 和 `previousSessionFile` 的 `session_start`。
 在 `session_shutdown` 中执行清理工作，然后在 `session_start` 中重新建立任何 in-memory 状态。
 
-#### 会话_before_fork
+#### 会话_之前_分叉
 
-当通过 `/fork` 分叉或通过 `/clone` 克隆时触发。
+当通过`/fork`进行分叉或通过`/clone`进行克隆时触发。
 
 ```typescript
 pi.on("session_before_fork", async (event, ctx) => {
@@ -445,12 +445,12 @@ pi.on("session_before_fork", async (event, ctx) => {
 });
 ```
 
-成功分叉或克隆后， pi 为旧扩展实例发出 `session_shutdown`，为新会话重新加载并重新绑定扩展，然后发出带有 `reason: "fork"` 和 `previousSessionFile` 的 `session_start`。
-在 `session_shutdown` 中执行清理工作，然后在 `session_start` 中重新建立任何 in-memory 状态。
+在成功分叉或克隆后， pi 为旧扩展实例发出`session_shutdown`，为新会话重新加载并重新绑定扩展，然后发出带有`reason: "fork"`和`previousSessionFile`的`session_start`。
+在`session_shutdown`中执行清理工作，然后在`session_start`中重新建立任何in-memory状态。
 
-#### 会话_before_compact / 会话_compact
+#### 会话_之前_压缩 / 会话_压缩
 
-在上下文压缩时触发。详情参见 [compaction.md](compaction.md)。
+在压缩时触发。有关详细信息，请参阅[compaction.md](compaction.md)。
 
 ```typescript
 pi.on("session_before_compact", async (event, ctx) => {
@@ -481,9 +481,9 @@ pi.on("session_compact", async (event, ctx) => {
 });
 ```
 
-#### 会话_before_tree / 会话_tree
+#### 会话_之前_树 / 会话_树
 
-在 `/tree` 导航时触发。参见 [会话](sessions.md) 了解树导航概念。
+在`/tree`导航时触发。有关树导航概念，请参阅[会话](sessions.md)。
 
 ```typescript
 pi.on("session_before_tree", async (event, ctx) => {
@@ -504,9 +504,9 @@ pi.on("session_tree", async (event, ctx) => {
 });
 ```
 
-#### 会话_shutdown
+#### 会话_关闭
 
-在已启动的会话运行时被拆除之前触发。使用此事件清理从 `session_start` 或其他 session-scoped 钩子中打开的资源。
+在已启动的会话运行时被拆除之前触发。使用此事件清理从`session_start`或其他session-scoped钩子中打开的资源。
 
 ```typescript
 pi.on("session_shutdown", async (event, ctx) => {
@@ -516,11 +516,11 @@ pi.on("session_shutdown", async (event, ctx) => {
 });
 ```
 
-### 代理事件｜代理 Events
+### 代理事件
 
-#### before_代理_start
+#### 代理_开始_之前
 
-在用户提交提示词后、代理循环开始前触发。可以注入消息和/或修改系统提示词。
+在用户提交提示词后、代理循环之前触发。可以注入消息和/或修改系统提示词。
 
 ```typescript
 pi.on("before_agent_start", async (event, ctx) => {
@@ -551,13 +551,13 @@ pi.on("before_agent_start", async (event, ctx) => {
 });
 ```
 
-`systemPromptOptions` 字段为扩展提供了与 Pi 用于构建系统提示词的相同结构化数据。这使您可以检查 Pi 加载了什么——自定义提示词、指南、工具片段、上下文文件、技能——而无需 re-discovering 资源或 re-parsing 标志。当您的扩展需要对系统提示词进行深入、明智的更改，同时尊重 user-provided 配置时，请使用它。
+`systemPromptOptions`字段使扩展能够访问Pi用于构建系统提示词的相同结构化数据。这使您可以检查Pi已加载的内容——自定义提示词、指南、工具片段、上下文文件、技能——而无需re-discovering资源或re-parsing标志。当您的扩展需要对系统提示词进行深入、明智的修改，同时尊重user-provided配置时，请使用它。
 
-在 `before_agent_start` 内部，`event.systemPrompt` 和 `ctx.getSystemPrompt()` 都反映了当前处理程序时的链式系统提示词。后续的 `before_agent_start` 处理程序仍然可以再次修改它。
+在`before_agent_start`内部，`event.systemPrompt`和`ctx.getSystemPrompt()`都反映了当前处理程序时的链式系统提示词。后续的`before_agent_start`处理程序仍可再次修改它。
 
-#### 代理_start / 代理_end / 代理_settled
+#### 代理_开始 / 代理_结束 / 代理_已结算
 
-`agent_start` 在 low-level 代理运行开始时触发。`agent_end` 在该运行结束时触发，但 Pi 可能仍会 auto-retry、auto-compact 并重试，或继续处理排队的 follow-up 消息。对于需要知道 Pi 不会继续自动运行的状态集成，请使用 `agent_settled`。
+当low-level代理运行开始时，`agent_start`触发。当该运行结束时，`agent_end`触发，但Pi可能仍会auto-retry、auto-compact并重试，或继续处理排队的follow-up消息。对于需要知道Pi不会自动继续运行的状态集成，请使用`agent_settled`。
 
 ```typescript
 pi.on("agent_start", async (_event, ctx) => {});
@@ -571,9 +571,9 @@ pi.on("agent_settled", async (_event, ctx) => {
 });
 ```
 
-#### turn_start / turn_end
+#### 轮次_开始 / 轮次_结束
 
-为每一轮触发 (一次 LLM 响应 + 工具调用)。
+为每一轮(一个LLM响应 + 工具调用)触发。
 
 ```typescript
 pi.on("turn_start", async (event, ctx) => {
@@ -585,13 +585,13 @@ pi.on("turn_end", async (event, ctx) => {
 });
 ```
 
-#### message_start / message_update / message_end
+#### 消息_开始 / 消息_更新 / 消息_结束
 
 为消息生命周期更新触发。
 
-- `message_start` 和 `message_end` 为用户、助手和 toolResult 消息触发。
-- `message_update` 为助手流式更新触发。
-- `message_end` 处理器可以返回 `{ message }` 来替换最终确定的消息。替换必须保持相同的 `role`。
+- `message_start`和`message_end`为用户、助手和toolResult消息触发。
+- `message_update`为助手流式更新触发。
+- `message_end`处理程序可以返回`{ message }`以替换最终确定的消息。替换必须保持相同的`role`。
 
 ```typescript
 pi.on("message_start", async (event, ctx) => {
@@ -621,15 +621,15 @@ pi.on("message_end", async (event, ctx) => {
 });
 ```
 
-#### tool_execution_start / tool_execution_update / tool_execution_end
+#### 工具_执行_开始 / 工具_执行_更新 / 工具_执行_结束
 
-为工具执行生命周期更新触发。
+因工具执行生命周期更新而触发。
 
 在并行工具模式下：
-- `tool_execution_start` 在预检阶段于助手 source order 中发出
-- `tool_execution_update` 事件可能跨工具交错发生
-- `tool_execution_end` 在每个工具最终确定后按工具完成顺序发出
-- 最终的 `toolResult` 消息事件稍后仍会在助手 source order 中发出
+- `tool_execution_start` 在预检阶段的助手 source order 中发出。
+- `tool_execution_update` 事件可能跨工具交错发生。
+- `tool_execution_end` 在每个工具完成后按工具完成顺序发出。
+- 最终的 `toolResult` 消息事件仍会在稍后的助手 source order 中发出。
 
 ```typescript
 pi.on("tool_execution_start", async (event, ctx) => {
@@ -645,9 +645,9 @@ pi.on("tool_execution_end", async (event, ctx) => {
 });
 ```
 
-#### context
+#### 上下文
 
-在每次 LLM 调用之前触发。修改消息 non-destructively。有关消息类型，请参阅 [会话 Format](session-format.md)。
+在每次 LLM 调用之前触发。修改消息 non-destructively。有关消息类型，请参阅 [会话格式](session-format.md)。
 
 ```typescript
 pi.on("context", async (event, ctx) => {
@@ -659,9 +659,9 @@ pi.on("context", async (event, ctx) => {
 
 #### before_模型提供商_headers
 
-在传出 HTTP 头组装后触发。使用它来添加、覆盖或删除请求头。
+在传出 HTTP 请求头组装完成后触发。使用它来添加、覆盖或移除请求头。
 
-处理器就地修改 `event.headers`。将键设置为字符串以添加或覆盖它，或设置为 `null` 以删除它。
+处理程序就地修改 `event.headers`。将键设置为字符串以添加或覆盖它，或设置为 `null` 以删除它。
 
 ```typescript
 pi.on("before_provider_headers", (event, ctx) => {
@@ -673,13 +673,13 @@ pi.on("before_provider_headers", (event, ctx) => {
 });
 ```
 
-每次提供商请求运行一次；重试重用相同的头，而不是 re-firing 钩子。
+每个提供商请求运行一次；重试会复用相同的请求头，而不是 re-firing 该钩子。
 
 #### before_模型提供商_request
 
-在 provider-specific 负载构建后、请求发送前触发。处理器按扩展加载顺序运行。返回 `undefined` 保持负载不变。返回任何其他值将替换后续处理器和实际请求的负载。
+在 provider-specific 负载构建完成后、请求发送前触发。处理程序按扩展加载顺序运行。返回 `undefined` 保持负载不变。返回任何其他值将替换后续处理程序和实际请求的负载。
 
-此钩子可以重写 provider-level 系统指令或完全移除它们。这些 payload-level 更改不会反映在 `ctx.getSystemPrompt()` 中，后者报告的是 Pi 的系统提示词字符串，而非最终序列化的提供商负载。
+此钩子可以重写 provider-level 系统指令或完全移除它们。这些 payload-level 更改不会反映在 `ctx.getSystemPrompt()` 中，后者报告 Pi 的系统提示词字符串，而不是最终的序列化提供商负载。
 
 ```typescript
 pi.on("before_provider_request", (event, ctx) => {
@@ -694,7 +694,7 @@ pi.on("before_provider_request", (event, ctx) => {
 
 #### after_模型提供商_response
 
-在收到 HTTP 响应之后、消费其流式主体之前触发。处理程序按扩展加载顺序执行。
+在收到 HTTP 响应后、消费其流式主体之前触发。处理程序按扩展加载顺序运行。
 
 ```typescript
 pi.on("after_provider_response", (event, ctx) => {
@@ -706,9 +706,9 @@ pi.on("after_provider_response", (event, ctx) => {
 });
 ```
 
-标头的可用性取决于提供商和传输方式。抽象 HTTP 响应的提供商可能不会暴露标头。
+请求头的可用性取决于提供商和传输方式。抽象 HTTP 响应的提供商可能不会暴露请求头。
 
-### 模型事件｜ Model Events
+### 模型事件
 
 #### model_select
 
@@ -733,7 +733,7 @@ pi.on("model_select", async (event, ctx) => {
 
 #### thinking_level_select
 
-当思考级别更改时触发。这是 notification-only；处理程序的返回值将被忽略。
+当思考级别发生变化时触发。这是 notification-only；处理程序的返回值将被忽略。
 
 ```typescript
 pi.on("thinking_level_select", async (event, ctx) => {
@@ -750,20 +750,20 @@ pi.on("thinking_level_select", async (event, ctx) => {
 
 #### tool_call
 
-在 `tool_execution_start` 之后、工具执行之前触发。**可阻止。** 使用 `isToolCallEventType` 进行缩小范围并获取类型化输入。
+在 `tool_execution_start` 之后、工具执行之前触发。**可以阻止。** 使用 `isToolCallEventType` 来缩小范围并获取类型化输入。
 
 在 `tool_call` 运行之前， pi 会等待先前发出的 代理 事件通过 `AgentSession` 完成排空。这意味着 `ctx.sessionManager` 在当前的助手 tool-calling 消息中是最新的。
 
-在默认的并行工具执行模式下，来自同一助手消息的兄弟工具调用会先顺序预检，然后并发执行。`tool_call` 不保证在 `ctx.sessionManager` 中看到来自同一助手消息的兄弟工具结果。
+在默认的并行工具执行模式下，来自同一助手消息的兄弟工具调用会先按顺序预检，然后并发执行。`tool_call` 不保证在 `ctx.sessionManager` 中看到来自同一助手消息的兄弟工具结果。
 
 `event.input` 是可变的。在执行前就地修改它以修补工具参数。
 
 行为保证：
 - 对 `event.input` 的修改会影响实际的工具执行
-- 后续的 `tool_call` 处理程序会看到先前处理程序所做的修改
+- 后面的 `tool_call` 处理程序会看到前面处理程序所做的修改
 - 在您的修改之后不会执行 re-validation
 - 来自 `tool_call` 的返回值通过 `{ block: true, reason?: string, terminate?: boolean }` 控制阻止
-- `terminate` 仅适用于被阻止的调用；只有当批次中每个最终结果都终止时，代理才会提前停止
+- `terminate` 仅适用于被阻止的调用；只有当批次中所有最终确定的结果都终止时，代理才会提前停止
 
 ```typescript
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
@@ -790,7 +790,7 @@ pi.on("tool_call", async (event, ctx) => {
 });
 ```
 
-#### 为自定义工具输入添加类型标注
+#### 自定义工具输入类型｜ Typing custom tool input
 
 自定义工具应导出其输入类型：
 
@@ -799,7 +799,7 @@ pi.on("tool_call", async (event, ctx) => {
 export type MyToolInput = Static<typeof myToolSchema>;
 ```
 
-使用 `isToolCallEventType` 并指定显式类型参数：
+使用带有显式类型参数的 `isToolCallEventType`：
 
 ```typescript
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
@@ -816,14 +816,14 @@ pi.on("tool_call", (event) => {
 
 在工具执行完成之后、`tool_execution_end` 以及最终工具结果消息事件发出之前触发。**可以修改结果。**
 
-在并行工具模式下，`tool_result` 和 `tool_execution_end` 可能按工具完成顺序交错出现，而最终的 `toolResult` 消息事件仍会在后续的助手 source order. 中发出。
+在并行工具模式下，`tool_result` 和 `tool_execution_end` 可能会按工具完成顺序交错，而最终的 `toolResult` 消息事件仍会在稍后的助手 source order. 中发出
 
-`tool_result` 处理器像中间件一样链式调用：
-- 处理器按扩展加载顺序执行
-- 每个处理器都会看到前一个处理器修改后的最新结果
-- 处理器可以返回部分补丁 (`content`、`details`、`isError` 或 `usage`)；省略的字段将保留其当前值
+`tool_result` 处理程序像中间件一样链式调用：
+- 处理程序按扩展加载顺序运行
+- 每个处理程序都会看到前一个处理程序更改后的最新结果
+- 处理程序可以返回部分补丁 (`content`、`details`、`isError` 或 `usage`)；省略的字段保持其当前值
 
-在处理器内部进行嵌套异步操作时，请使用 `ctx.signal`。这可以让 Esc 取消模型调用、`fetch()` 以及扩展启动的其他 abort-aware 操作。
+在处理程序内部使用 `ctx.signal` 处理嵌套的异步工作。这样可以让 Esc 取消模型调用、`fetch()` 以及扩展启动的其他 abort-aware 操作。
 
 ```typescript
 import { isBashToolResult } from "@earendil-works/pi-coding-agent";
@@ -883,11 +883,11 @@ pi.on("user_bash", (event, ctx) => {
 
 #### input
 
-当收到用户输入时触发，此时扩展命令已检查完毕，但技能和模板尚未展开。该事件看到的是原始输入文本，因此 `/skill:foo` 和 `/template` 尚未展开。
+在收到用户输入后、扩展命令检查之后、技能和模板展开之前触发。该事件看到的是原始输入文本，因此 `/skill:foo` 和 `/template` 尚未展开。
 
 **处理顺序：**
-1. 扩展命令 (`/cmd`) 首先检查——如果找到，则运行处理器并跳过输入事件
-2. `input` 事件触发——可以拦截、转换或处理
+1. 首先检查扩展命令 (`/cmd`) - 如果找到，则运行处理程序并跳过输入事件
+2. `input` 事件触发 - 可以拦截、转换或处理
 3. 如果未处理：技能命令 (`/skill:name`) 展开为技能内容
 4. 如果未处理：提示词模板 (`/template`) 展开为模板内容
 5. 代理处理开始 (`before_agent_start` 等。)
@@ -924,19 +924,19 @@ pi.on("input", async (event, ctx) => {
 ```
 
 **结果：**
-- `continue` - 原样传递 (如果处理器不返回任何内容则使用默认值)
-- `transform` - 修改文本/图像，然后继续扩展
-- `handled` - 完全跳过代理 (第一个返回此值的处理器获胜)
+- `continue` - 原样传递 (如果处理程序不返回任何内容，则为默认行为)
+- `transform` - 修改文本/图像，然后继续展开
+- `handled` - 完全跳过代理 (第一个返回此值的处理程序生效)
 
-转换链跨处理器进行。参见 [input-transform.ts](../examples/extensions/input-transform.ts) 和 [input-transform-streaming.ts](../examples/extensions/input-transform-streaming.ts) 以了解 `streamingBehavior` 感知的路由。
+转换在处理程序之间链式传递。有关 `streamingBehavior` 感知的路由，请参阅 [input-transform.ts](../examples/extensions/input-transform.ts) 和 [input-transform-streaming.ts](../examples/extensions/input-transform-streaming.ts)。
 
 ## ExtensionContext
 
-所有处理器都会收到 `ctx: ExtensionContext`。
+所有处理程序都会收到 `ctx: ExtensionContext`。
 
 ### ctx.ui
 
-用于用户交互的 UI 方法。详见 [自定义 UI](#custom-ui)。
+用于用户交互的 UI 方法。有关完整详细信息，请参阅 [自定义 UI](#custom-ui)。
 
 ### ctx.mode
 
@@ -944,13 +944,13 @@ pi.on("input", async (event, ctx) => {
 
 ### ctx.hasUI
 
-`true` 在 TUI 和 RPC 模式下。`false` 在打印模式 (`-p`) 和 JSON 模式下。使用此方法来保护在 TUI 和 RPC 模式下都有效的对话框方法 (`select`、`confirm`、`input`、`editor`) 和 fire-and-forget 方法 (`notify`、`setStatus`、`setWidget`、`setTitle`、`setEditorText`)。在 RPC 模式下，某些 TUI 特定的方法会 no-ops 或返回默认值 (参见 [rpc.md](rpc.md#extension-ui-protocol))。
+`true` 在 TUI 和 RPC 模式下。`false` 在打印模式 (`-p`) 和 JSON 模式下。使用此方法来保护对话框方法 (`select`, `confirm`, `input`, `editor`) 和 fire-and-forget 方法 (`notify`, `setStatus`, `setWidget`, `setTitle`, `setEditorText`)，这些方法在 TUI 和 RPC 模式下都有效。在 RPC 模式下，某些 TUI 特定的方法会 no-ops 或返回默认值 (参见 [rpc.md](rpc.md#extension-ui-protocol))。
 
 ### ctx.cwd
 
 当前工作目录。
 
-在构建 project-local 配置路径时，请使用 `CONFIG_DIR_NAME` 而不是硬编码 `.pi`。重新品牌化的发行版可能使用不同的配置目录名称。
+在构建 project-local 配置路径时，使用 `CONFIG_DIR_NAME` 而不是硬编码 `.pi`。重新品牌化的发行版可能使用不同的配置目录名称。
 
 ```typescript
 import { CONFIG_DIR_NAME, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -974,7 +974,7 @@ export default function (pi: ExtensionAPI) {
 
 对会话状态的只读访问。有关完整的 SessionManager API 和条目类型，请参阅 [会话格式](session-format.md)。
 
-对于 `tool_call`，此状态会在处理器运行前通过当前助手消息进行同步。在并行工具执行模式下，仍不保证包含来自同一助手消息的兄弟工具结果。
+对于 `tool_call`，此状态会在处理程序运行前通过当前助手消息进行同步。在并行工具执行模式下，仍不保证包含来自同一助手消息的兄弟工具结果。
 
 ```typescript
 ctx.sessionManager.getEntries()             // All entries
@@ -987,19 +987,19 @@ ctx.sessionManager.getLeafId()              // Current leaf entry ID
 
 访问模型、模型提供商和已解析的身份验证。`ctx.modelRegistry.getProvider(id)` 返回有效的 pi-ai 提供商，而 `getProviderAuth(id)` 解析其当前的 API 密钥、标头、基础 URL 和 provider-scoped 环境，无需加载模型。`ctx.model` 是活动模型，`ctx.thinkingLevel` 是其当前有效的思考级别。
 
-`ctx.scopedModels` 是当前会话作用域内的模型 read-only 列表——与 `/scoped-models` 命令显示的集合相同。它在会话开始时根据 `--models` CLI 标志和 `enabledModels` 设置解析 (通过 minimatch 在 `provider/modelId` 或裸 `modelId` 上与可用目录匹配)。当未配置作用域时，它为空，这意味着所有可用模型都可用。每个条目都是 `{ model, thinkingLevel? }`，其中 `thinkingLevel` 仅在模式固定它时设置 (e.g。`anthropic/*:high`)。使用它来填充反映 built-in 的模型选择器，而不是通过 `ctx.modelRegistry.getAvailable()` 枚举整个目录。
+`ctx.scopedModels` 是当前会话作用域内的 read-only 模型列表——与 `/scoped-models` 命令显示的集合相同。它在会话开始时根据 `--models` CLI 标志和 `enabledModels` 设置解析 (，通过 minimatch 在 `provider/modelId` 或裸 `modelId`) 上与可用目录匹配。未配置作用域时为空，表示所有可用模型都可用。每个条目都是 `{ model, thinkingLevel? }`，其中 `thinkingLevel` 仅在模式固定它时设置 (e.g。`anthropic/*:high`)。使用它来填充与 built-in 相同的模型选择器，而不是通过 `ctx.modelRegistry.getAvailable()` 枚举整个目录。
 
 ### ctx.signal
 
 当前代理中止信号，当没有代理轮次处于活动状态时为 `undefined`。
 
-将此用于扩展处理器启动的 abort-aware 嵌套工作，例如：
+将此用于扩展处理程序启动的 abort-aware 嵌套工作，例如：
 - `fetch(..., { signal: ctx.signal })`
 - 接受 `signal` 的模型调用
 - 接受 `AbortSignal` 的文件或进程辅助函数
 
-`ctx.signal` 通常在活动轮次事件（如 `tool_call`、`tool_result`、`message_update` 和 `turn_end`）期间定义。
-在空闲或 non-turn 上下文（如会话事件、扩展命令以及 pi 空闲时触发的快捷键）中，它通常为 `undefined`。
+`ctx.signal` 通常在活动轮次事件中定义，例如 `tool_call`, `tool_result`, `message_update` 和 `turn_end`。
+在空闲或 non-turn 上下文中（例如会话事件、扩展命令和 pi 空闲时触发的快捷方式），它通常是 `undefined`。
 
 ```typescript
 pi.on("tool_result", async (event, ctx) => {
@@ -1016,17 +1016,17 @@ pi.on("tool_result", async (event, ctx) => {
 
 ### ctx.isIdle() / ctx.abort() / ctx.hasPendingMessages()
 
-控制流辅助函数。当 Pi 正在处理代理运行、自动重试、auto-compaction 重试或排队续接时，`ctx.isIdle()` 为 false。
+控制流辅助函数。当 Pi 正在处理代理运行、自动重试、auto-compaction 重试或排队继续时，`ctx.isIdle()` 为 false。
 
 ### ctx.shutdown()
 
 请求优雅关闭 pi。
 
-- **交互模式：** 延迟到代理变为空闲 (处理完所有排队的转向和 follow-up 消息后)。
-- **RPC 模式：** 延迟到下一个空闲状态 (完成当前命令响应后，等待下一条命令时)。
-- **打印模式：** 无操作。当所有提示处理完毕时，进程自动退出。
+- **交互模式：** 延迟到代理空闲后(处理完所有排队的 steering 和 follow-up 消息)。
+- **RPC 模式：** 延迟到完成当前命令响应后的下一个空闲状态(，即等待下一条命令时)。
+- **打印模式：** 无操作。处理完所有提示后进程自动退出。
 
-退出前向所有扩展发出 `session_shutdown` 事件。在所有上下文 (事件处理器、工具、命令、快捷键)中可用。
+退出前向所有扩展发出 `session_shutdown` 事件。在所有上下文(事件处理器、工具、命令、快捷键)中可用。
 
 ```typescript
 pi.on("tool_call", (event, ctx) => {
@@ -1038,7 +1038,7 @@ pi.on("tool_call", (event, ctx) => {
 
 ### ctx.getContextUsage()
 
-返回当前活动模型的上下文使用情况。当可用时使用最后一次助手使用情况，否则估算尾部消息的令牌数。
+返回当前活动模型的上下文使用情况。优先使用最后一次助手使用量，然后估算尾部消息的令牌数。
 
 ```typescript
 const usage = ctx.getContextUsage();
@@ -1070,7 +1070,7 @@ ctx.compact({
 - 在 `before_agent_start` 期间，这反映了当前轮次到目前为止所做的链式 system-prompt 更改。
 - 它不包括后续的 `context` 消息变更。
 - 它不包括 `before_provider_request` 负载重写。
-- 如果 later-loaded 扩展在你的扩展之后运行，它们仍然可以更改最终发送的内容。
+- 如果 later-loaded 扩展在您的扩展之后运行，它们仍然可以更改最终发送的内容。
 
 ```typescript
 pi.on("before_agent_start", (event, ctx) => {
@@ -1081,7 +1081,7 @@ pi.on("before_agent_start", (event, ctx) => {
 
 ## ExtensionCommandContext
 
-命令处理器接收 `ExtensionCommandContext`，它通过会话控制方法扩展了 `ExtensionContext`。这些方法仅在命令中可用，因为如果从事件处理器中调用它们可能会导致死锁。
+命令处理器接收 `ExtensionCommandContext`，它通过会话控制方法扩展了 `ExtensionContext`。这些方法仅在命令中可用，因为如果从事件处理器调用它们可能会导致死锁。
 
 ### ctx.getSystemPromptOptions()
 
@@ -1092,13 +1092,13 @@ const options = ctx.getSystemPromptOptions();
 const contextPaths = options.contextFiles?.map((file) => file.path) ?? [];
 ```
 
-这与 `before_agent_start` `event.systemPromptOptions` 具有相同的形状和可变性：自定义提示词、活动工具、工具片段、提示词指南、附加的系统提示词文本、工作目录、加载的上下文文件和加载的技能。它可能包含完整的上下文文件内容，因此请将其视为敏感的 extension-local 数据，并避免通过命令列表、日志或自动完成元数据暴露它。
+这与 `before_agent_start` `event.systemPromptOptions` 具有相同的形状和可变性：自定义提示词、活动工具、工具片段、提示词指南、附加的系统提示词文本、cwd、加载的上下文文件和加载的技能。它可能包含完整的上下文文件内容，因此请将其视为敏感的 extension-local 数据，并避免通过命令列表、日志或自动完成元数据暴露它。
 
-这报告当前的基座提示词输入。它不包括 per-turn `before_agent_start` 链式 system-prompt 更改、后续的 `context` 事件消息变更或 `before_provider_request` 负载重写。
+这报告当前的基础提示词输入。它不包括 per-turn `before_agent_start` 链式 system-prompt 更改、后续的 `context` 事件消息变更或 `before_provider_request` 负载重写。
 
 ### ctx.waitForIdle()
 
-等待代理完全稳定，包括自动重试、auto-compaction 重试和排队的后续操作：
+等待代理完全稳定，包括自动重试、auto-compaction 重试和排队的延续：
 
 ```typescript
 pi.registerCommand("my-cmd", {
@@ -1140,7 +1140,7 @@ if (result.cancelled) {
 选项：
 - `parentSession`：要在新会话头部记录的父会话文件
 - `setup`：在 `withSession` 运行之前修改新会话的 `SessionManager`
-- `withSession`：针对新的 replacement-session 上下文运行 post-switch 工作。不要使用捕获的旧 `pi` / 命令 `ctx`；参见 [会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
+- `withSession`：针对全新的 replacement-session 上下文运行 post-switch 工作。不要使用捕获的旧 `pi` / 命令 `ctx`；参见 [会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
 
 ### ctx.fork(entryId, options?)
 
@@ -1164,9 +1164,9 @@ if (cloneResult.cancelled) {
 ```
 
 选项：
-- `position`：`"before"` (默认)在选定的用户消息之前分叉，将该提示词恢复到编辑器中
-- `position`：`"at"` 复制通过所选条目的活动路径，而不恢复编辑器文本
-- `withSession`：针对新的 replacement-session 上下文运行 post-switch 工作。不要使用捕获的旧 `pi` / 命令 `ctx`；参见 [会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
+- `position`：`"before"` (默认)在所选用户消息之前分叉，将该提示词恢复到编辑器中
+- `position`：`"at"`复制通过所选条目的活动路径，而不恢复编辑器文本
+- `withSession`：针对全新的 replacement-session 上下文运行 post-switch 工作。不要使用捕获的旧 `pi` / 命令 `ctx`；参见 [会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
 
 ### ctx.navigateTree(targetId, options?)
 
@@ -1182,9 +1182,9 @@ const result = await ctx.navigateTree("entry-id-456", {
 ```
 
 选项：
-- `summarize`：是否为被放弃的分支生成摘要
-- `customInstructions`：摘要生成器的自定义指令
-- `replaceInstructions`：如果为 true ，`customInstructions` 将替换默认提示词，而不是追加
+- `summarize`：是否生成被放弃分支的摘要
+- `customInstructions`：摘要器的自定义指令
+- `replaceInstructions`：如果为 true ，`customInstructions` 将替换默认提示词而不是追加
 - `label`：附加到分支摘要条目(或目标条目（如果不进行摘要）)的标签
 
 ### ctx.switchSession(sessionPath, options?)
@@ -1203,9 +1203,9 @@ if (result.cancelled) {
 ```
 
 选项：
-- `withSession`：在全新的replacement-session上下文中运行post-switch工作。不要使用捕获的旧`pi`/命令`ctx`；参见[会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
+- `withSession`：针对全新的 replacement-session 上下文运行 post-switch 工作。不要使用捕获的旧 `pi` / 命令 `ctx`；参见 [会话替换生命周期和陷阱](#session-replacement-lifecycle-and-footguns)。
 
-要发现可用会话，请使用静态`SessionManager.list()`或`SessionManager.listAll()`方法：
+要发现可用的会话，请使用静态 `SessionManager.list()` 或 `SessionManager.listAll()` 方法：
 
 ```typescript
 import { SessionManager } from "@earendil-works/pi-coding-agent";
@@ -1232,14 +1232,14 @@ pi.registerCommand("switch", {
 
 ### 会话替换生命周期和陷阱
 
-`withSession`接收一个全新的`ReplacedSessionContext`，它通过绑定到替换会话的异步`sendMessage()`和`sendUserMessage()`辅助函数扩展了`ExtensionCommandContext`。
+`withSession` 接收一个新的 `ReplacedSessionContext`，它通过绑定到替换会话的异步 `sendMessage()` 和 `sendUserMessage()` 辅助函数扩展了 `ExtensionCommandContext`。
 
-生命周期和陷阱：
-- `withSession`仅在旧会话发出`session_shutdown`、旧运行时已拆除、替换会话已重新绑定以及新扩展实例已收到`session_start`之后运行。
-- 回调仍在原始闭包中执行，而不是在新扩展实例内部。这意味着您的旧扩展实例可能在`withSession`开始之前已经运行了其关闭清理。
-- 捕获的旧`pi`/旧命令`ctx`session-bound对象在替换后已过期，使用时会抛出异常。仅使用传递给`withSession`的`ctx`进行session-bound工作。
-- 先前提取的原始对象仍由您负责。例如，如果您在替换前捕获了`const sm = ctx.sessionManager`，则`sm`仍然是旧的`SessionManager`对象。替换后请勿重用它。
-- `withSession`中的代码应假定您的`session_shutdown`处理程序使任何状态失效后，该状态已不存在。仅捕获能够干净关闭的普通数据，例如字符串、ID 和序列化配置。
+生命周期和注意事项：
+- `withSession` 仅在旧会话发出 `session_shutdown`、旧运行时已拆除、替换会话已重新绑定以及新扩展实例已收到 `session_start` 之后运行。
+- 回调仍在原始闭包中执行，而不是在新扩展实例内部。这意味着您的旧扩展实例可能在 `withSession` 开始之前已经运行了其关闭清理。
+- 捕获的旧 `pi` / 旧命令 `ctx` session-bound 对象在替换后已过期，使用时会抛出异常。仅使用传递给 `withSession` 的 `ctx` 进行 session-bound 工作。
+- 先前提取的原始对象仍由您负责。例如，如果您在替换前捕获了 `const sm = ctx.sessionManager`，则 `sm` 仍然是旧的 `SessionManager` 对象。替换后请勿重复使用它。
+- `withSession` 中的代码应假定由您的 `session_shutdown` 处理程序失效的任何状态都已消失。仅捕获能够干净关闭的纯数据，例如字符串、ID 和序列化配置。
 
 安全模式：
 
@@ -1275,7 +1275,7 @@ pi.registerCommand("handoff", {
 
 ### ctx.reload()
 
-运行与`/reload`相同的重新加载流程。
+运行与 `/reload` 相同的重新加载流程。
 
 ```typescript
 pi.registerCommand("reload-runtime", {
@@ -1288,18 +1288,18 @@ pi.registerCommand("reload-runtime", {
 ```
 
 重要行为：
-- `await ctx.reload()`为当前扩展运行时发出`session_shutdown`
-- 然后重新加载资源，并发出`session_start`（带有`reason: "reload"`）和`resources_discover`（原因`"reload"`）
-- 当前正在运行的命令处理器仍继续在旧调用帧中执行
+- `await ctx.reload()` 为当前扩展运行时发出 `session_shutdown`
+- 然后重新加载资源，并使用 `reason: "reload"` 发出 `session_start`，并使用原因 `"reload"` 发出 `resources_discover`
+- 当前正在运行的命令处理程序仍在旧调用帧中继续执行
 - `await ctx.reload()` 之后的代码仍从 pre-reload 版本运行
 - `await ctx.reload()` 之后的代码不得假定旧的 in-memory 扩展状态仍然有效
-- 处理器返回后，后续的命令、事件和工具调用将使用新的扩展版本
+- 处理程序返回后，未来的命令/事件/工具调用将使用新的扩展版本
 
-为了获得可预测的行为，请将重新加载视为该处理器的终止操作(`await ctx.reload(); return;`)。
+为了获得可预测的行为，请将重新加载视为该处理程序的终止点 (`await ctx.reload(); return;`)。
 
-工具使用 `ExtensionContext` 运行，因此它们无法直接调用 `ctx.reload()`。请使用命令作为重新加载的入口点，然后公开一个工具，将该命令作为 follow-up 用户消息排队。
+工具使用 `ExtensionContext` 运行，因此它们无法直接调用 `ctx.reload()`。使用命令作为重新加载入口点，然后公开一个工具，将该命令作为 follow-up 用户消息排队。
 
-LLM 可调用以触发重新加载的示例工具：
+LLM 可以调用以触发重新加载的示例工具：
 
 ```typescript
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -1331,23 +1331,23 @@ export default function (pi: ExtensionAPI) {
 
 ## ExtensionAPI 方法
 
-### pi.on(事件、处理器)
+### pi.on(事件、处理程序)
 
 订阅事件。有关事件类型和返回值，请参阅 [事件](#events)。
 
 ### pi.registerTool(定义)
 
-注册一个可由 LLM 调用的自定义工具。有关完整详细信息，请参阅 [自定义工具](#custom-tools)。
+注册一个可由LLM调用的自定义工具。有关完整详细信息，请参阅[自定义工具](#custom-tools)。
 
-`pi.registerTool()` 在扩展加载期间和启动后均可使用。您可以在 `session_start`、命令处理器或其他事件处理器中调用它。新工具会在同一会话中立即刷新，因此它们会出现在 `pi.getAllTools()` 中，并且可由 LLM 调用，无需 `/reload`。
+`pi.registerTool()`在扩展加载期间和启动后均可使用。您可以在`session_start`、命令处理程序或其他事件处理程序中调用它。新工具会在同一会话中立即刷新，因此它们会出现在`pi.getAllTools()`中，并且无需`/reload`即可被LLM调用。
 
-使用 `pi.setActiveTools()` 在运行时启用或禁用工具(包括动态添加的工具)。
+使用`pi.setActiveTools()`在运行时启用或禁用工具(包括动态添加的工具)。
 
-使用 `promptSnippet` 将自定义工具加入 `Available tools` 中的 one-line 条目，并使用 `promptGuidelines` 在工具激活时向默认的 `Guidelines` 部分追加 tool-specific 项目符号。
+使用`promptSnippet`将自定义工具纳入`Available tools`中的one-line条目，并使用`promptGuidelines`在工具处于活动状态时将tool-specific项目符号追加到默认的`Guidelines`部分。
 
-**重要：** `promptGuidelines` 项目符号会平铺追加到 `Guidelines` 部分，不带工具名称前缀。每条指南必须指明其引用的工具——避免使用“使用此工具时…”之类的表述，因为 LLM 无法判断“此”指的是哪个工具。请改为编写“使用我的_工具时…”。
+**重要提示：** `promptGuidelines`项目符号会平铺追加到`Guidelines`部分，不带工具名称前缀。每条指南必须指明其引用的工具——避免使用“使用此工具时。..”，因为LLM无法判断“此”指的是哪个工具。请改为“使用我的_工具时。..”。
 
-有关完整示例，请参阅 [dynamic-tools.ts](../examples/extensions/dynamic-tools.ts)。
+有关完整示例，请参阅[dynamic-tools.ts](../examples/extensions/dynamic-tools.ts)。
 
 ```typescript
 import { Type } from "typebox";
@@ -1386,9 +1386,9 @@ pi.registerTool({
 });
 ```
 
-### pi.sendMessage(消息、选项？)
+### pi.sendMessage(message, options?)
 
-将会话中注入自定义消息。自定义消息参与 LLM 上下文。对于不应发送给 LLM 的持久性 TUI 专用内容，请使用 [`pi.appendEntry()`](#piappendentrycustomtype-data) 配合 [`pi.registerEntryRenderer()`](#piregisterentryrenderercustomtype-renderer)。
+将会话中注入自定义消息。自定义消息参与LLM上下文。对于不应发送给LLM的持久性TUI内容，请使用[`pi.appendEntry()`](#piappendentrycustomtype-data)配合[`pi.registerEntryRenderer()`](#piregisterentryrenderercustomtype-renderer)。
 
 ```typescript
 pi.sendMessage({
@@ -1403,15 +1403,15 @@ pi.sendMessage({
 ```
 
 **选项：**
-- `deliverAs` - 投递模式：
-  - `"steer"` (默认) - 在流式传输期间将消息排队。在当前助手回合完成其工具调用后、下一次 LLM 调用之前投递。
-  - `"followUp"` - 等待代理完成。仅在代理没有更多工具调用时投递。
+- `deliverAs` - 传递模式：
+  - `"steer"` (默认) - 在流式传输期间将消息排队。在当前助手回合完成其工具调用后、下一次LLM调用之前传递。
+  - `"followUp"` - 等待代理完成。仅在代理没有更多工具调用时传递。
   - `"nextTurn"` - 为下一个用户提示排队。不会中断或触发任何操作。
-- `triggerTurn: true` - 如果代理空闲，立即触发 LLM 响应。仅适用于 `"steer"` 和 `"followUp"` 模式(对于 `"nextTurn"` 忽略)。
+- `triggerTurn: true` - 如果代理空闲，立即触发LLM响应。仅适用于`"steer"`和`"followUp"`模式(对`"nextTurn"`忽略)。
 
-### pi.sendUserMessage(内容、选项？)
+### pi.sendUserMessage(content, options?)
 
-向代理发送用户消息。与发送自定义消息的 `sendMessage()` 不同，此方法发送的是实际用户消息，看起来就像用户输入的一样。始终会触发一轮对话。
+向代理发送用户消息。与发送自定义消息的`sendMessage()`不同，此方法发送的是实际用户消息，看起来就像用户输入的一样。始终会触发一轮对话。
 
 ```typescript
 // Simple text message
@@ -1426,16 +1426,20 @@ pi.sendUserMessage([
 // During streaming - must specify delivery mode
 pi.sendUserMessage("Focus on error handling", { deliverAs: "steer" });
 pi.sendUserMessage("And then summarize", { deliverAs: "followUp" });
+
+// Opt in to extension command dispatch and skill/prompt template expansion
+pi.sendUserMessage("/review src/index.ts", { expandPromptTemplates: true });
 ```
 
 **选项：**
-- `deliverAs` - 当代理正在流式输出时必需：
+- `deliverAs` - 当代理正在流式传输时必需：
   - `"steer"` - 将消息排队，在当前助手回合完成其工具调用后传递
   - `"followUp"` - 等待代理完成所有工具
+- `expandPromptTemplates` - 调度扩展命令并展开技能命令和提示词模板。默认为`false`。
 
-当不进行流式输出时，消息会立即发送并触发新的回合。当进行流式输出但未使用`deliverAs`时，会抛出错误。
+未流式传输时，消息会立即发送并触发新一轮对话。在未使用`deliverAs`进行流式传输时，会抛出错误。
 
-参见 [send-user-message.ts](../examples/extensions/send-user-message.ts) 获取完整示例。
+有关完整示例，请参阅[send-user-message.ts](../examples/extensions/send-user-message.ts)。
 
 ### pi.appendEntry(customType, data?)
 
@@ -1476,7 +1480,7 @@ if (name) {
 
 ### pi.setLabel(entryId, label)
 
-设置或清除条目上的标签。标签是user-defined用于书签和导航的标记(在`/tree`选择器中显示)。
+设置或清除条目标签。标签是用于书签和导航的user-defined标记，显示在`/tree`选择器中()。
 
 ```typescript
 // Set a label
@@ -1489,13 +1493,13 @@ pi.setLabel(entryId, undefined);
 const label = ctx.sessionManager.getLabel(entryId);
 ```
 
-标签在会话中持久存在，并在重启后保留。使用它们标记对话树中的重要点(回合、检查点)。
+标签在会话中持久保存，并在重启后保留。使用它们标记对话树中的重要点(轮次、检查点)。
 
 ### pi.registerCommand(name, options)
 
 注册一个命令。
 
-如果多个扩展注册了相同的命令名称， pi 会保留所有命令，并按加载顺序分配数字调用后缀，例如 `/review:1` 和 `/review:2`。
+如果多个扩展注册了相同的命令名， pi 会保留所有命令，并按加载顺序分配数字调用后缀，例如 `/review:1` 和 `/review:2`。
 
 ```typescript
 pi.registerCommand("stats", {
@@ -1529,7 +1533,7 @@ pi.registerCommand("deploy", {
 ### pi.getCommands()
 
 获取当前会话中可通过 `prompt` 调用的斜杠命令。包括扩展命令、提示词模板和技能命令。
-列表与 RPC `get_commands` 排序一致：先是扩展，然后是模板，最后是技能。
+列表匹配 RPC `get_commands` 排序：先扩展，再模板，最后技能。
 
 ```typescript
 const commands = pi.getCommands();
@@ -1554,26 +1558,26 @@ const userScoped = commands.filter((command) => command.sourceInfo.scope === "us
 }
 ```
 
-使用 `sourceInfo` 作为规范的来源字段。不要从命令名称或临时路径解析推断所有权。
+使用 `sourceInfo` 作为规范来源字段。不要从命令名称或临时路径解析推断所有权。
 
 内置交互命令(如 `/model` 和 `/settings`)不包含在此处。它们仅在交互
 模式下处理，如果通过 `prompt` 发送则不会执行。
 
 ### pi.registerMessageRenderer(customType, renderer)
 
-为您的 `customType` 注册自定义 TUI 渲染器，用于自定义消息。自定义消息通过 `pi.sendMessage()` 创建，并参与 LLM 上下文。参见 [Custom UI](#custom-ui)。
+为自定义消息注册自定义 TUI 渲染器，使用您的 `customType`。自定义消息通过 `pi.sendMessage()` 创建，并参与 LLM 上下文。参见 [自定义 UI](#custom-ui)。
 
 ### pi.registerMarkdownTransformer(transformer)
 
-为Markdown在普通用户文本、助手文本和思考块中注册一个转换器。转换器按扩展加载顺序运行，每个转换器接收前一个转换器返回的Markdown。链完成后，Pi使用其built-in渲染器渲染转换后的内容。
+为普通用户文本、助手文本和思考块中的 Markdown 注册转换器。转换器按扩展加载顺序运行，每个转换器接收前一个转换器返回的 Markdown。链完成后，Pi 使用其 built-in 渲染器渲染转换后的内容。
 
-转换器接收Markdown字符串和包含以下内容的上下文：
+转换器接收 Markdown 字符串和包含以下内容的上下文：
 
-- `messageType` — `"user"`、`"assistant"`或`"assistant-thinking"`
-- `isStreaming` — `true`用于部分助手更新；`false`用于用户、最终确定的助手和恢复的消息
-- `availableWidth` — 可用于转换后的Markdown内容的精确终端列数
+- `messageType` — `"user"`、`"assistant"` 或 `"assistant-thinking"`
+- `isStreaming` — 用于部分助手更新的 `true`；用于用户、最终助手和恢复消息的 `false`
+- `availableWidth` — 可用于转换后的 Markdown 内容的精确终端列数
 
-返回转换后的Markdown：
+返回转换后的 Markdown：
 
 ```typescript
 pi.registerMarkdownTransformer((markdown, { messageType, isStreaming }) => {
@@ -1582,11 +1586,11 @@ pi.registerMarkdownTransformer((markdown, { messageType, isStreaming }) => {
 });
 ```
 
-如果转换器抛出异常，Pi会保留到目前为止生成的Markdown并继续处理下一个转换器。该钩子是display-only：原始消息在会话和模型上下文中保持不变。它针对新的用户消息、助手流式更新、恢复的会话消息和终端宽度变化运行，因此转换器应保持同步且开销较小。
+如果转换器抛出异常，Pi 会保留到目前为止生成的 Markdown，并继续处理下一个转换器。该钩子是 display-only：原始消息在会话和模型上下文中保持不变。它运行于新用户消息、助手流式更新、恢复的会话消息和终端宽度变化时，因此转换器应保持同步且开销较低。
 
 ### pi.registerEntryRenderer(customType, renderer)
 
-为自定义条目注册一个自定义TUI渲染器，使用您的`customType`。自定义条目通过`pi.appendEntry()`创建，不参与LLM上下文。
+为自定义条目注册一个自定义TUI渲染器，使用你的`customType`。自定义条目通过`pi.appendEntry()`创建，不参与LLM上下文。
 
 ```typescript
 import { Box, Text } from "@earendil-works/pi-tui";
@@ -1604,9 +1608,9 @@ pi.registerEntryRenderer("status-card", (entry, { expanded }, theme) => {
 pi.appendEntry("status-card", { title: "Indexed files", count: 17 });
 ```
 
-### pi.registerShortcut(shortcut, options)
+### pi.registerShortcut(快捷键， 选项)
 
-注册键盘快捷键。有关快捷键格式和built-in键绑定，请参阅[keybindings.md](keybindings.md)。
+注册一个键盘快捷键。有关快捷键格式和built-in键绑定，请参阅[keybindings.md](keybindings.md)。
 
 ```typescript
 pi.registerShortcut("ctrl+shift+p", {
@@ -1617,7 +1621,7 @@ pi.registerShortcut("ctrl+shift+p", {
 });
 ```
 
-### pi.registerFlag(name, options)
+### pi.registerFlag(名称， 选项)
 
 注册一个CLI标志。
 
@@ -1634,7 +1638,7 @@ if (pi.getFlag("plan")) {
 }
 ```
 
-### pi.exec(command, args, options?)
+### pi.exec(命令， 参数， 选项？)
 
 执行一个 shell 命令。
 
@@ -1643,7 +1647,7 @@ const result = await pi.exec("git", ["status"], { signal, timeout: 5000 });
 // result.stdout, result.stderr, result.code, result.killed
 ```
 
-### pi.getActiveTools() / pi.getAllTools() / pi.setActiveTools(names)
+### pi.getActiveTools() / pi.getAllTools() / pi.setActiveTools(名称)
 
 管理活动工具。这适用于built-in工具和动态注册的工具。`pi.getActiveTools()`返回活动工具名称作为`string[]`；`pi.getAllTools()`返回所有已配置工具的元数据。
 
@@ -1668,11 +1672,11 @@ pi.setActiveTools(["read", "bash"]); // Switch to read-only
 典型的`sourceInfo.source`值：
 - `builtin`用于built-in工具
 - `sdk`用于通过`createAgentSession({ customTools })`传递的工具
-- 扩展 source metadata用于扩展注册的工具
+- 扩展source metadata用于扩展注册的工具
 
-### pi.setModel(model)
+### pi.setModel(模型)
 
-设置当前模型。如果模型没有可用的 API 键，则返回 `false`。有关配置自定义模型，请参阅 [models.md](models.md)。
+设置当前模型。如果该模型没有可用的API密钥，则返回`false`。有关配置自定义模型，请参阅[models.md](models.md)。
 
 ```typescript
 const model = ctx.modelRegistry.find("anthropic", "claude-sonnet-4-5");
@@ -1684,9 +1688,9 @@ if (model) {
 }
 ```
 
-### pi.getThinkingLevel() / pi.setThinkingLevel(level)
+### pi.getThinkingLevel() / pi.setThinkingLevel(级别)
 
-获取或设置思考级别。级别会被限制在模型能力范围内，(non-reasoning 模型始终使用“off”)。更改会触发 `thinking_level_select` 事件。
+获取或设置思考级别。级别会被限制在模型能力范围内(non-reasoning模型始终使用“关闭”)。更改会触发`thinking_level_select`事件。
 
 ```typescript
 const current = pi.getThinkingLevel();  // "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max"
@@ -1702,17 +1706,17 @@ pi.events.on("my:event", (data) => { ... });
 pi.events.emit("my:event", { ... });
 ```
 
-### pi.registerProvider(name, config)
+### pi.registerProvider(名称， 配置)
 
-动态注册或覆盖模型提供商。适用于代理、自定义端点或 team-wide 模型配置。
+动态注册或覆盖模型提供商。适用于代理、自定义端点或team-wide模型配置。
 
-在扩展工厂函数期间进行的调用会被排队，并在运行器初始化后应用。之后的调用（例如用户设置流程后从命令处理器发出的调用）会立即生效，无需 `/reload`。
+在扩展工厂函数期间进行的调用会被排队，并在运行器初始化后应用。之后的调用——例如在用户设置流程之后的命令处理器中进行的调用——会立即生效，无需`/reload`。
 
-动态提供商可以实现 `refreshModels`。Pi 在模型刷新时调用它，通过提供商同步发布返回的列表，并传递规范的凭据/stored-catalog/网络/信号上下文。扩展决定是否通过 generation-checked `context.publish({ persist: entry })` 持久化目录元数据；诸如 llama.cpp 之类的实时服务器可以返回模型而不持久化它们。
+动态提供商可以实现`refreshModels`。Pi在模型刷新期间调用它，通过提供商同步发布返回的列表，并传递规范的凭据/stored-catalog/网络/信号上下文。扩展决定是否通过generation-checked `context.publish({ persist: entry })`持久化目录元数据；诸如llama.cpp之类的实时服务器可以返回模型而不持久化它们。
 
-`context.signal` 始终是一个具体信号，提供商回调必须将其传递给阻塞 I/O。公共的 `ModelRuntime.refresh()` 和 `ModelRegistry.refresh()` 调用接受可选信号，省略时无界；扩展和应用程序自行选择截止时间。即使提供商忽略信号，取消也会停止调用方等待，但仍需合作才能停止底层工作。
+`context.signal` 始终是一个具体信号，模型提供商回调必须将其传递给阻塞 I/O。公共的 `ModelRuntime.refresh()` 和 `ModelRegistry.refresh()` 调用接受可选信号，省略时无界；扩展和应用自行选择截止时间。即使模型提供商忽略信号，取消也会停止调用方等待，但仍需协作才能停止底层工作。
 
-需要原生提供商认证、过滤、刷新或流行为的扩展可以注册来自 `@earendil-works/pi-ai` 的完整 `Provider`。提供商成为组合基础，`models.json` 覆盖仍在其上应用。
+需要原生模型提供商认证、过滤、刷新或流式行为的扩展，可以从 `@earendil-works/pi-ai` 注册完整的 `Provider`。该模型提供商成为组合基础，`models.json` 覆盖仍在其上生效。
 
 ```typescript
 import { createProvider, openAICompletionsApi } from "@earendil-works/pi-ai";
@@ -1815,24 +1819,24 @@ pi.registerProvider("corporate-ai", {
 对象形式接受完整的 pi-ai `Provider`，包括原生 `auth`、`getModels`、`refreshModels`、`filterModels`、`stream` 和 `streamSimple` 行为。
 
 **旧版配置选项：**
-- `name` - 提供商在 UI （如 `/login`）中的显示名称。
+- `name` - 在 UI （如 `/login`）中显示的模型提供商名称。
 - `baseUrl` - API 端点 URL。定义模型时必需。
-- `apiKey` - API 键字面量、环境变量插值 (`$ENV_VAR` 或 `${ENV_VAR}`)，或前导 `!command`。定义模型时必需，(除非提供了 `oauth`)。`$` 转义 ``apiKey` - API 键字面量、环境变量插值 (`$ENV_VAR` 或 `${ENV_VAR}`)，或前导 `!command`。定义模型时必需，(除非提供了 `oauth`)。`$` 转义 ，`$!` 转义字面量 `!` 而不触发命令执行。
+- `apiKey` - API 密钥字面量、环境变量插值 (`$ENV_VAR` 或 `${ENV_VAR}`)，或前导 `!command`。定义模型时必需 (除非提供了 `oauth`)。`$` 转义 ``apiKey` - API 密钥字面量、环境变量插值 (`$ENV_VAR` 或 `${ENV_VAR}`)，或前导 `!command`。定义模型时必需 (除非提供了 `oauth`)。`$` 转义 ，`$!` 转义字面量 `!` 而不触发命令执行。
 - `api` - API 类型：`"anthropic-messages"`、`"openai-completions"`、`"openai-responses"` 等。
-- `headers` - 要包含在请求中的自定义标头。
+- `headers` - 请求中包含的自定义标头。
 - `authHeader` - 如果为 true ，则自动添加 `Authorization: Bearer` 标头。
-- `models` - 模型定义数组。如果提供，将替换该提供商的所有现有模型。模型定义可以设置 `baseUrl` 来覆盖该模型的提供商端点。
-- `refreshModels` - 异步动态发现回调。其返回的模型替换 extension-provided 模型。`context.stored` 包含持久化的提供商快照；仅在更新后的目录数据应持久化时使用 generation-checked `context.publish({ persist: entry })`。使用 `persist: null` 删除该快照。
-- `oauth` - 用于 `/login` 支持的 OAuth 提供商配置。提供时，提供商出现在登录菜单中。
+- `models` - 模型定义数组。如果提供，将替换该模型提供商的所有现有模型。模型定义可以设置 `baseUrl` 以覆盖该模型的模型提供商端点。
+- `refreshModels` - 异步动态发现回调。其返回的模型替换 extension-provided 模型。`context.stored` 包含持久化的模型提供商快照；仅在更新后的目录数据应持久化时使用 generation-checked `context.publish({ persist: entry })`。使用 `persist: null` 删除该快照。
+- `oauth` - 用于 `/login` 支持的 OAuth 模型提供商配置。提供时，该模型提供商出现在登录菜单中。
 - `streamSimple` - 用于 non-standard API 的自定义流式实现。
 
-有关高级主题，请参阅 [custom-provider.md](custom-provider.md)：自定义流式 API、OAuth 详细信息、模型定义参考。
+参见 [custom-provider.md](custom-provider.md) 了解高级主题：自定义流式 API、OAuth 详细信息、模型定义参考。
 
-### pi.unregisterProvider(名称)
+### pi.unregisterProvider(name)
 
-移除先前注册的提供商及其模型。被提供商覆盖的内置模型将被恢复。如果提供商未注册，则无效果。
+移除先前注册的模型提供商及其模型。被该模型提供商覆盖的内置模型将恢复。如果该模型提供商未注册，则无效果。
 
-与`registerProvider`类似，在初始加载阶段之后调用时立即生效，因此不需要`/reload`。
+与 `registerProvider` 类似，在初始加载阶段之后调用时立即生效，因此不需要 `/reload`。
 
 ```typescript
 pi.registerCommand("my-setup-teardown", {
@@ -1843,9 +1847,9 @@ pi.registerCommand("my-setup-teardown", {
 });
 ```
 
-## 状态管理｜ State Management
+## 状态管理
 
-具有状态的扩展应将其存储在工具结果`details`中，以支持正确的分支：
+有状态的扩展应将其状态存储在工具结果 `details` 中，以支持正确的分支：
 
 ```typescript
 export default function (pi: ExtensionAPI) {
@@ -1877,25 +1881,25 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-## 自定义工具｜ Custom Tools
+## 自定义工具
 
-注册LLM可以通过`pi.registerTool()`调用的工具。工具会出现在系统提示词中，并可以具有自定义渲染。
+通过 `pi.registerTool()` 注册 LLM 可以调用的工具。工具出现在系统提示词中，并且可以具有自定义渲染。
 
-使用`promptSnippet`在默认系统提示词的`Available tools`部分中添加简短的one-line条目。如果省略，自定义工具将不会出现在该部分中。
+使用 `promptSnippet` 在默认系统提示词的 `Available tools` 部分中添加简短的 one-line 条目。如果省略，自定义工具将不包含在该部分中。
 
-使用`promptGuidelines`向默认系统提示词的`Guidelines`部分添加tool-specific项目符号。这些项目符号仅在工具处于活动状态时包含(例如，在`pi.setActiveTools([...])`之后)。
+使用 `promptGuidelines` 向默认系统提示词 `Guidelines` 部分添加 tool-specific 项目符号。这些项目符号仅在工具处于活动状态时包含 (例如，在 `pi.setActiveTools([...])` 之后)。
 
-**重要：** `promptGuidelines`项目符号会扁平地附加到`Guidelines`部分，没有工具名称前缀或分组。每条指南必须指明其引用的工具——避免使用“使用此工具时…”因为LLM无法判断“此”指的是哪个工具。请改为编写“使用我的_工具时…”。
+**重要：** `promptGuidelines` 的要点会平铺追加到 `Guidelines` 部分，不带工具名称前缀或分组。每条指南必须指明其涉及的工具——避免使用“使用此工具时…”这样的表述，因为 LLM 无法判断“此”指的是哪个工具。请改为“使用我的_工具时…”。
 
-注意：某些模型会犯傻，在工具路径参数中包含 @ 前缀。内置工具在解析路径之前会去除前导 @。如果您的自定义工具接受路径，请同样规范化前导 @。
+注意：有些模型比较笨，会在工具路径参数中包含 @ 前缀。内置工具在解析路径前会去掉开头的 @。如果你的自定义工具接受路径，也请规范化开头的 @。
 
-如果您的自定义工具修改文件，请使用`withFileMutationQueue()`，以便它参与与built-in `edit`和`write`相同的per-file队列。这一点很重要，因为默认情况下工具调用是并行运行的。如果没有队列，两个工具可能读取相同的旧文件内容，计算不同的更新，然后后写入的会覆盖先写入的。
+如果你的自定义工具会修改文件，请使用 `withFileMutationQueue()`，这样它就能与 built-in `edit` 和 `write` 一起参与同一个 per-file 队列。这一点很重要，因为工具调用默认是并行执行的。如果没有队列，两个工具可能读取到相同的旧文件内容，计算出不同的更新，然后后写入的那个会覆盖先写入的。
 
-示例失败案例：您的自定义工具编辑`foo.ts`，而built-in `edit`在同一助手轮次中也更改`foo.ts`。如果您的工具不参与队列，两者都可能读取原始的`foo.ts`，应用各自的更改，其中一个更改将丢失。
+失败示例：你的自定义工具编辑 `foo.ts`，而 built-in `edit` 在同一轮助手调用中也修改了 `foo.ts`。如果你的工具不参与队列，两者都可能读取原始的 `foo.ts`，应用各自的更改，其中一项更改就会丢失。
 
-将真实的目标文件路径传递给`withFileMutationQueue()`，而不是原始的用户参数。首先将其解析为绝对路径，相对于`ctx.cwd`或您工具的工作目录。对于现有文件，辅助函数会通过`realpath()`进行规范化，因此同一文件的符号链接别名共享一个队列。对于新文件，它会回退到解析后的绝对路径，因为还没有可`realpath()`的内容。
+将真实的目标文件路径传给 `withFileMutationQueue()`，而不是原始的用户参数。先将其解析为绝对路径，相对于 `ctx.cwd` 或你工具的工作目录。对于已存在的文件，辅助函数会通过 `realpath()` 进行规范化，因此同一文件的符号链接别名会共享一个队列。对于新文件，它会回退到解析后的绝对路径，因为还没有可 `realpath()` 的内容。
 
-将整个变更窗口排队到该目标路径上。这包括read-modify-write逻辑，而不仅仅是最终的写入。
+将整个变更窗口排队到该目标路径上。这包括 read-modify-write 逻辑，而不仅仅是最终的写入操作。
 
 ```typescript
 import { withFileMutationQueue } from "@earendil-works/pi-coding-agent";
@@ -1979,11 +1983,11 @@ pi.registerTool({
 });
 ```
 
-**用量统计：** 如果工具进行嵌套的LLM调用，请将其组合的`Usage`作为`usage`返回。Pi会将其持久化在工具结果上，并包含在页脚、`/session`和RPC会话总计中。`tool_result`处理器可以检查或替换此值。
+**用量统计：** 如果工具进行了嵌套的 LLM 调用，请将其合并后的 `Usage` 作为 `usage` 返回。Pi 会将其持久化到工具结果中，并包含在页脚、`/session` 和 RPC 会话总计中。`tool_result` 处理器可以检查或替换此值。
 
-**错误信号：** 要将工具执行标记为失败(在结果上设置`isError: true`并将其报告给LLM)，请从`execute`抛出错误。返回一个值永远不会设置错误标志，无论您在返回对象中包含哪些属性。
+**错误信号：** 要将工具执行标记为失败(在结果上设置 `isError: true` 并向 LLM 报告)，请从 `execute` 抛出错误。返回一个值永远不会设置错误标志，无论你在返回对象中包含哪些属性。
 
-**提前终止：** 从`execute()`返回`terminate: true`以提示在当前工具批次之后应跳过自动的follow-up LLM调用。这仅在批次中每个最终确定的工具结果都是终止性的时才生效。参见[examples/extensions/structured-output.ts](../examples/extensions/structured-output.ts)获取一个最小示例，其中代理在最终的structured-output工具调用时结束。
+**提前终止：** 从 `execute()` 返回 `terminate: true`，以提示在当前工具批次之后应跳过自动的 follow-up LLM 调用。这仅在批次中每个最终确定的工具结果都是终止性的情况下才生效。参见 [examples/extensions/structured-output.ts](../examples/extensions/structured-output.ts) 获取一个最小示例，其中代理以最终的 structured-output 工具调用结束。
 
 ```typescript
 // Correct: throw to signal an error
@@ -1995,11 +1999,11 @@ async execute(toolCallId, params) {
 }
 ```
 
-**重要：** 使用来自`@earendil-works/pi-ai`的`StringEnum`来处理字符串枚举。`Type.Union`/`Type.Literal`不适用于 Google 的API。
+**重要：** 对于字符串枚举，请使用 `@earendil-works/pi-ai` 中的 `StringEnum`。`Type.Union`/`Type.Literal` 不适用于 Google 的 API。
 
-**参数准备：** `prepareArguments(args)`是可选的。如果定义，它会在模式验证之前和`execute()`之前运行。当 pi 恢复旧会话且存储的工具调用参数不再匹配当前模式时，使用它来模拟旧版接受的输入形状。返回您希望根据`parameters`进行验证的对象。保持公共模式严格。不要仅仅为了保持旧恢复会话正常工作而向`parameters`添加已弃用的兼容性字段。
+**参数准备：** `prepareArguments(args)` 是可选的。如果定义了，它会在模式验证之前和 `execute()` 之前运行。当 pi 恢复旧会话且存储的工具调用参数不再匹配当前模式时，使用它来模拟旧版接受的输入形状。返回你希望根据 `parameters` 进行验证的对象。保持公共模式严格。不要仅仅为了保持旧恢复会话正常工作而向 `parameters` 添加已弃用的兼容字段。
 
-示例：旧会话可能包含一个带有top-level `oldText`和`newText`的`edit`工具调用，而当前模式仅接受`edits: [{ oldText, newText }]`。
+示例：旧会话可能包含一个 `edit` 工具调用，带有 top-level `oldText` 和 `newText`，而当前模式只接受 `edits: [{ oldText, newText }]`。
 
 ```typescript
 pi.registerTool({
@@ -2046,26 +2050,26 @@ pi.registerTool({
 
 ### 覆盖内置工具｜ Overriding Built-in Tools
 
-扩展可以通过注册同名工具来覆盖built-in工具(`read`、`bash`、`edit`、`write`、`grep`、`find`、`ls`)。交互模式会在发生这种情况时显示警告。
+扩展可以通过注册同名工具来覆盖 built-in 工具(`read`、`bash`、`edit`、`write`、`grep`、`find`、`ls`)。交互模式会在发生这种情况时显示警告。
 
 ```bash
 # Extension's read tool replaces built-in read
 pi -e ./tool-override.ts
 ```
 
-或者，使用 `--no-builtin-tools` 启动，不启用任何 built-in 工具，同时保持扩展工具启用：
+或者，使用 `--no-builtin-tools` 启动，不带任何 built-in 工具，同时保持扩展工具启用：
 ```bash
 # No built-in tools, only extension tools
 pi --no-builtin-tools -e ./my-extension.ts
 ```
 
-参见 [examples/extensions/tool-override.ts](../examples/extensions/tool-override.ts) 获取一个完整的示例，该示例使用日志记录和访问控制覆盖了 `read`。
+参见 [examples/extensions/tool-override.ts](../examples/extensions/tool-override.ts) 获取一个完整的示例，该示例用日志记录和访问控制覆盖了 `read`。
 
-**渲染：** 内置渲染器的继承按插槽解析。执行覆盖和渲染覆盖是独立的。如果您的覆盖省略了 `renderCall`，则使用 built-in `renderCall`。如果您的覆盖省略了 `renderResult`，则使用 built-in `renderResult`。如果您的覆盖两者都省略，则自动使用 built-in 渲染器 (语法高亮、差异等)。这使您可以包装 built-in 工具以进行日志记录或访问控制，而无需重新实现 UI。
+**渲染：** 内置渲染器的继承是按插槽解析的。执行覆盖和渲染覆盖是独立的。如果你的覆盖省略了 `renderCall`，则使用 built-in `renderCall`。如果你的覆盖省略了 `renderResult`，则使用 built-in `renderResult`。如果你的覆盖两者都省略，则自动使用 built-in 渲染器(语法高亮、差异等)。这让你可以包装 built-in 工具以进行日志记录或访问控制，而无需重新实现 UI。
 
-**提示词元数据：** `promptSnippet` 和 `promptGuidelines` 不会从 built-in 工具继承。如果您的覆盖应保留这些提示指令，请在覆盖中显式定义它们。
+**提示词元数据：** `promptSnippet` 和 `promptGuidelines` 不会从 built-in 工具继承。如果你的覆盖应保留这些提示指令，请在覆盖中显式定义它们。
 
-**您的实现必须匹配确切的结果形状**，包括 `details` 类型。UI 和会话逻辑依赖这些形状进行渲染和状态跟踪。
+**你的实现必须匹配确切的结果形状**，包括 `details` 类型。UI 和会话逻辑依赖这些形状进行渲染和状态跟踪。
 
 内置工具实现：
 - [read.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/core/tools/read.ts) - `ReadToolDetails`
@@ -2078,7 +2082,7 @@ pi --no-builtin-tools -e ./my-extension.ts
 
 ### 远程执行｜ Remote Execution
 
-内置工具支持可插拔操作，用于委托给远程系统 (SSH、容器等)：
+内置工具支持可插拔操作，用于委托给远程系统(SSH、容器等)：
 
 ```typescript
 import { createReadTool, createBashTool, type ReadOperations } from "@earendil-works/pi-coding-agent";
@@ -2107,7 +2111,7 @@ pi.registerTool({
 
 **操作接口：** `ReadOperations`、`WriteOperations`、`EditOperations`、`BashOperations`、`LsOperations`、`GrepOperations`、`FindOperations`
 
-对于 `user_bash`，扩展可以通过 `createLocalBashOperations()` 重用 pi 的本地 shell 后端，而不是重新实现本地进程生成、shell 解析和 process-tree 终止。
+对于`user_bash`，扩展可以通过`createLocalBashOperations()`复用 pi 的本地 shell 后端，而无需重新实现本地进程生成、shell 解析和process-tree终止。
 
 bash 工具还支持一个 spawn 钩子，用于在执行前调整命令、cwd 或环境：
 
@@ -2123,7 +2127,7 @@ const bashTool = createBashTool(cwd, {
 });
 ```
 
-`createBashTool()` 通过 `PI_SESSION_ID`、`PI_SESSION_FILE`、`PI_PROVIDER`、`PI_MODEL` 和 `PI_REASONING_LEVEL` 将当前会话暴露给命令。注入发生在 `spawnHook` 之前，因此钩子会在 `env` 中接收这些值，并在如上展开现有环境时保留它们。设置 `exposeSessionEnvironment: false` 以禁用它们：
+`createBashTool()`通过`PI_SESSION_ID`、`PI_SESSION_FILE`、`PI_PROVIDER`、`PI_MODEL`和`PI_REASONING_LEVEL`向命令暴露当前会话。注入发生在`spawnHook`之前，因此钩子会在`env`中接收这些值，并在如上展开现有环境时保留它们。设置`exposeSessionEnvironment: false`以禁用它们：
 
 ```typescript
 const bashTool = createBashTool(cwd, {
@@ -2131,16 +2135,16 @@ const bashTool = createBashTool(cwd, {
 });
 ```
 
-参见 [Bash 工具会话环境](environment-variables.md#bash-tool-session-environment) 了解变量语义。参见 [examples/extensions/ssh.ts](../examples/extensions/ssh.ts) 获取一个带有 `--ssh` 标志的完整 SSH 示例。
+参见[Bash 工具会话环境](environment-variables.md#bash-tool-session-environment)了解变量语义。参见[examples/extensions/ssh.ts](../examples/extensions/ssh.ts)获取带有`--ssh`标志的完整SSH示例。
 
 ### 输出截断｜ Output Truncation
 
-**工具 MUST 截断其输出**，以避免淹没 LLM 上下文。大型输出可能导致：
-- 上下文溢出错误 (提示词过长)
+**工具MUST会截断其输出**，以避免使LLM上下文过载。大型输出可能导致：
+- 上下文溢出错误(提示词过长)
 - 上下文压缩失败
 - 模型性能下降
 
-built-in限制为**50KB** (~10k tokens) 和 **2000 行**，以先达到者为准。使用导出的截断工具：
+built-in限制为**50KB** (~10k tokens)和**2000 行**，以先达到者为准。使用导出的截断工具：
 
 ```typescript
 import {
@@ -2178,14 +2182,14 @@ async execute(toolCallId, params, signal, onUpdate, ctx) {
 ```
 
 **关键点：**
-- 对于开头重要的内容使用`truncateHead` (搜索结果、文件读取)
-- 对于结尾重要的内容使用`truncateTail` (日志、命令输出)
+- 对于开头重要的内容使用`truncateHead`(搜索结果、文件读取)
+- 对于结尾重要的内容使用`truncateTail`(日志、命令输出)
 - 当输出被截断时，始终告知LLM，并告知在哪里find the完整版本
-- 在工具的描述中记录截断限制
+- 在工具描述中记录截断限制
 
-参见[examples/extensions/truncated-tool.ts](../examples/extensions/truncated-tool.ts)获取一个完整的示例，该示例使用适当的截断包装了`rg` (ripgrep)。
+参见[examples/extensions/truncated-tool.ts](../examples/extensions/truncated-tool.ts)获取使用适当截断包装`rg`(ripgrep)的完整示例。
 
-### 多个工具
+### 多个工具｜ Multiple Tools
 
 一个扩展可以注册多个共享状态的工具：
 
@@ -2203,13 +2207,13 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-### 自定义渲染
+### 自定义渲染｜ Custom Rendering
 
-工具可以提供`renderCall`和`renderResult`用于自定义TUI显示。参见[tui.md](tui.md)获取完整组件API，以及[tool-execution.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/modes/interactive/components/tool-execution.ts)了解工具行的组成方式。
+工具可以提供 `renderCall` 和 `renderResult` 用于自定义 TUI 显示。有关完整组件 API 和工具行如何组合的信息，请参阅 [tui.md](tui.md) 以及 [tool-execution.ts](https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/src/modes/interactive/components/tool-execution.ts)。
 
-默认情况下，工具输出被包裹在`Box`中，该组件处理内边距和背景。定义的`renderCall`或`renderResult`必须返回`Component`。如果未定义插槽渲染器，`tool-execution.ts`会为该插槽使用回退渲染。
+默认情况下，工具输出被包裹在 `Box` 中，该组件处理内边距和背景。定义的 `renderCall` 或 `renderResult` 必须返回 `Component`。如果未定义插槽渲染器，`tool-execution.ts` 会为该插槽使用回退渲染。
 
-当工具应渲染自己的外壳而不是使用默认的`Box`时，设置`renderShell: "self"`。这对于需要完全控制框架或背景行为的工具非常有用，例如在工具稳定后必须保持视觉稳定的大型预览。
+当工具应渲染自己的外壳而不是使用默认的 `Box` 时，设置 `renderShell: "self"`。这对于需要完全控制框架或背景行为的工具非常有用，例如在工具稳定后必须保持视觉稳定的大型预览。
 
 ```typescript
 pi.registerTool({
@@ -2227,14 +2231,14 @@ pi.registerTool({
 });
 ```
 
-`renderCall`和`renderResult`各自接收一个`context`对象，包含：
+`renderCall` 和 `renderResult` 各自接收一个 `context` 对象，其中包含：
 - `args` - 当前的工具调用参数
-- `state` - 跨`renderCall`和`renderResult`共享的row-local状态
+- `state` - 在 `renderCall` 和 `renderResult` 之间共享的 row-local 状态
 - `lastComponent` - 该插槽先前返回的组件（如果有）
 - `invalidate()` - 请求重新渲染此工具行
 - `toolCallId`, `cwd`, `executionStarted`, `argsComplete`, `isPartial`, `expanded`, `showImages`, `isError`
 
-使用`context.state`存储cross-slot共享状态。当您希望在多次渲染中重用和修改同一组件时，将slot-local缓存保留在返回的组件实例上。
+使用 `context.state` 进行 cross-slot 共享状态。当您希望在多次渲染中重用和修改同一组件时，请将 slot-local 缓存保留在返回的组件实例上。
 
 #### renderCall
 
@@ -2279,11 +2283,11 @@ renderResult(result, { expanded, isPartial }, theme, context) {
 }
 ```
 
-如果某个插槽故意没有可见内容，请返回一个空的`Component`，例如空的`Container`。
+如果插槽有意没有可见内容，请返回一个空的 `Component`，例如空的 `Container`。
 
-#### 快捷键提示｜ Keybinding Hints
+#### 按键提示｜ Keybinding Hints
 
-使用`keyHint()`显示遵循当前快捷键配置的快捷键提示：
+使用 `keyHint()` 显示尊重活动按键配置的按键提示：
 
 ```typescript
 import { keyHint } from "@earendil-works/pi-coding-agent";
@@ -2298,49 +2302,49 @@ renderResult(result, { expanded }, theme, context) {
 ```
 
 可用函数：
-- `keyHint(keybinding, description)` - 格式化配置的快捷键 ID ，例如`"app.tools.expand"`或`"tui.select.confirm"`
-- `keyText(keybinding)` - 返回快捷键 ID 的原始配置键文本
-- `rawKeyHint(key, description)` - 格式化原始键字符串
+- `keyHint(keybinding, description)` - 格式化配置的按键绑定 ID ，例如 `"app.tools.expand"` 或 `"tui.select.confirm"`
+- `keyText(keybinding)` - 返回按键绑定 ID 的原始配置按键文本
+- `rawKeyHint(key, description)` - 格式化原始按键字符串
 
-使用带命名空间的快捷键 ID ：
-- 编程代理 ID 使用`app.*`命名空间，例如`app.tools.expand`、`app.editor.external`、`app.session.rename`
-- 共享的TUI ID 使用`tui.*`命名空间，例如`tui.select.confirm`、`tui.select.cancel`、`tui.input.tab`
+使用带命名空间的按键绑定 ID ：
+- 编程代理 ID 使用 `app.*` 命名空间，例如 `app.tools.expand`、`app.editor.external`、`app.session.rename`。
+- 共享的 TUI ID 使用 `tui.*` 命名空间，例如 `tui.select.confirm`、`tui.select.cancel`、`tui.input.tab`。
 
-有关快捷键 ID 和默认值的完整列表，请参阅[keybindings.md](keybindings.md)。`keybindings.json`使用相同的命名空间 ID。
+有关按键绑定 ID 和默认值的完整列表，请参阅 [keybindings.md](keybindings.md)。`keybindings.json` 使用相同的命名空间 ID。
 
-自定义编辑器和`ctx.ui.custom()`组件接收`keybindings: KeybindingsManager`作为注入参数。它们应直接使用该注入的管理器，而不是调用`getKeybindings()`或`setKeybindings()`。
+自定义编辑器和 `ctx.ui.custom()` 组件接收 `keybindings: KeybindingsManager` 作为注入参数。它们应直接使用该注入的管理器，而不是调用 `getKeybindings()` 或 `setKeybindings()`。
 
 #### 最佳实践｜ Best Practices
 
-- 使用带有内边距`(0, 0)`的`Text`。默认的 Box 会处理内边距。
-- 对multi-line内容使用`\n`。
-- 处理`isPartial`以支持流式进度。
-- 支持`expanded`以按需显示详细信息。
+- 使用 `Text` 并设置内边距 `(0, 0)`。默认的 Box 会处理内边距。
+- 使用 `\n` 处理 multi-line 内容。
+- 处理 `isPartial` 以实现流式进度。
+- 支持 `expanded` 以按需显示详细信息。
 - 保持默认视图紧凑。
-- 在`renderResult`中读取`context.args`，而不是将参数复制到`context.state`中。
-- 仅在需要在调用和结果插槽之间共享数据时使用`context.state`。
-- 当同一组件实例可以就地更新时，重用`context.lastComponent`。
-- 仅在默认的盒式外壳妨碍时使用`renderShell: "self"`。在self-shell模式下，工具负责自身的框架、内边距和背景。
+- 在 `renderResult` 中读取 `context.args`，而不是将参数复制到 `context.state` 中。
+- 仅在需要跨调用和结果槽共享数据时使用 `context.state`。
+- 当同一组件实例可以就地更新时，重用 `context.lastComponent`。
+- 仅在默认的盒式外壳妨碍时使用 `renderShell: "self"`。在 self-shell 模式下，工具负责自身的框架、内边距和背景。
 
 #### 回退｜ Fallback
 
-如果插槽渲染器未定义或抛出异常：
+如果槽渲染器未定义或抛出异常：
 - `renderCall`：显示工具名称
 - `renderResult`：显示来自 `content` 的原始文本
 
 ### 动态工具加载｜ Dynamic Tool Loading
 
-扩展可以注册许多工具，同时仅保持少量初始激活集。工具可以在执行期间通过 `pi.setActiveTools()` 添加更多工具。Pi 检测纯增量变化，记录该工具结果上新可用的工具名称，并在下一次模型请求前应用更新后的激活集。
+扩展可以注册许多工具，同时仅保持少量初始工具处于活动状态。工具可以在执行期间通过 `pi.setActiveTools()` 添加更多工具。Pi 检测纯增量更改，在该工具结果上记录新可用的工具名称，并在下一次模型请求之前应用更新后的活动集。
 
-这适用于所有模型。支持原生 deferred-loading 的模型保留稳定的提示词前缀，并在 tool-result 位置加载新定义。其他模型使用下文所述的回退方案。
+这适用于所有模型。支持原生 deferred-loading 的模型会保留稳定的提示词前缀，并在 tool-result 位置加载新定义。其他模型使用下面描述的回退方案。
 
 生命周期如下：
 
 1. 使用 `pi.registerTool()` 注册每个工具，使其出现在 `pi.getAllTools()` 中。
-2. 保持加载器工具（如 `search_tools`）处于激活状态，并将可搜索工具保持为非激活状态。
-3. 在加载器执行期间，调用 `pi.setActiveTools([...currentTools, ...matchingTools])`。更改必须是增量的：不要在同一调用中移除当前激活的工具。
-4. Pi 记录加载器工具结果上添加了哪些工具。
-5. 在下一次模型响应之前，Pi 在支持时使用原生延迟加载暴露添加的定义，否则使用正常的激活工具列表。
+2. 保持加载器工具（如 `search_tools`）处于活动状态，并让可搜索工具保持非活动状态。
+3. 在加载器执行期间，调用 `pi.setActiveTools([...currentTools, ...matchingTools])`。该更改必须是增量式的：在同一调用中不要移除当前已激活的工具。
+4. Pi 会记录在加载器的工具结果中添加了哪些工具。
+5. 在下一次模型响应之前，Pi 会在支持时使用原生延迟加载来暴露新增的定义，否则使用正常的活动工具列表。
 
 您无需返回 provider-specific 工具引用或将加载器标记为特殊搜索工具。active-tool 更改即为信号。传递给 `pi.setActiveTools()` 的名称必须已注册；未知名称将被忽略。
 
@@ -2351,21 +2355,21 @@ renderResult(result, { expanded }, theme, context) {
   - **原生表示：** 延迟定义使用 `defer_loading`；加载点使用 `tool_reference` 内容。
 - **OpenAI**
   - **模型：** `gpt-5.4` 及更新系列
-  - **原生表示：** Pi 在加载点添加完整的客户端 `tool_search_call` 和 `tool_search_output` 项。
+  - **原生表示：** Pi 在加载点添加已完成的客户端 `tool_search_call` 和 `tool_search_output` 项。
 
-对于已验证的自定义模型或代理，可以通过 `compat.supportsToolReferences: true` 为 `anthropic-messages` 启用原生处理，或通过 `compat.supportsToolSearch: true` 为 `openai-responses` 和 `openai-codex-responses` 启用。除非端点和模型接受相应的原生协议，否则请保持禁用。
+对于经过验证的自定义模型或代理，可以通过 `compat.supportsToolReferences: true`（用于 `anthropic-messages`）或 `compat.supportsToolSearch: true`（用于 `openai-responses` 和 `openai-codex-responses`）启用原生处理。除非端点和模型接受相应的原生协议，否则请保持这些选项禁用。
 
 #### 回退行为｜ Fallback behavior
 
-对于所有其他模型和提供商，动态激活仍然有效：Pi 在下一个请求中正常发送完整的当前激活工具列表。模型可以调用新激活的工具，但添加其定义可能会使提供商的缓存提示词前缀失效。
+对于所有其他模型和提供商，动态激活仍然有效：Pi 会在下一次请求时正常发送完整的当前活动工具列表。模型可以调用新激活的工具，但添加其定义可能会使提供商的缓存提示前缀失效。
 
-当激活集不是纯增量时（例如用一组工具替换另一组工具），Pi 也使用此安全回退。因此，工具移除可以工作，但不使用延迟加载。
+当活动集合不是纯粹的增量式更改（例如用一组工具替换另一组工具）时，Pi 也会使用此安全回退。因此，工具移除仍然有效，但不使用延迟加载。
 
-为了获得最佳缓存行为，请在整个会话中保持加载器工具激活，并添加工具而不是替换激活集。另请注意，使用 `promptSnippet` 或 `promptGuidelines` 激活工具会重建系统提示词；该 system-prompt 更改可能会使前缀失效，即使提供商支持延迟模式。延迟加载的工具通常应依赖其工具 `description`，并省略 active-only 提示词元数据。
+为了获得最佳的缓存行为，请在整个会话期间保持加载器工具处于活动状态，并添加工具而不是替换活动集合。另请注意，使用 `promptSnippet` 或 `promptGuidelines` 激活工具会重建系统提示词；即使提供商支持延迟模式，该 system-prompt 更改也可能使前缀失效。延迟加载的工具通常应依赖其工具 `description`，并省略 active-only 提示词元数据。
 
 #### 搜索工具示例｜ Search tool example
 
-以下扩展注册了两个可搜索工具，将它们从初始激活集中移除，并仅保留 `search_tools` 作为其加载器。该示例使用简单的关键字匹配，但搜索实现可以使用 BM25、嵌入、远程目录或 project-specific 路由。
+以下扩展注册了两个可搜索工具，将它们从初始活动集合中移除，并仅保留 `search_tools` 作为其加载器。该示例使用简单的关键字匹配，但搜索实现可以使用 BM25、嵌入、远程目录或 project-specific 路由。
 
 ```typescript
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -2463,23 +2467,23 @@ export default function (pi: ExtensionAPI) {
 }
 ```
 
-当 `search_tools` 添加匹配项时，模型会在紧随其后的请求中收到该定义。在 native-capable 模型上，该定义锚定在搜索结果之后，而不更改初始 tool-schema 前缀。在其他模型上，它出现在紧随其后的请求的正常工具列表中。
+当 `search_tools` 添加匹配项时，模型会在紧随其后的请求中收到该定义。在 native-capable 模型上，该定义会锚定在搜索结果之后，而不更改初始的 tool-schema 前缀。在其他模型上，它会出现在紧随其后的同一请求的正常工具列表中。
 
-## 自定义界面｜ Custom UI
+## 自定义 UI ｜ Custom UI
 
 扩展可以通过 `ctx.ui` 方法与用户交互，并自定义消息/工具的渲染方式。
 
-**有关自定义组件，请参阅 [tui.md](tui.md)**，其中包含以下 copy-paste 模式：
+**有关自定义组件，请参阅 [tui.md](tui.md)**，其中包含 copy-paste 模式，适用于：
 - 选择对话框 (SelectList)
-- 支持取消的异步操作 (BorderedLoader)
+- 带取消的异步操作 (BorderedLoader)
 - 设置开关 (SettingsList)
 - 状态指示器 (setStatus)
-- 流式传输期间的工作消息、可见性和指示器 (`setWorkingMessage`, `setWorkingVisible`, `setWorkingIndicator`)
-- 编辑器上方/下方的组件 (setWidget)
-- 在 built-in 斜杠/路径补全之上叠加的自动补全提供程序 (addAutocompleteProvider)
-- 自定义页脚 (setFooter)
+- 流式传输期间的工作消息、可见性和指示器 (`setWorkingMessage`、`setWorkingVisible`、`setWorkingIndicator`)
+- 编辑器上方/下方的小部件 (setWidget)
+- 在 built-in 斜杠/路径补全之上分层构建的自动补全提供商(addAutocompleteProvider)
+- 自定义页脚(setFooter)
 
-### 对话框｜ Dialogs
+### 对话框
 
 ```typescript
 // Select from options
@@ -2498,9 +2502,9 @@ const text = await ctx.ui.editor("Edit:", "prefilled text");
 ctx.ui.notify("Done!", "info");  // "info" | "warning" | "error"
 ```
 
-#### 带倒计时的定时对话框｜ Timed Dialogs with Countdown
+#### 带倒计时的定时对话框
 
-对话框支持 `timeout` 选项，该选项 auto-dismisses 并显示实时倒计时：
+对话框支持 `timeout` 选项，该选项auto-dismisses实时倒计时显示：
 
 ```typescript
 // Dialog shows "Title (5s)" → "Title (4s)" → ... → auto-dismisses at 0
@@ -2522,9 +2526,9 @@ if (confirmed) {
 - `confirm()` 返回 `false`
 - `input()` 返回 `undefined`
 
-#### 使用 AbortSignal 手动关闭｜ Manual Dismissal with AbortSignal
+#### 使用 AbortSignal 手动关闭
 
-为了更精细地控制 (e.g。，以区分超时和用户取消)，请使用 `AbortSignal`：
+如需更多控制(e.g。，以区分超时与用户取消)，请使用 `AbortSignal`：
 
 ```typescript
 const controller = new AbortController();
@@ -2547,9 +2551,9 @@ if (confirmed) {
 }
 ```
 
-请参阅 [examples/extensions/timed-confirm.ts](../examples/extensions/timed-confirm.ts) 获取完整示例。
+完整示例请参阅 [examples/extensions/timed-confirm.ts](../examples/extensions/timed-confirm.ts)。
 
-### 组件、状态和页脚｜ Widgets, Status, and Footer
+### 组件、状态和页脚
 
 ```typescript
 // Status in footer (persistent until cleared)
@@ -2649,9 +2653,9 @@ ctx.ui.theme.fg("accent", "styled text");  // Access current theme
 
 自定义 working-indicator 框架会原样渲染。如果需要颜色，请自行在框架字符串中添加，例如使用 `ctx.ui.theme.fg(...)`。
 
-### 自动补全提供程序｜ Autocomplete Providers
+### 自动补全提供商
 
-使用 `ctx.ui.addAutocompleteProvider()` 在 built-in slash-command 和路径提供商之上堆叠自定义自动补全逻辑。设置 `triggerCharacters` 以实现自定义自然触发，例如 `使用 `ctx.ui.addAutocompleteProvider()` 在 built-in slash-command 和路径提供商之上堆叠自定义自动补全逻辑。设置 `triggerCharacters` 以实现自定义自然触发，例如 。
+使用 `ctx.ui.addAutocompleteProvider()` 在 built-in slash-command 和路径提供商之上堆叠自定义自动补全逻辑。设置 `triggerCharacters` 以支持自定义自然触发条件，例如 `使用 `ctx.ui.addAutocompleteProvider()` 在 built-in slash-command 和路径提供商之上堆叠自定义自动补全逻辑。设置 `triggerCharacters` 以支持自定义自然触发条件，例如 。
 
 典型模式：
 
@@ -2692,11 +2696,11 @@ pi.on("session_start", (_event, ctx) => {
 });
 ```
 
-参见 [github-issue-autocomplete.ts](../examples/extensions/github-issue-autocomplete.ts) 获取完整示例，该示例使用 `gh issue list` 预加载最新的 GitHub 问题，并在本地过滤以实现快速 `#...` 补全。它需要 GitHub CLI (`gh`) 和 GitHub 仓库检出。
+完整示例请参阅 [github-issue-autocomplete.ts](../examples/extensions/github-issue-autocomplete.ts)，该示例使用 `gh issue list` 预加载最新的 GitHub 问题，并在本地过滤以实现快速的 `#...` 补全。它需要 GitHub CLI (`gh`) 和 GitHub 仓库检出。
 
-### 自定义组件｜ Custom Components
+### 自定义组件
 
-对于复杂 UI ，使用 `ctx.ui.custom()`。这会临时用您的组件替换编辑器，直到调用 `done()`：
+对于复杂 UI ，请使用 `ctx.ui.custom()`。这会临时用您的组件替换编辑器，直到调用 `done()`：
 
 ```typescript
 import { Text, Component } from "@earendil-works/pi-tui";
@@ -2719,14 +2723,14 @@ if (result) {
 ```
 
 回调接收：
-- `tui` - TUI 实例 (用于屏幕尺寸、焦点管理)
-- `theme` - 用于样式的当前主题
-- `keybindings` - 应用键位绑定管理器 (用于检查快捷键)
-- `done(value)` - 调用以关闭组件并返回值
+- `tui` - TUI 实例 (用于屏幕尺寸和焦点管理)
+- `theme` - 当前主题，用于样式设置
+- `keybindings` - 应用按键绑定管理器 (用于检查快捷键)
+- `done(value)` - 关闭组件并返回值的调用
 
 参见 [tui.md](tui.md) 获取完整组件 API。
 
-#### 覆盖模式｜ Overlay Mode (实验性)
+#### 覆盖模式 (实验性)
 
 传递 `{ overlay: true }` 将组件渲染为现有内容之上的浮动模态框，而不清除屏幕：
 
@@ -2755,9 +2759,9 @@ const result = await ctx.ui.custom<string | null>(
 );
 ```
 
-聚焦的可见覆盖层可以在临时 non-overlay 自定义 UI 关闭后重新获取输入。如果您有意让另一个组件在覆盖层保持可见时继续接收输入，请调用 `handle.unfocus({ target })`。传递 `{ target: null }` 会释放覆盖层而不聚焦另一个组件。
+聚焦的可见覆盖层可以在临时 non-overlay 自定义 UI 关闭后重新获取输入。如果您有意让另一个组件在覆盖层保持可见时继续接收输入，请调用 `handle.unfocus({ target })`。传递 `{ target: null }` 会释放覆盖层而不聚焦其他组件。
 
-参见 [tui.md](tui.md) 获取完整的 `OverlayOptions` 和 `OverlayHandle` API，以及 [overlay-qa-tests.ts](../examples/extensions/overlay-qa-tests.ts) 获取示例。
+参见 [tui.md](tui.md) 获取完整的 `OverlayOptions` 和 `OverlayHandle` API，以及 [overlay-qa-tests.ts](../examples/extensions/overlay-qa-tests.ts) 中的示例。
 
 ### 自定义编辑器｜ Custom Editor
 
@@ -2793,13 +2797,13 @@ export default function (pi: ExtensionAPI) {
 ```
 
 **要点：**
-- 扩展 `CustomEditor` (不是基础 `Editor`) 以获取应用键位绑定 (escape 中止、ctrl+d、模型切换)
-- 对于你不处理的键，调用 `super.handleInput(data)`
+- 扩展 `CustomEditor` (而非基础 `Editor`) 以获取应用按键绑定 (escape 中止、ctrl+d、模型切换)
+- 对于您不处理的按键，调用 `super.handleInput(data)`
 - 工厂从应用接收 `tui`、`theme` 和 `keybindings`
-- 在 `setEditorComponent()` 之前使用 `ctx.ui.getEditorComponent()` 来包装之前配置的自定义编辑器
-- 传递 `undefined` 以恢复默认值：`ctx.ui.setEditorComponent(undefined)`
+- 在 `setEditorComponent()` 之前使用 `ctx.ui.getEditorComponent()` 来包装先前配置的自定义编辑器
+- 传递 `undefined` 恢复默认值：`ctx.ui.setEditorComponent(undefined)`
 
-要与已替换编辑器的另一个扩展组合，请在设置你的工厂之前捕获之前的工厂：
+要与已替换编辑器的另一个扩展组合，请在设置您的工厂之前捕获先前的工厂：
 
 ```typescript
 const previous = ctx.ui.getEditorComponent();
@@ -2808,11 +2812,11 @@ ctx.ui.setEditorComponent((tui, theme, keybindings) =>
 );
 ```
 
-参见 [tui.md](tui.md) 模式 7 ，了解带有模式指示器的完整示例。
+参见 [tui.md](tui.md) 模式 7 获取带模式指示器的完整示例。
 
 ### 消息和条目渲染｜ Message and Entry Rendering
 
-使用你的 `customType` 为消息注册自定义渲染器。对于应参与 LLM 上下文的内容，使用消息渲染器：
+使用您的 `customType` 为消息注册自定义渲染器。使用消息渲染器处理应参与 LLM 上下文的内容：
 
 ```typescript
 import { Text } from "@earendil-works/pi-tui";
@@ -2841,7 +2845,7 @@ pi.sendMessage({
 });
 ```
 
-对于不应发送到 LLM 的仅 TUI 内容，改为渲染自定义条目：
+对于仅限 TUI 使用且不应发送至 LLM 的内容，请改为渲染自定义条目：
 
 ```typescript
 pi.registerEntryRenderer("my-card", (entry, options, theme) => {
@@ -2853,7 +2857,7 @@ pi.appendEntry("my-card", { status: "done" });
 
 ### 主题颜色｜ Theme Colors
 
-所有渲染函数都接收一个 `theme` 对象。参见 [themes.md](themes.md) 了解创建自定义主题和完整调色板的信息。
+所有渲染函数都会接收一个 `theme` 对象。有关创建自定义主题和完整调色板的信息，请参阅 [themes.md](themes.md)。
 
 ```typescript
 // Foreground colors
@@ -2871,7 +2875,7 @@ theme.italic(text)
 theme.strikethrough(text)
 ```
 
-对于自定义工具渲染器中的语法高亮：
+用于自定义工具渲染器中的语法高亮：
 
 ```typescript
 import { highlightCode, getLanguageFromPath } from "@earendil-works/pi-coding-agent";
@@ -2888,14 +2892,14 @@ const highlighted = highlightCode(code, lang, theme);
 
 - 扩展错误会被记录，代理继续运行
 - `tool_call` 错误会阻止工具 (fail-safe)
-- 工具 `execute` 错误必须通过抛出异常来发出信号；捕获抛出的错误，通过 `isError: true` 报告给 LLM，然后继续执行
+- 工具 `execute` 错误必须通过抛出异常来发出信号；抛出的错误会被捕获，并通过 `isError: true` 报告给 LLM，然后继续执行
 
 ## 模式行为｜ Mode Behavior
 
 | 模式｜ Mode | `ctx.mode` | `ctx.hasUI` | 备注｜ Notes |
 |------|------------|-------------|-------|
-| 交互式｜ Interactive | `"tui"` | `true` | 完整 TUI，带终端渲染 |
-| RPC (`--mode rpc`) | `"rpc"` | `true` | 通过 JSON 协议实现对话框和通知；`custom()` 返回 `undefined`。参见 [rpc.md](rpc.md) |
+| 交互式｜ Interactive | `"tui"` | `true` | 完整的 TUI，带终端渲染 |
+| RPC (`--mode rpc`) | `"rpc"` | `true` | 通过 JSON 协议进行对话框和通知；`custom()` 返回 `undefined`。请参阅 [rpc.md](rpc.md) |
 | JSON (`--mode json`) | `"json"` | `false` | 事件流输出到标准输出； UI 方法为 no-ops |
 | 打印 (`-p`) | `"print"` | `false` | 扩展运行但无法提示 |
 
@@ -2908,81 +2912,81 @@ const highlighted = highlightCode(code, lang, theme);
 | 示例 | 描述 | 关键 API |
 |---------|-------------|----------|
 | **工具** |||
-| `hello.ts` | 最小工具注册｜ Minimal tool registration | `registerTool` |
-| `question.ts` | 带用户交互的工具｜ Tool with user interaction | `registerTool`, `ui.select` |
-| `questionnaire.ts` | 多步骤向导工具｜ Multi-step wizard tool | `registerTool`, `ui.custom` |
-| `todo.ts` | 带持久化的有状态工具｜ Stateful tool with persistence | `registerTool`, `appendEntry`, `renderResult`, 会话事件 |
-| `dynamic-tools.ts` | 启动后及命令期间注册工具｜ Register tools after startup and during commands | `registerTool`, `session_start`, `registerCommand` |
-| `structured-output.ts` | 使用 `terminate: true` 的最终 structured-output 工具 | `registerTool`, 终止工具结果 |
-| `truncated-tool.ts` | 输出截断示例｜ Output truncation example | `registerTool`, `truncateHead` |
+| `hello.ts` | 最小工具注册 | `registerTool` |
+| `question.ts` | 带用户交互的工具 | `registerTool`、`ui.select` |
+| `questionnaire.ts` | 多步骤向导工具 | `registerTool`、`ui.custom` |
+| `todo.ts` | 带持久化的有状态工具 | `registerTool`、`appendEntry`、`renderResult`、会话事件 |
+| `dynamic-tools.ts` | 在启动后和命令期间注册工具 | `registerTool`、`session_start`、`registerCommand` |
+| `structured-output.ts` | 使用 `terminate: true` 的最终 structured-output 工具 | `registerTool`、终止工具结果 |
+| `truncated-tool.ts` | 输出截断示例 | `registerTool`、`truncateHead` |
 | `tool-override.ts` | 覆盖 built-in 读取工具 | `registerTool` (与 built-in 同名) |
 | **命令** |||
-| `pirate.ts` | 修改系统提示词 per-turn | `registerCommand`, `before_agent_start` |
-| `summarize.ts` | 会话摘要命令 | `registerCommand`, `ui.custom` |
-| `handoff.ts` | 跨模型提供商模型交接 | `registerCommand`, `ui.editor`, `ui.custom` |
-| `qna.ts` | 自定义 UI 的问答 | `registerCommand`, `ui.custom`, `setEditorText` |
-| `send-user-message.ts` | 注入用户消息 | `registerCommand`, `sendUserMessage` |
-| `reload-runtime.ts` | 重新加载命令和 LLM 工具交接 | `registerCommand`, `ctx.reload()`, `sendUserMessage` |
-| `shutdown-command.ts` | 优雅关闭命令 | `registerCommand`, `shutdown()` |
-| **事件与门控** |||
-| `permission-gate.ts` | 阻止危险命令 | `on("tool_call")`、`ui.confirm` |
-| `project-trust.ts` | 从用户/全局或 CLI 扩展决定或推迟项目信任 | `on("project_trust")`、信任 UI、必需的信任结果 |
+| `pirate.ts` | 修改系统提示词 per-turn | `registerCommand`、`before_agent_start` |
+| `summarize.ts` | 对话摘要命令 | `registerCommand`、`ui.custom` |
+| `handoff.ts` | 跨模型提供商模型交接｜ Cross-模型提供商 model handoff | `registerCommand`、`ui.editor`、`ui.custom` |
+| `qna.ts` | 自定义 UI 问答｜ Q&A with custom UI | `registerCommand`、`ui.custom`、`setEditorText` |
+| `send-user-message.ts` | 注入用户消息｜ Inject user messages | `registerCommand`、`sendUserMessage` |
+| `reload-runtime.ts` | 重新加载命令和 LLM 工具交接｜ Reload command and tool handoff | `registerCommand`、`ctx.reload()`、`sendUserMessage` |
+| `shutdown-command.ts` | 优雅关闭命令｜ Graceful shutdown command | `registerCommand`、`shutdown()` |
+| **事件与门控｜ Events & Gates** |||
+| `permission-gate.ts` | 阻止危险命令｜ Block dangerous commands | `on("tool_call")`、`ui.confirm` |
+| `project-trust.ts` | 从用户/全局或 CLI 扩展决定或推迟项目信任｜ Decide or defer project trust from a user/global or 扩展 | `on("project_trust")`、信任 UI、必需的信任结果 |
 | `protected-paths.ts` | 阻止写入特定路径 | `on("tool_call")` |
 | `confirm-destructive.ts` | 确认会话更改 | `on("session_before_switch")`、`on("session_before_fork")` |
 | `dirty-repo-guard.ts` | 在 git repo 脏时发出警告 | `on("session_before_*")`、`exec` |
 | `input-transform.ts` | 转换用户输入 | `on("input")` |
 | `input-transform-streaming.ts` | 支持流式处理的输入转换 | `on("input")`、`streamingBehavior` |
-| `model-status.ts` | 响应模型变化 | `on("model_select")`, `setStatus` |
-| `provider-payload.ts` | 检查载荷和模型提供商响应头 | `on("before_provider_request")`, `on("after_provider_response")` |
-| `system-prompt-header.ts` | 显示系统提示词信息 | `on("agent_start")`, `getSystemPrompt` |
+| `model-status.ts` | 响应模型更改 | `on("model_select")`、`setStatus` |
+| `provider-payload.ts` | 检查负载和模型提供商响应头 | `on("before_provider_request")`、`on("after_provider_response")` |
+| `system-prompt-header.ts` | 显示系统提示词信息 | `on("agent_start")`、`getSystemPrompt` |
 | `claude-rules.ts` | 从文件加载规则 | `on("session_start")`, `on("before_agent_start")` |
 | `prompt-customizer.ts` | 使用 `systemPromptOptions` 添加 context-aware 工具指南 | `on("before_agent_start")`, `BuildSystemPromptOptions` |
 | `file-trigger.ts` | 文件监视器触发消息 | `sendMessage` |
 | **上下文压缩与会话** |||
 | `custom-compaction.ts` | 自定义上下文压缩摘要 | `on("session_before_compact")` |
 | `trigger-compact.ts` | 手动触发上下文压缩 | `compact()` |
-| `git-checkpoint.ts` | 在轮次中执行 Git stash | `on("turn_start")`、`on("session_before_fork")`、`exec` |
-| `git-merge-and-resolve.ts` | 拉取、合并并解决冲突 | `on("agent_end")`、`exec`、`sendUserMessage` |
-| `auto-commit-on-exit.ts` | 关闭时提交 | `on("session_shutdown")`、`exec` |
+| `git-checkpoint.ts` | 在轮次中执行 Git stash | `on("turn_start")`, `on("session_before_fork")`, `exec` |
+| `git-merge-and-resolve.ts` | 获取、合并并解决冲突 | `on("agent_end")`, `exec`, `sendUserMessage` |
+| `auto-commit-on-exit.ts` | 关闭时提交 | `on("session_shutdown")`, `exec` |
 | **UI 组件** |||
 | `status-line.ts` | 页脚状态指示器 | `setStatus`、会话事件 |
-| `working-indicator.ts` | 自定义流式工作指示器 | `setWorkingIndicator`、`registerCommand` |
-| `github-issue-autocomplete.ts` | 通过预加载 `gh issue list` 中最近打开的问题，在 built-in 自动补全的基础上添加 `#1234` 问题补全 | `addAutocompleteProvider`、`on("session_start")`、`exec` |
+| `working-indicator.ts` | 自定义流式工作指示器 | `setWorkingIndicator`, `registerCommand` |
+| `github-issue-autocomplete.ts` | 通过从 `gh issue list` 预加载最近打开的问题，在 built-in 自动补全的基础上添加 `#1234` 问题补全 | `addAutocompleteProvider`, `on("session_start")`, `exec` |
 | `custom-footer.ts` | 完全替换页脚 | `registerCommand`, `setFooter` |
-| `custom-header.ts` | 替换启动页头部 | `on("session_start")`, `setHeader` |
+| `custom-header.ts` | 替换启动页头 | `on("session_start")`, `setHeader` |
 | `modal-editor.ts` | Vim 风格模态编辑器 | `setEditorComponent`, `CustomEditor` |
-| `rainbow-editor.ts` | 自定义编辑器样式 | `setEditorComponent` |
-| `widget-placement.ts` | 编辑器上方/下方的小部件 | `setWidget` |
-| `overlay-test.ts` | 覆盖层组件 | `ui.custom` 及覆盖层选项 |
-| `overlay-qa-tests.ts` | 全面的覆盖层测试 | `ui.custom`，所有覆盖层选项 |
-| `notify.ts` | 简单通知 | `ui.notify` |
-| `timed-confirm.ts` | 带超时的对话框 | `ui.confirm` 带超时/信号 |
-| `mac-system-theme.ts` | 自动切换主题 | `setTheme`、`exec` |
+| `rainbow-editor.ts` | 自定义编辑器样式｜ Custom editor styling | `setEditorComponent` |
+| `widget-placement.ts` | 编辑器上方/下方组件｜ Widget above/below editor | `setWidget` |
+| `overlay-test.ts` | 覆盖层组件｜ Overlay components | `ui.custom` 及覆盖层选项 |
+| `overlay-qa-tests.ts` | 综合覆盖层测试｜ Comprehensive overlay tests | `ui.custom`，所有覆盖层选项 |
+| `notify.ts` | 简单通知｜ Simple notifications | `ui.notify` |
+| `timed-confirm.ts` | 带超时的对话框｜ Dialogs with timeout | `ui.confirm` 带超时/信号 |
+| `mac-system-theme.ts` | 自动切换主题｜ Auto-switch theme | `setTheme`、`exec` |
 | **复杂扩展** |||
-| `plan-mode/` | 完整计划模式实现 | 所有事件类型：`registerCommand`、`registerShortcut`、`registerFlag`、`setStatus`、`setWidget`、`sendMessage`、`setActiveTools` |
+| `plan-mode/` | 完整计划模式实现｜ Full plan mode implementation | 所有事件类型，`registerCommand`、`registerShortcut`、`registerFlag`、`setStatus`、`setWidget`、`sendMessage`、`setActiveTools` |
 | `preset.ts` | 可保存的预设 (模型、工具、思考) | `registerCommand`、`registerShortcut`、`registerFlag`、`setModel`、`setActiveTools`、`setThinkingLevel`、`appendEntry` |
-| `tools.ts` | 工具开关 UI | `registerCommand`、`setActiveTools`、`SettingsList`、会话事件 |
+| `tools.ts` | 切换工具开关的 UI ｜ Toggle tools on/off UI | `registerCommand`、`setActiveTools`、`SettingsList`、会话事件 |
 | **远程与沙箱** |||
 | `ssh.ts` | SSH 远程执行 | `registerFlag`、`on("user_bash")`、`on("before_agent_start")`、工具操作 |
-| `interactive-shell.ts` | 持久化 shell 会话 | `on("user_bash")` |
-| `sandbox/` | 沙箱化工具执行 | 工具操作 |
-| `gondolin/` | 将 built-in 工具和 `!` 命令路由到 Gondolin 微虚拟机 | 工具操作、built-in 工具覆盖、`on("user_bash")` |
+| `interactive-shell.ts` | 持久化 Shell 会话｜ Persistent shell 会话 | `on("user_bash")` |
+| `sandbox/` | 沙箱化工具执行｜ Sandboxed tool execution | 工具操作｜ Tool operations |
+| `gondolin/` | 将 built-in 工具和 `!` 命令路由到 Gondolin 微虚拟机中 | 工具操作、built-in 工具覆盖、`on("user_bash")` |
 | `subagent/` | 生成 sub-agents | `registerTool`、`exec` |
 | **游戏** |||
 | `snake.ts` | 贪吃蛇游戏 | `registerCommand`、`ui.custom`、键盘处理 |
 | `space-invaders.ts` | 太空侵略者游戏 | `registerCommand`、`ui.custom` |
-| `doom-overlay/` | 在覆盖层中运行 Doom | `ui.custom` 与覆盖层 |
+| `doom-overlay/` | 覆盖层中的 Doom | 带覆盖层的 `ui.custom` |
 | **模型提供商** |||
 | `custom-provider-anthropic/` | 自定义 Anthropic 代理 | `registerProvider` |
-| `custom-provider-gitlab-duo/` | GitLab Duo 集成 | `registerProvider` 与 OAuth |
+| `custom-provider-gitlab-duo/` | GitLab Duo 集成 | 带 OAuth 的 `registerProvider` |
 | **消息与通信** |||
-| `message-renderer.ts` | 自定义消息渲染 | `registerMessageRenderer`, `sendMessage` |
-| `entry-renderer.ts` | 仅 TUI 自定义条目渲染 | `registerEntryRenderer`, `appendEntry` |
+| `message-renderer.ts` | 自定义消息渲染 | `registerMessageRenderer`、`sendMessage` |
+| `entry-renderer.ts` | TUI 专属自定义条目渲染 | `registerEntryRenderer`、`appendEntry` |
 | `event-bus.ts` | 扩展间事件 | `pi.events` |
 | **会话元数据** |||
-| `session-name.ts` | 为选择器命名会话 | `setSessionName`, `getSessionName` |
+| `session-name.ts` | 为选择器命名会话 | `setSessionName`、`getSessionName` |
 | `bookmark.ts` | 为 /tree 添加书签条目 | `setLabel` |
 | **杂项** |||
-| `inline-bash.ts` | 在工具调用中内联 bash | `on("tool_call")` |
-| `bash-spawn-hook.ts` | 执行前调整 bash 命令、工作目录和环境变量 | `createBashTool`, `spawnHook` |
+| `inline-bash.ts` | 工具调用中的内联 bash | `on("tool_call")` |
+| `bash-spawn-hook.ts` | 在执行前调整 bash 命令、工作目录和环境变量 | `createBashTool`, `spawnHook` |
 | `with-deps/` | 使用 npm dependencies 的扩展 | 包含 `package.json` 的包结构 |

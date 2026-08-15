@@ -2,7 +2,7 @@
 
 RPC 模式通过 stdin/stdout 上的 JSON 协议实现编程代理的无头操作。这对于将代理嵌入其他应用程序、IDE 或自定义 UI 非常有用。
 
-**Node.js/TypeScript 用户注意**：如果你正在构建 Node.js 应用程序，请考虑直接从 `@earendil-works/pi-coding-agent` 使用 `AgentSession`，而不是生成子进程。有关 API，请参阅 [`src/core/agent-session.ts`](../src/core/agent-session.ts)。对于 subprocess-based TypeScript 客户端，请参阅 [`src/modes/rpc/rpc-client.ts`](../src/modes/rpc/rpc-client.ts)。
+**注意：Node.js/TypeScript 用户**：如果您正在构建 Node.js 应用程序，请考虑直接从 `@earendil-works/pi-coding-agent` 使用 `AgentSession`，而不是生成子进程。有关 API，请参阅 [`src/core/agent-session.ts`](../src/core/agent-session.ts)。对于 subprocess-based TypeScript 客户端，请参阅 [`src/modes/rpc/rpc-client.ts`](../src/modes/rpc/rpc-client.ts)。
 
 ## 启动 RPC 模式｜ Starting Mode
 
@@ -10,7 +10,7 @@ RPC 模式通过 stdin/stdout 上的 JSON 协议实现编程代理的无头操�
 pi --mode rpc [options]
 ```
 
-常用选项：
+常见选项：
 - `--provider <name>`：设置 LLM 模型提供商 (anthropic、openai、google 等)
 - `--model <pattern>`：模型模式或 ID (支持 `provider/id` 和可选的 `:<thinking>`)
 - `--name <name>` / `-n <name>`：在启动时设置会话显示名称
@@ -21,17 +21,17 @@ pi --mode rpc [options]
 
 - **命令**：发送到 stdin 的 JSON 对象，每行一个
 - **响应**：带有 `type: "response"` 的 JSON 对象，指示命令成功/失败
-- **事件**：代理事件以 JSON 行的形式流式输出到 stdout
+- **事件**：代理事件以 JSON 行的形式流式传输到 stdout
 
-所有命令都支持可选的 `id` 字段，用于请求/响应关联。如果提供，相应的响应将包含相同的 `id`。`bash_execution_update` 事件还包括其发起 `bash` 命令的 `id`。
+所有命令都支持可选的 `id` 字段，用于请求/响应关联。如果提供，相应的响应将包含相同的 `id`。`bash_execution_update` 事件还包括其来源 `bash` 命令的 `id`。
 
 ### 帧格式｜ Framing
 
-RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符。
+RPC 模式使用严格的 JSONL 语义，以 LF (`\n`) 作为唯一的记录分隔符。
 
 这对客户端很重要：
 - 仅按 `\n` 分割记录
-- 通过去除末尾的 `\r` 来接受可选的 `\r\n` 输入
+- 通过去除尾部的 `\r` 来接受可选的 `\r\n` 输入
 - 不要使用将 Unicode 分隔符视为换行符的通用行读取器
 
 特别是， Node `readline` 不适用于 RPC 模式下的 protocol-compliant，因为它还会在 `U+2028` 和 `U+2029` 处进行分割，而这些字符在 JSON 字符串中是有效的。
@@ -42,7 +42,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 #### prompt
 
-向代理发送用户提示。命令响应在提示被接受、排队或处理后发出。事件在接受后继续异步流式传输。
+向代理发送用户提示。命令响应在提示被接受、排队或处理后发出。接受后事件继续异步流式传输。
 
 ```json
 {"id": "req-1", "type": "prompt", "message": "Hello, world!"}
@@ -60,13 +60,13 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 ```
 
 - `"steer"`：在代理运行时排队消息。它会在当前助手回合完成执行其工具调用后、下一次 LLM 调用之前传递。
-- `"followUp"`：等待代理完成。消息仅在代理停止时传递。
+- `"followUp"`：等待代理完成。仅在代理停止时传递消息。
 
 如果代理正在流式传输且未指定 `streamingBehavior`，命令将返回错误。
 
-**扩展命令**：如果消息是扩展命令 (e.g。，`/mycommand`)，即使在流式传输期间也会立即执行。扩展命令通过 `pi.sendMessage()` 管理自己的 LLM 交互。
+**扩展命令**：如果消息是扩展命令 (e.g., `/mycommand`)，即使在流式传输期间也会立即执行。扩展命令通过 `pi.sendMessage()` 管理自己的 LLM 交互。
 
-**输入扩展**：技能命令 (`/skill:name`) 和提示词模板 (`/template`) 在发送/排队之前会被展开。
+**输入扩展**：技能命令 (`/skill:name`) 和提示词模板 (`/template`) 在发送/排队之前进行扩展。
 
 响应：
 ```json
@@ -75,11 +75,11 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 `success: true` 表示提示已被接受、排队或立即处理。`success: false` 表示提示在接受前被拒绝。接受后的失败通过正常的事件和消息流报告，而不是作为同一请求 ID 的第二次 `response`。
 
-`images` 字段是可选的。每个图片使用 `ImageContent` 格式：`{"type": "image", "data": "base64-encoded-data", "mimeType": "image/png"}`。
+`images` 字段是可选的。每个图像使用 `ImageContent` 格式：`{"type": "image", "data": "base64-encoded-data", "mimeType": "image/png"}`。
 
 #### steer
 
-在代理运行时排队一条引导消息。它会在当前助手回合完成执行其工具调用后、下一次 LLM 调用之前传递。技能命令和提示词模板会被展开。不允许使用扩展命令 (请改用 `prompt`)。
+在代理运行时排队一条转向消息。它会在当前助手回合完成执行其工具调用后、下一次 LLM 调用之前传递。技能命令和提示词模板会被扩展。不允许使用扩展命令 (请改用 `prompt`)。
 
 ```json
 {"type": "steer", "message": "Stop and do this instead"}
@@ -90,18 +90,18 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "steer", "message": "Look at this instead", "images": [{"type": "image", "data": "base64-encoded-data", "mimeType": "image/png"}]}
 ```
 
-`images` 字段是可选的。每个图片使用 `ImageContent` 格式 (与 `prompt` 相同)。
+`images` 字段是可选的。每个图像使用 `ImageContent` 格式 (与 `prompt` 相同)。
 
 响应：
 ```json
 {"type": "response", "command": "steer", "success": true}
 ```
 
-参见 [set_steering_mode](#set_steering_mode) 以了解如何控制引导消息的处理。
+参见 [set_steering_mode](#set_steering_mode) 以了解如何控制转向消息的处理。
 
 #### follow_up
 
-在代理完成后，将 follow-up 消息排队等待处理。仅当代理没有更多工具调用或引导消息时才会传递。技能命令和提示词模板会被展开。不允许使用扩展命令 (请改用 `prompt`)。
+排队一条 follow-up 消息，在代理完成后处理。仅在代理没有更多工具调用或转向消息时传递。技能命令和提示词模板会被扩展。不允许使用扩展命令 (请改用 `prompt`)。
 
 ```json
 {"type": "follow_up", "message": "After you're done, also do this"}
@@ -112,7 +112,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "follow_up", "message": "Also check this image", "images": [{"type": "image", "data": "base64-encoded-data", "mimeType": "image/png"}]}
 ```
 
-`images` 字段为可选。每张图片使用 `ImageContent` 格式 (与 `prompt` 相同)。
+`images` 字段是可选的。每个图像使用 `ImageContent` 格式 (与 `prompt` 相同)。
 
 响应：
 ```json
@@ -136,13 +136,13 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 #### new_会话
 
-启动新会话。可通过 `session_before_switch` 扩展事件处理器取消。
+开始一个新会话。可通过 `session_before_switch` 扩展事件处理器取消。
 
 ```json
 {"type": "new_session"}
 ```
 
-带可选的父会话跟踪：
+可选地跟踪父会话：
 ```json
 {"type": "new_session", "parentSession": "/path/to/parent-session.jsonl"}
 ```
@@ -256,7 +256,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 `model` 字段是一个完整的 [Model](#model) 对象。
 
-#### get_available_models
+#### 获取_可用_模型
 
 列出所有已配置的模型。
 
@@ -264,7 +264,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "get_available_models"}
 ```
 
-响应包含完整的 [Model](#model) 对象数组：
+响应包含一个完整的 [Model](#model) 对象数组：
 ```json
 {
   "type": "response",
@@ -278,9 +278,9 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 ### 思考
 
-#### set_thinking_level
+#### 设置_思考_级别
 
-为支持该功能的模型设置推理/思考级别。
+为支持推理/思考的模型设置推理/思考级别。
 
 ```json
 {"type": "set_thinking_level", "level": "high"}
@@ -295,7 +295,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "response", "command": "set_thinking_level", "success": true}
 ```
 
-#### cycle_thinking_level
+#### 循环_思考_级别
 
 循环切换可用的思考级别。如果模型不支持思考，则返回 `null` 数据。
 
@@ -313,7 +313,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 }
 ```
 
-#### get_available_thinking_levels
+#### 获取_可用_思考_级别
 
 列出当前模型支持的思考级别。对于不支持推理的模型，返回 `["off"]`。
 
@@ -335,41 +335,41 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 
 ### 队列模式
 
-#### set_steering_mode
+#### 设置_引导_模式
 
-控制如何传递来自 `steer` 的引导消息 ()。
+控制如何传递来自 `steer`( 的引导消息)。
 
 ```json
 {"type": "set_steering_mode", "mode": "one-at-a-time"}
 ```
 
 模式：
-- `"all"`：在当前助手回合完成执行其工具调用后，传递所有转向消息
-- `"one-at-a-time"`：每个完成的助手回合传递一条转向消息 (默认)
+- `"all"`：在当前助手回合完成其工具调用后，传递所有引导消息
+- `"one-at-a-time"`：每个完成的助手回合传递一条引导消息(（默认）)
 
 响应：
 ```json
 {"type": "response", "command": "set_steering_mode", "success": true}
 ```
 
-#### set_follow_up_mode
+#### 设置_跟进_模式_
 
-控制如何传递 follow-up 消息 (来自 `follow_up`)。
+控制如何传递来自`follow_up`(的follow-up消息)。
 
 ```json
 {"type": "set_follow_up_mode", "mode": "one-at-a-time"}
 ```
 
 模式：
-- `"all"`：当代理完成时传递所有 follow-up 消息
-- `"one-at-a-time"`：每次代理完成时传递一条 follow-up 消息 (默认)
+- `"all"`：在代理完成时传递所有 follow-up 消息
+- `"one-at-a-time"`：每次代理完成时投递一条 follow-up 消息（(默认)）
 
 响应：
 ```json
 {"type": "response", "command": "set_follow_up_mode", "success": true}
 ```
 
-### 上下文压缩
+### 上下文压缩｜上下文压缩
 
 #### compact
 
@@ -408,9 +408,9 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 }
 ```
 
-`estimatedTokensAfter` 是对压缩后重建消息上下文的启发式估计，而非 provider-exact 令牌计数。`usage` 报告生成摘要的 LLM 调用，自定义压缩处理器可能会省略该字段。
+`estimatedTokensAfter` 是压缩后重建消息上下文的启发式估计值，而非 provider-exact 令牌计数。`usage` 报告生成摘要的 LLM 调用，自定义压缩处理器可能会省略该字段。
 
-#### set_auto_上下文压缩
+#### 设置_自动_压缩
 
 启用或禁用上下文接近满时的自动压缩。
 
@@ -423,11 +423,11 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "response", "command": "set_auto_compaction", "success": true}
 ```
 
-### 重试
+### 重试｜ Retry
 
-#### set_auto_retry
+#### 设置_自动_重试
 
-启用或禁用对瞬时错误 (过载、速率限制、5xx) 的自动重试。
+启用或禁用对瞬时错误（(过载、速率限制、5xx)）的自动重试。
 
 ```json
 {"type": "set_auto_retry", "enabled": true}
@@ -438,9 +438,9 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "response", "command": "set_auto_retry", "success": true}
 ```
 
-#### abort_retry
+#### 中止_重试
 
-中止 in-progress 重试(取消延迟并停止重试)。
+中止 in-progress 重试（(取消延迟并停止重试)）。
 
 ```json
 {"type": "abort_retry"}
@@ -451,7 +451,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"type": "response", "command": "abort_retry", "success": true}
 ```
 
-### Bash
+### Bash ｜ Bash
 
 #### bash
 
@@ -461,7 +461,7 @@ RPC 模式使用严格的 JSONL 语义， LF (`\n`) 是唯一的记录分隔符�
 {"id": "req-1", "type": "bash", "command": "ls -la"}
 ```
 
-包含 `id` 以将此命令与流式 `bash_execution_update` 事件关联。
+包含一个 `id` 以将流式传输的 `bash_execution_update` 事件与此命令关联。
 
 响应：
 ```json
@@ -510,10 +510,10 @@ drwxr-xr-x ...
 ````
 
 这意味着：
-1. Bash 输出会包含在 LLM 上下文中，在 **下一条提示词** 时生效，而非立即生效。
-2. 可以在提示词之前执行多个 bash 命令；所有输出都将被包含。
+1. Bash 输出会包含在 LLM 上下文中，在 **下一条提示词**时生效，而非立即生效。
+2. 可以在提示词之前执行多条 bash 命令；所有输出都将被包含。
 
-#### 中止_bash
+#### abort_bash
 
 中止正在运行的 bash 命令。
 
@@ -526,9 +526,9 @@ drwxr-xr-x ...
 {"type": "response", "command": "abort_bash", "success": true}
 ```
 
-### 会话
+### 会话｜会话
 
-#### 获取_会话_统计信息
+#### get_会话_stats
 
 获取令牌使用量、成本统计和当前上下文窗口使用情况。
 
@@ -567,11 +567,11 @@ drwxr-xr-x ...
 }
 ```
 
-`tokens` 和 `cost` 包含整个会话中的助手消息、工具报告的使用量以及压缩/branch-summary 生成。`contextUsage` 包含用于压缩和页脚显示的实际当前 context-window 估算值。
+`tokens` 和 `cost` 包括助手消息、工具报告的使用量以及整个会话中的压缩/branch-summary 生成。`contextUsage` 包含用于压缩和页脚显示的实际当前 context-window 估算值。
 
-当没有模型或上下文窗口可用时，省略 `contextUsage`。`contextUsage.tokens` 和 `contextUsage.percent` 在压缩后立即为 `null`，直到新的 post-compaction 助手响应提供有效的使用数据。
+当没有模型或上下文窗口可用时，`contextUsage` 会被省略。`contextUsage.tokens` 和 `contextUsage.percent` 在压缩后立即为 `null`，直到新的 post-compaction 助手响应提供有效的使用数据。
 
-#### 导出_html
+#### export_html
 
 将会话导出为 HTML 文件。
 
@@ -614,7 +614,7 @@ drwxr-xr-x ...
 
 #### fork
 
-从活动分支上先前的用户消息创建新的分支。可通过 `session_before_fork` 扩展事件处理器取消。返回被分支来源的消息文本。
+从活动分支上先前的用户消息创建新的分支。可通过 `session_before_fork` 扩展事件处理器取消。返回被分支消息的文本。
 
 ```json
 {"type": "fork", "entryId": "abc123"}
@@ -642,7 +642,7 @@ drwxr-xr-x ...
 
 #### clone
 
-将当前活动分支在当前位置复制到新会话中。可通过 `session_before_fork` 扩展事件处理器取消。
+将当前活动分支复制到新会话的当前位置。可通过 `session_before_fork` 扩展事件处理器取消。
 
 ```json
 {"type": "clone"}
@@ -658,7 +658,7 @@ drwxr-xr-x ...
 }
 ```
 
-如果扩展取消了克隆：
+如果扩展取消了复制：
 ```json
 {
   "type": "response",
@@ -693,7 +693,7 @@ drwxr-xr-x ...
 
 #### get_entries
 
-按追加顺序获取所有会话条目(不包括会话头)。会话是带有稳定 ID 的条目append-only树，因此条目 ID 可用作持久游标：将您已看到的最后条目 ID 作为 `since` 传递，以仅获取其后的条目，即使在客户端重启后也是如此。与 `get_messages` 不同，这包括 pre-compaction 历史和已放弃的分支。
+按追加顺序获取所有会话条目(不包括会话头)。会话是条目的 append-only 树，具有稳定的 ID ，因此条目 ID 可用作持久游标：传递您已看到的最后一个条目 ID 作为 `since`，以仅获取严格在其之后的条目，即使在客户端重启后也是如此。与 `get_messages` 不同，这包括 pre-compaction 历史和废弃分支。
 
 ```json
 {"type": "get_entries"}
@@ -719,11 +719,11 @@ drwxr-xr-x ...
 }
 ```
 
-`leafId` 是当前叶条目的 ID(`null` 用于空会话)，因此客户端可以在一次往返中判断活动分支是否移动。如果 `since` 与任何条目 ID 不匹配，则响应为 `success: false`。
+`leafId` 是当前叶条目的 ID(`null` 用于空会话)，因此客户端可以在一次往返中判断活动分支是否移动。如果 `since` 不匹配任何条目 ID ，则响应为 `success: false`。
 
 #### get_tree
 
-将会话作为条目树获取。每个node is `{entry, children, label?, labelTimestamp?}`。一个well-formed会话有一个单一根；孤立条目(断开的父链)也会作为根出现。
+将会话作为条目树获取。每个 node is `{entry, children, label?, labelTimestamp?}`。well-formed 会话具有单个根；孤立条目(父链断裂)也作为根出现。
 
 ```json
 {"type": "get_tree"}
@@ -749,7 +749,7 @@ drwxr-xr-x ...
 }
 ```
 
-#### 获取_最后_一条_助手文本
+#### get_last_assistant_text
 
 获取最后一条助手消息的文本内容。
 
@@ -767,9 +767,9 @@ drwxr-xr-x ...
 }
 ```
 
-如果不存在助手消息，则返回`{"text": null}`。
+如果不存在助手消息，则返回 `{"text": null}`。
 
-#### 设置_会话_名称
+#### set_会话_name
 
 为当前会话设置显示名称。该名称会出现在会话列表中，有助于识别会话。
 
@@ -786,13 +786,13 @@ drwxr-xr-x ...
 }
 ```
 
-当前会话名称可通过`get_state`在`sessionName`字段中获取。要在启动RPC模式时设置初始名称，请向`pi --mode rpc`进程传递`--name <name>`或`-n <name>`。
+当前会话名称可通过 `get_state` 在 `sessionName` 字段中获取。要在启动 RPC 模式时设置初始名称，请向 `pi --mode rpc` 进程传递 `--name <name>` 或 `-n <name>`。
 
 ### 命令｜ Commands
 
-#### 获取_命令列表
+#### get_commands
 
-获取可用命令(扩展命令、提示词模板和技能)。这些可以通过`prompt`命令以`/`为前缀来调用。
+获取可用命令 (扩展命令、提示词模板和技能)。这些命令可通过 `prompt` 命令以 `/` 为前缀进行调用。
 
 ```json
 {"type": "get_commands"}
@@ -815,33 +815,33 @@ drwxr-xr-x ...
 ```
 
 每个命令具有：
-- `name`：命令名称(使用`/name`调用)
-- `description`：人类可读的描述(扩展命令可选)
+- `name`：命令名称 (使用 `/name` 调用)
+- `description`：人类可读的描述 (扩展命令可选)
 - `source`：命令类型：
-  - `"extension"`：通过扩展中的`pi.registerCommand()`注册
-  - `"prompt"`：从提示词模板`.md`文件加载
-  - `"skill"`：从技能目录加载(名称以`skill:`为前缀)
-- `location`：加载位置(可选，扩展不提供)：
-  - `"user"`：用户级(`~/.pi/agent/`)
-  - `"project"`：项目级(`./.pi/agent/`)
-  - `"path"`：通过CLI或设置指定的显式路径
-- `path`：命令源的绝对文件路径(可选)
+  - `"extension"`：通过扩展中的 `pi.registerCommand()` 注册
+  - `"prompt"`：从提示词模板 `.md` 文件加载
+  - `"skill"`：从技能目录加载 (名称以 `skill:` 为前缀)
+- `location`：加载位置 (可选，扩展不提供)：
+  - `"user"`：用户级 (`~/.pi/agent/`)
+  - `"project"`：项目级 (`./.pi/agent/`)
+  - `"path"`：通过 CLI 或设置指定的显式路径
+- `path`：命令源的绝对文件路径 (可选)
 
-**注意**：内置的TUI命令(`/settings`、`/hotkeys`等)不包含在内。它们仅在交互模式下处理，如果通过`prompt`发送则不会执行。
+**注意**：内置 TUI 命令 (`/settings`、`/hotkeys` 等)不包含在内。它们仅在交互模式下处理，如果通过 `prompt` 发送则不会执行。
 
 ## 事件｜ Events
 
-在代理操作期间，事件以JSON行的形式流式输出到标准输出。事件通常不包含`id`字段；`bash_execution_update`在其提供了来源`bash`命令时包含该命令的`id`。
+在代理操作期间，事件以 JSON 行的形式流式输出到标准输出。事件通常不包含 `id` 字段；`bash_execution_update` 在提供时包含其来源 `bash` 命令的 `id`。
 
 ### 事件类型｜ Event Types
 
 | 事件 | 描述 |
 |-------|-------------|
 | `agent_start` | 代理开始处理 |
-| `agent_end` | 一个 low-level 代理运行完成(可能仍会跟随重试、上下文压缩或排队续跑) |
-| `agent_settled` | 代理运行完全结束；不再有自动重试、上下文压缩重试或排队续跑 |
-| `turn_start` | 新回合开始 |
-| `turn_end` | 回合完成(包括助手消息和工具结果) |
+| `agent_end` | 一次 low-level 代理运行完成(可能仍会跟随重试、上下文压缩或排队中的后续操作) |
+| `agent_settled` | 代理运行完全结束；不再有自动重试、上下文压缩重试或排队中的后续操作 |
+| `turn_start` | 新的一轮开始 |
+| `turn_end` | 一轮完成(包括助手消息和工具结果) |
 | `message_start` | 消息开始 |
 | `message_update` | 流式更新(文本/思考/工具调用增量) |
 | `message_end` | 消息完成 |
@@ -852,14 +852,14 @@ drwxr-xr-x ...
 | `queue_update` | 待处理的 steering/follow-up 队列已更改 |
 | `compaction_start` | 上下文压缩开始 |
 | `compaction_end` | 上下文压缩完成 |
-| `auto_retry_start` | 瞬态错误后自动重试开始 () |
-| `auto_retry_end` | 自动重试完成 (成功或最终失败) |
-| `summarization_retry_scheduled` | 已为瞬态上下文压缩或 branch-summary 摘要错误安排重试 |
+| `auto_retry_start` | 在(瞬时错误)后自动重试开始 |
+| `auto_retry_end` | 自动重试完成(成功或最终失败) |
+| `summarization_retry_scheduled` | 为瞬时上下文压缩或branch-summary摘要错误安排重试 |
 | `summarization_retry_attempt_start` | 重试的摘要请求开始 |
 | `summarization_retry_finished` | 摘要重试循环完成 |
 | `extension_error` | 扩展抛出错误 |
 
-### 代理_启动
+### 代理_开始
 
 当代理开始处理提示词时发出。
 
@@ -869,7 +869,7 @@ drwxr-xr-x ...
 
 ### 代理_结束
 
-当一次 low-level 代理运行完成时发出。包含此运行期间生成的所有消息。如果 `willRetry` 为 true ，将自动进行重试。
+当一次low-level代理运行完成时发出。包含此运行期间生成的所有消息。如果`willRetry`为真，将自动重试。
 
 ```json
 {
@@ -879,9 +879,9 @@ drwxr-xr-x ...
 }
 ```
 
-### 代理_已稳定
+### 代理_已结算
 
-在完整的session-level运行稳定后触发。此时，Pi不会通过重试、上下文压缩重试或排队的follow-up消息自动继续。
+在完整的session-level运行结算后发出。此时Pi不会通过重试、上下文压缩重试或排队的follow-up消息自动继续。
 
 ```json
 {"type": "agent_settled"}
@@ -889,7 +889,7 @@ drwxr-xr-x ...
 
 ### 轮次_开始 / 轮次_结束
 
-一个轮次由一次助手响应以及由此产生的任何工具调用和结果组成。
+一个轮次由一次助手响应以及任何由此产生的工具调用和结果组成。
 
 ```json
 {"type": "turn_start"}
@@ -905,7 +905,7 @@ drwxr-xr-x ...
 
 ### 消息_开始 / 消息_结束
 
-在消息开始和完成时触发。`message`字段包含一个`AgentMessage`。
+当消息开始和完成时触发。`message`字段包含一个`AgentMessage`。
 
 ```json
 {"type": "message_start", "message": {...}}
@@ -914,11 +914,19 @@ drwxr-xr-x ...
 
 ### 消息_更新 (流式)
 
-在助手消息流式传输期间触发。包含一个没有累积消息快照的增量事件。
+在助手消息流式传输期间触发。包含一个增量事件，没有累积消息快照。
 
 ```json
 {
   "type": "message_update",
+  "usage": {
+    "input": 100,
+    "output": 1,
+    "cacheRead": 0,
+    "cacheWrite": 0,
+    "totalTokens": 101,
+    "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0, "total": 0}
+  },
   "assistantMessageEvent": {
     "type": "text_delta",
     "contentIndex": 0,
@@ -931,35 +939,38 @@ drwxr-xr-x ...
 
 | 类型 | 描述 |
 |------|-------------|
-| `text_start` | 文本内容块已开始 |
+| `text_start` | 文本内容块开始 |
 | `text_delta` | 文本内容块 |
-| `text_end` | 文本内容块已结束 |
-| `thinking_start` | 思考块已开始 |
+| `text_end` | 文本内容块结束 |
+| `thinking_start` | 思考块开始 |
 | `thinking_delta` | 思考内容块 |
-| `thinking_end` | 思考块已结束 |
-| `toolcall_start` | 工具调用已开始 |
+| `thinking_end` | 思考块结束 |
+| `toolcall_start` | 工具调用开始 |
 | `toolcall_delta` | 工具调用参数块 |
 | `toolcall_end` | 工具调用结束(包含完整的`toolCall`对象) |
 
 流式传输文本响应的示例：
 ```json
-{"type":"message_update","assistantMessageEvent":{"type":"text_start","contentIndex":0}}
-{"type":"message_update","assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Hello"}}
-{"type":"message_update","assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":" world"}}
-{"type":"message_update","assistantMessageEvent":{"type":"text_end","contentIndex":0,"content":"Hello world"}}
+{"type":"message_update","usage":{...},"assistantMessageEvent":{"type":"text_start","contentIndex":0}}
+{"type":"message_update","usage":{...},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"Hello"}}
+{"type":"message_update","usage":{...},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":" world"}}
+{"type":"message_update","usage":{...},"assistantMessageEvent":{"type":"text_end","contentIndex":0,"content":"Hello world"}}
 ```
 
-`message_update` 有意省略了先前累积的 `message` 字段和
-`assistantMessageEvent.partial`。需要实时部分消息的客户端必须使用 `contentIndex` 从 `message_start` 及后续事件中组装
+top-level `usage` 字段包含最新的累计 provider-reported 使用量。当模型提供商在流式传输期间不报告使用量时，该字段可能保持
+为零，直到完成。
+
+`message_update` 有意省略了之前的累计 `message` 字段和
+`assistantMessageEvent.partial`。需要实时部分消息的客户端必须使用 `contentIndex` 从 `message_start` 及后续事件中组装它
 。将 `message_end.message`
-视为权威。对于工具调用，缓冲 `toolcall_delta.delta`；`toolcall_end.toolCall`
-包含已完成的调用。
+ 视为权威。对于工具调用，缓冲 `toolcall_delta.delta`；`toolcall_end.toolCall`
+ 包含完成的调用。
 
 ### bash_执行_更新
 
-每次从直接`bash`命令输出块时发出。`id`匹配命令的`id`，允许客户端将输出与正确的命令关联。
+对于直接 `bash` 命令的每个输出块，发出一次。`id` 与命令的 `id` 匹配，允许客户端将输出与正确的命令关联。
 
-事件在命令运行期间流式传输所有输出，即使最终`bash`响应的`output`被截断。
+事件在命令运行期间流式传输所有输出，即使最终 `bash` 响应的 `output` 被截断。
 
 ```json
 {
@@ -982,7 +993,7 @@ drwxr-xr-x ...
 }
 ```
 
-在执行期间，`tool_execution_update`事件流式传输部分结果(e.g。， bash 输出到达时)：
+在执行期间，`tool_execution_update` 事件流式传输部分结果(e.g。， bash 输出到达时)：
 
 ```json
 {
@@ -1012,11 +1023,11 @@ drwxr-xr-x ...
 }
 ```
 
-使用`toolCallId`关联事件。`tool_execution_update`中的`partialResult`包含到目前为止的累积输出(不仅仅是增量)，允许客户端在每次更新时简单地替换其显示。
+使用 `toolCallId` 关联事件。`tool_execution_update` 中的 `partialResult` 包含到目前为止的累计输出(而不仅仅是增量)，允许客户端在每次更新时简单地替换其显示。
 
 ### 队列_更新
 
-每当待处理的转向或follow-up队列更改时发出。
+每当待处理的引导或 follow-up 队列发生变化时发出。
 
 ```json
 {
@@ -1026,15 +1037,15 @@ drwxr-xr-x ...
 }
 ```
 
-### 压缩_开始 / 压缩_结束
+### 上下文压缩_开始 / 上下文压缩_结束
 
-当压缩运行时发出，无论是手动还是自动。
+当上下文压缩运行时发出，无论是手动还是自动。
 
 ```json
 {"type": "compaction_start", "reason": "threshold"}
 ```
 
-`reason`字段是`"manual"`、`"threshold"`或`"overflow"`。
+`reason` 字段是 `"manual"`、`"threshold"` 或 `"overflow"`。
 
 ```json
 {
@@ -1060,15 +1071,15 @@ drwxr-xr-x ...
 }
 ```
 
-如果`reason`是`"overflow"`且压缩成功，则`willRetry`为`true`，代理将自动重试提示词。
+如果 `reason` 是 `"overflow"` 且上下文压缩成功，则 `willRetry` 为 `true`，代理将自动重试提示词。
 
-如果压缩被中止，`result`为`null`，`aborted`为`true`。
+如果上下文压缩被中止，则 `result` 为 `null`，`aborted` 为 `true`。
 
-如果压缩失败(e.g。，API配额超出)，则`result`为`null`，`aborted`为`false`，`errorMessage`包含错误描述。
+如果上下文压缩失败(e.g。，API 配额超出)，则 `result` 为 `null`，`aborted` 为 `false`，`errorMessage` 包含错误描述。
 
 ### 自动_重试_开始 / 自动_重试_结束
 
-在瞬时错误（(过载、速率限制、5xx)）后触发自动重试时发出。
+在瞬时错误(过载、速率限制、5xx)之后触发自动重试时发出。
 
 ```json
 {
@@ -1088,7 +1099,7 @@ drwxr-xr-x ...
 }
 ```
 
-最终失败时（(超过最大重试次数)）：
+最终失败时(超过最大重试次数)：
 ```json
 {
   "type": "auto_retry_end",
@@ -1098,9 +1109,9 @@ drwxr-xr-x ...
 }
 ```
 
-### 摘要_重试_计划 / 摘要_重试_尝试_开始 / 摘要_重试_完成
+### 摘要_重试_已计划 / 摘要_重试_尝试_开始 / 摘要_重试_完成
 
-当压缩或branch-summary摘要重试在瞬时提供商错误后发生时发出。这些事件使用与自动assistant-turn重试相同的重试设置。
+当上下文压缩或 branch-summary 摘要重试在瞬态模型提供商错误后发生时触发。这些事件使用与自动 assistant-turn 重试相同的重试设置。
 
 ```json
 {
@@ -1120,7 +1131,7 @@ drwxr-xr-x ...
 }
 ```
 
-对于分支摘要，`source`为`"branchSummary"`，且不存在`reason`。
+对于分支摘要，`source` 为 `"branchSummary"`，且不存在 `reason`。
 
 ```json
 {
@@ -1130,7 +1141,7 @@ drwxr-xr-x ...
 
 ### 扩展_错误
 
-当扩展抛出错误时发出。
+当扩展抛出错误时触发。
 
 ```json
 {
@@ -1143,32 +1154,32 @@ drwxr-xr-x ...
 
 ## 扩展 UI 协议｜扩展 UI Protocol
 
-扩展可以通过`ctx.ui.select()`、`ctx.ui.confirm()`等请求用户交互。在RPC模式下，这些会被转换为基于基础命令/事件流的请求/响应sub-protocol。
+扩展可以通过 `ctx.ui.select()`、`ctx.ui.confirm()` 等请求用户交互。在 RPC 模式下，这些请求会被转换为基于基础命令/事件流的请求/响应 sub-protocol。
 
 扩展 UI 方法分为两类：
 
-- **对话框方法** (`select`、`confirm`、`input`、`editor`)：在 stdout 上发出`extension_ui_request`，并阻塞直到客户端在 stdin 上发送回带有匹配`id`的`extension_ui_response`。
-- **触发即忘and-forget方法** (`notify`、`setStatus`、`setWidget`、`setTitle`、`set_editor_text`)：在 stdout 上发出`extension_ui_request`，但不期望响应。客户端可以显示信息或忽略它。
+- **对话框方法** (`select`、`confirm`、`input`、`editor`)：在标准输出上发出 `extension_ui_request`，并阻塞等待客户端在标准输入上发送带有匹配 `id` 的 `extension_ui_response`。
+- **Fire-and-forget 方法** (`notify`, `setStatus`, `setWidget`, `setTitle`, `set_editor_text`)：在 stdout 上发出 `extension_ui_request`，但不期望响应。客户端可以显示该信息或忽略它。
 
-如果对话框方法包含`timeout`字段，则agent-side将在超时到期时以默认值auto-resolve。客户端无需跟踪超时。
+如果对话框方法包含 `timeout` 字段，则当超时到期时，agent-side 将使用默认值 auto-resolve。客户端无需跟踪超时。
 
-某些`ExtensionUIContext`方法在RPC模式下不受支持或降级，因为它们需要直接访问TUI：
-- `custom()`返回`undefined`
-- `setWorkingMessage()`、`setWorkingIndicator()`、`setFooter()`、`setHeader()`、`setEditorComponent()`、`setToolsExpanded()`是no-ops
-- `getEditorText()`返回`""`
-- `getToolsExpanded()`返回`false`
-- `pasteToEditor()`委托给`setEditorText()` (无粘贴/折叠处理)
-- `getAllThemes()`返回`[]`
-- `getTheme()`返回`undefined`
-- `setTheme()`返回`{ success: false, error: "..." }`
+某些 `ExtensionUIContext` 方法在 RPC 模式下不受支持或功能降级，因为它们需要直接访问 TUI：
+- `custom()` 返回 `undefined`
+- `setWorkingMessage()`、`setWorkingIndicator()`、`setFooter()`、`setHeader()`、`setEditorComponent()`、`setToolsExpanded()` 是 no-ops
+- `getEditorText()` 返回 `""`
+- `getToolsExpanded()` 返回 `false`
+- `pasteToEditor()` 委托给 `setEditorText()` (无粘贴/折叠处理)
+- `getAllThemes()` 返回 `[]`
+- `getTheme()` 返回 `undefined`
+- `setTheme()` 返回 `{ success: false, error: "..." }`
 
-注意：在RPC模式下，`ctx.mode`为`"rpc"`，`ctx.hasUI`为`true`，因为对话框和fire-and-forget方法通过扩展 UI sub-protocol是可用的。使用`ctx.mode === "tui"`来保护需要真实终端的TUI特定功能，如`custom()`。
+注意：在 RPC 模式下，`ctx.mode` 为 `"rpc"`，`ctx.hasUI` 为 `true`，因为对话框和 fire-and-forget 方法可通过扩展 UI sub-protocol 正常工作。使用 `ctx.mode === "tui"` 来保护需要真实终端的 TUI 特定功能，如 `custom()`。
 
-### 扩展 UI 请求 (stdout)
+### 扩展 UI 请求 (标准输出)
 
-所有请求都包含 `type: "extension_ui_request"`、唯一的 `id` 以及 `method` 字段。
+所有请求都包含 `type: "extension_ui_request"`、唯一的 `id` 和 `method` 字段。
 
-#### select
+#### 选择
 
 提示用户从列表中选择。带有 `timeout` 字段的对话框方法包含以毫秒为单位的超时时间；如果客户端未及时响应，代理 auto-resolves 将使用 `undefined`。
 
@@ -1183,7 +1194,7 @@ drwxr-xr-x ...
 }
 ```
 
-预期响应：`extension_ui_response`，其中 `value` 为 (所选选项字符串) 或 `cancelled: true`。
+预期响应：`extension_ui_response`，其中包含 `value` (所选选项字符串) 或 `cancelled: true`。
 
 #### confirm
 
@@ -1200,7 +1211,7 @@ drwxr-xr-x ...
 }
 ```
 
-预期响应：`extension_ui_response`，其中 `confirmed: true/false` 为 `cancelled: true` 或 。
+预期响应：`extension_ui_response`，其中包含 `confirmed: true/false` 或 `cancelled: true`。
 
 #### input
 
@@ -1216,11 +1227,11 @@ drwxr-xr-x ...
 }
 ```
 
-预期响应：`extension_ui_response`，其中 `value` 为 (输入的文本) 或 `cancelled: true`。
+预期响应：`extension_ui_response`，其中包含 `value` (输入的文本) 或 `cancelled: true`。
 
 #### editor
 
-打开一个 multi-line 文本编辑器，可包含预填充内容。
+打开一个 multi-line 文本编辑器，可预填内容。
 
 ```json
 {
@@ -1232,11 +1243,11 @@ drwxr-xr-x ...
 }
 ```
 
-预期响应：`extension_ui_response`，其中 `value` 为 (编辑后的文本) 或 `cancelled: true`。
+预期响应：`extension_ui_response`，其中包含 `value` (编辑后的文本) 或 `cancelled: true`。
 
 #### notify
 
-显示通知。触发即忘（ Fire-and-forget），无需响应。
+显示通知。触发即忘and-forget，无需响应。
 
 ```json
 {
@@ -1252,7 +1263,7 @@ drwxr-xr-x ...
 
 #### setStatus
 
-设置或清除页脚/状态栏中的状态条目。触发即忘（ Fire-and-forget）。
+设置或清除页脚/状态栏中的状态条目。触发即忘and-forget。
 
 ```json
 {
@@ -1268,7 +1279,7 @@ drwxr-xr-x ...
 
 #### setWidget
 
-设置或清除显示在编辑器上方或下方的 (文本行块) 小部件。触发即忘（ Fire-and-forget）。
+设置或清除显示在编辑器上方或下方的 (文本行块) 小部件。触发即忘and-forget。
 
 ```json
 {
@@ -1285,7 +1296,7 @@ drwxr-xr-x ...
 
 #### setTitle
 
-设置终端窗口/标签页标题。触发即忘（ Fire-and-forget）。
+设置终端窗口/标签页标题。触发即忘and-forget。
 
 ```json
 {
@@ -1296,9 +1307,9 @@ drwxr-xr-x ...
 }
 ```
 
-#### 设置_编辑器_文本
+#### set_editor_text
 
-在输入编辑器中设置文本。触发and-forget。
+设置输入编辑器中的文本。触发即忘and-forget。
 
 ```json
 {
@@ -1311,23 +1322,23 @@ drwxr-xr-x ...
 
 ### 扩展 UI 响应 (stdin)
 
-仅对对话框方法发送响应 (`select`, `confirm`, `input`, `editor`)。`id` 必须与请求匹配。
+仅对对话框方法(`select`、`confirm`、`input`、`editor`)发送响应。`id`必须与请求匹配。
 
-#### 值响应 (select, input, editor)
+#### 值响应(select、input、editor)
 
 ```json
 {"type": "extension_ui_response", "id": "uuid-1", "value": "Allow"}
 ```
 
-#### 确认响应 (confirm)
+#### 确认响应(confirm)
 
 ```json
 {"type": "extension_ui_response", "id": "uuid-2", "confirmed": true}
 ```
 
-#### 取消响应 (any dialog)
+#### 取消响应(任何对话框)
 
-关闭任何对话框方法。扩展接收 `undefined` (用于 select/input/editor) 或 `false` (用于 confirm)。
+关闭任何对话框方法。扩展会收到`undefined`(用于 select/input/editor)或`false`(用于 confirm)。
 
 ```json
 {"type": "extension_ui_response", "id": "uuid-3", "cancelled": true}
@@ -1335,7 +1346,7 @@ drwxr-xr-x ...
 
 ## 错误处理｜ Error Handling
 
-失败的命令返回带有 `success: false` 的响应：
+失败的命令返回带有`success: false`的响应：
 
 ```json
 {
@@ -1360,11 +1371,11 @@ drwxr-xr-x ...
 ## 类型｜ Types
 
 源文件：
-- [`packages/ai/src/types.ts`](../../ai/src/types.ts) - `Model`, `UserMessage`, `AssistantMessage`, `ToolResultMessage`
-- [`packages/agent/src/types.ts`](../../agent/src/types.ts) - `AgentMessage`, `AgentEvent`
+- [`packages/ai/src/types.ts`](../../ai/src/types.ts) - `Model`、`UserMessage`、`AssistantMessage`、`ToolResultMessage`
+- [`packages/agent/src/types.ts`](../../agent/src/types.ts) - `AgentMessage`、`AgentEvent`
 - [`src/core/messages.ts`](../src/core/messages.ts) - `BashExecutionMessage`
 - [`src/modes/json-event.ts`](../src/modes/json-event.ts) - `JsonAgentSessionEvent`
-- [`src/modes/rpc/rpc-types.ts`](../src/modes/rpc/rpc-types.ts) - RPC 命令/响应类型，扩展 UI 请求/响应类型
+- [`src/modes/rpc/rpc-types.ts`](../src/modes/rpc/rpc-types.ts) - RPC命令/响应类型、扩展 UI 请求/响应类型
 
 ### 模型｜ Model
 
@@ -1399,7 +1410,7 @@ drwxr-xr-x ...
 }
 ```
 
-`content` 字段可以是字符串或 `TextContent`/`ImageContent` 块的数组。
+`content`字段可以是字符串或`TextContent`/`ImageContent`块的数组。
 
 ### AssistantMessage
 
@@ -1426,7 +1437,7 @@ drwxr-xr-x ...
 }
 ```
 
-停止原因：`"stop"`, `"length"`, `"toolUse"`, `"error"`, `"aborted"`
+停止原因：`"stop"`、`"length"`、`"toolUse"`、`"error"`、`"aborted"`
 
 ### ToolResultMessage
 
@@ -1449,11 +1460,11 @@ drwxr-xr-x ...
 }
 ```
 
-`usage` 是可选的，用于报告工具执行的嵌套 LLM 工作。当存在时，它会计入会话令牌和成本总计。
+`usage`是可选的，用于报告工具执行的嵌套LLM工作。当存在时，它会计入会话令牌和成本总计。
 
 ### BashExecutionMessage
 
-由 `bash` RPC 命令创建(，而非 LLM 工具调用)：
+由`bash`RPC命令创建(而非LLM工具调用)：
 
 ```json
 {

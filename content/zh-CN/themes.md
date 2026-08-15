@@ -1,4 +1,4 @@
-> pi 可以创建主题。让它为你的环境构建一个。
+> pi 可以创建主题。让它为您的环境构建一个主题。
 
 # 主题｜ Themes
 
@@ -21,15 +21,15 @@ Pi 从以下位置加载主题：
 - 内置：`dark`、`light`
 - 全局：`~/.pi/agent/themes/*.json`
 - 项目：`.pi/themes/*.json` (仅在项目受信任后)
-- 包：`themes/` 目录或 `package.json` 中的 `pi.themes` 条目
-- 设置：`themes` 数组，包含文件或目录
+- 包：`themes/`目录或`package.json`中的`pi.themes`条目
+- 设置：`themes`数组，包含文件或目录
 - CLI：`--theme <path>` (可重复)
 
-使用 `--no-themes` 禁用发现。
+使用`--no-themes`禁用发现。
 
 ## 选择主题｜ Selecting a Theme
 
-通过 `/settings` 或在 `settings.json` 中选择主题：
+通过`/settings`或在`settings.json`中选择主题：
 
 ```json
 {
@@ -37,7 +37,24 @@ Pi 从以下位置加载主题：
 }
 ```
 
-首次运行时， pi 会检测你的终端背景，并默认使用 `dark` 或 `light`。
+首次运行时， pi 会检测终端背景，并默认使用`dark`或`light`。
+
+### 初始主题｜ Initial Theme
+
+在不更改已保存设置的情况下，以某个主题启动交互式运行：
+
+```bash
+pi --use-theme light
+```
+
+要跟随终端外观，请使用`lightTheme/darkTheme`语法：
+
+```bash
+pi --use-theme light/dark
+```
+
+CLI值是该次运行的初始主题。之后在`/settings`中选择其他主题会立即应用
+并正常保存。
 
 ## 创建自定义主题｜ Creating a Custom Theme
 
@@ -48,7 +65,7 @@ mkdir -p ~/.pi/agent/themes
 vim ~/.pi/agent/themes/my-theme.json
 ```
 
-2. 使用所有必需的颜色定义主题 (参见 [颜色令牌](#color-tokens))：
+2. 使用所有必需颜色定义主题(参见[颜色令牌](#color-tokens))：
 
 ```json
 {
@@ -72,6 +89,8 @@ vim ~/.pi/agent/themes/my-theme.json
     "thinkingText": "secondary",
     "selectedBg": "#2d2d30",
     "scrollbarThumb": "#555566",
+    "searchMatchBg": "#2d2d30",
+    "searchMatchText": "",
     "userMessageBg": "#2d2d30",
     "userMessageText": "",
     "customMessageBg": "#2d2d30",
@@ -116,9 +135,9 @@ vim ~/.pi/agent/themes/my-theme.json
 }
 ```
 
-3. 通过 `/settings` 选择主题。
+3. 通过`/settings`选择主题。
 
-**热重载：** 当你编辑当前激活的自定义主题文件时， pi 会自动重新加载它，以便即时获得视觉反馈。
+**热重载：** 当你编辑当前激活的自定义主题文件时， pi 会自动重新加载它，以便立即获得视觉反馈。
 
 ## 主题格式｜ Theme Format
 
@@ -139,15 +158,15 @@ vim ~/.pi/agent/themes/my-theme.json
 }
 ```
 
-- `name` 是必需的，必须唯一，且不得包含 `/`。
-- `vars` 是可选的。在此处定义可复用的颜色，然后在 `colors` 中引用它们。
-- `colors` 必须定义全部 51 个必需的令牌。`thinkingMax` 是可选的，并回退到 `thinkingXhigh`；`scrollbarThumb` 是可选的，并回退到 `selectedBg`。
+- `name`是必需的，必须唯一，且不得包含`/`。
+- `vars`是可选的。在此定义可复用的颜色，然后在`colors`中引用它们。
+- `colors`必须定义全部 51 个必需令牌。`thinkingMax`、`scrollbarThumb`以及两个搜索高亮令牌是可选的，并使用下面列出的回退值。
 
-`$schema` 字段启用编辑器的 auto-completion 和验证功能。
+`$schema`字段启用编辑器auto-completion和验证。
 
-## 颜色令牌｜ Color Tokens
+## 颜色令牌
 
-每个主题都必须定义全部 51 个必需的颜色令牌。`thinkingMax` 和 `scrollbarThumb` 是可选的，用于与现有主题兼容；当省略时，它们分别使用 `thinkingXhigh` 和 `selectedBg`。
+每个主题都必须定义全部 51 个必需的颜色令牌。可选令牌用于保持与现有主题的兼容性：`thinkingMax` 回退到 `thinkingXhigh`，`scrollbarThumb` 和 `searchMatchBg` 回退到 `selectedBg`，`searchMatchText` 回退到 `text`。其他搜索匹配项在 `searchMatchBg` 上使用 `searchMatchText` 并带下划线；当前匹配项反转该前景/背景对并使用粗体文本。
 
 ### 核心 UI (11 种颜色)
 
@@ -162,23 +181,25 @@ vim ~/.pi/agent/themes/my-theme.json
 | `warning` | 警告状态 |
 | `muted` | 次要文本 |
 | `dim` | 三级文本 |
-| `text` | 默认文本(通常为`""`) |
+| `text` | 默认文本 (通常为 `""`) |
 | `thinkingText` | 思考块文本 |
 
-### 背景与内容(11 个必需， 1 个可选)
+### 背景与内容 (11 个必需， 3 个可选)
 
 | 令牌 | 用途 |
 |-------|---------|
 | `selectedBg` | 选中行背景 |
-| `scrollbarThumb` | 全屏滚动条滑块背景；可选，回退到`selectedBg` |
+| `scrollbarThumb` | 全屏滚动条滑块背景；可选，回退到 `selectedBg` |
+| `searchMatchBg` | 转录搜索匹配背景和 current-match 文本；可选，回退到 `selectedBg` |
+| `searchMatchText` | 转录搜索匹配文本和 current-match 背景；可选，回退到 `text` |
 | `userMessageBg` | 用户消息背景 |
 | `userMessageText` | 用户消息文本 |
 | `customMessageBg` | 扩展消息背景 |
 | `customMessageText` | 扩展消息文本 |
 | `customMessageLabel` | 扩展消息标签 |
-| `toolPendingBg` | 工具框 (待处理) |
-| `toolSuccessBg` | 工具框 (成功) |
-| `toolErrorBg` | 工具框 (错误) |
+| `toolPendingBg` | 工具箱 (待处理) |
+| `toolSuccessBg` | 工具箱 (成功) |
+| `toolErrorBg` | 工具箱 (错误) |
 | `toolTitle` | 工具标题 |
 | `toolOutput` | 工具输出文本 |
 
@@ -199,18 +220,18 @@ vim ~/.pi/agent/themes/my-theme.json
 
 ### 工具差异 (3 种颜色)
 
-| 令牌 | 用途 |
+| 标记 | 用途 |
 |-------|---------|
-| `toolDiffAdded` | 新增行 |
-| `toolDiffRemoved` | 删除行 |
+| `toolDiffAdded` | 添加的行 |
+| `toolDiffRemoved` | 删除的行 |
 | `toolDiffContext` | 上下文行 |
 
 ### 语法高亮 (9 种颜色)
 
-| 令牌 | 用途 |
+| 标记 | 用途 |
 |-------|---------|
 | `syntaxComment` | 注释 |
-| `syntaxKeyword` | 关键字 |
+| `syntaxKeyword` | 关键词 |
 | `syntaxFunction` | 函数名 |
 | `syntaxVariable` | 变量 |
 | `syntaxString` | 字符串 |
@@ -219,19 +240,19 @@ vim ~/.pi/agent/themes/my-theme.json
 | `syntaxOperator` | 运算符 |
 | `syntaxPunctuation` | 标点 |
 
-### 思考层级边框 (6 个必需， 1 个可选)
+### 思考级别边框 (6 个必需， 1 个可选)
 
-编辑器边框颜色表示思考层级 (从细微到突出的视觉层次)：
+用于指示思考级别的编辑器边框颜色 (从细微到突出的视觉层次)：
 
 | 令牌 | 用途 |
 |-------|---------|
 | `thinkingOff` | 思考关闭 |
-| `thinkingMinimal` | 最低思考 |
+| `thinkingMinimal` | 最小思考 |
 | `thinkingLow` | 低思考 |
-| `thinkingMedium` | 中等思考 |
+| `thinkingMedium` | 中思考 |
 | `thinkingHigh` | 高思考 |
 | `thinkingXhigh` | 超高思考 |
-| `thinkingMax` | 最高思考；可选，回退到 `thinkingXhigh` |
+| `thinkingMax` | 最大思考；可选，回退到 `thinkingXhigh` |
 
 ### Bash 模式 (1 种颜色)
 
@@ -272,7 +293,7 @@ vim ~/.pi/agent/themes/my-theme.json
 
 ### 终端兼容性｜终端 Compatibility
 
-Pi 使用 24 位 RGB 颜色。大多数现代终端都支持此功能 (iTerm2、Kitty、WezTerm、Windows 终端、VS Code)。对于仅支持 256 色的旧终端， pi 会回退到最接近的近似值。
+Pi 使用 24 位 RGB 颜色。大多数现代终端支持此功能 (iTerm2、Kitty、WezTerm、Windows 终端、VS Code)。对于仅支持 256 色的旧终端， pi 会回退到最接近的近似值。
 
 检查真彩色支持：
 
@@ -282,17 +303,17 @@ echo $COLORTERM  # Should output "truecolor" or "24bit"
 
 ## 提示｜ Tips
 
-**深色终端：** 使用明亮、饱和且对比度更高的颜色。
+**深色终端：** 使用高对比度的明亮、饱和颜色。
 
-**浅色终端：** 使用较暗、柔和且对比度较低的颜色。
+**浅色终端：** 使用低对比度的较暗、柔和颜色。
 
 **色彩和谐：** 从基础调色板开始 (Nord、Gruvbox、Tokyo Night)，在 `vars` 中定义，并保持一致引用。
 
-**测试：** 使用不同的消息类型、工具状态、Markdown 内容和长文本换行来检查你的主题。
+**测试：** 使用不同的消息类型、工具状态、Markdown 内容和长换行文本检查您的主题。
 
 **VS Code ：** 将 `terminal.integrated.minimumContrastRatio` 设置为 `1` 以获得准确的颜色。
 
-## 示例
+## 示例｜ Examples
 
 查看 built-in 主题：
 - [dark.json](../src/modes/interactive/theme/dark.json)
