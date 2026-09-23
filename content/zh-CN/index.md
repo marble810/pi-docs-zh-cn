@@ -1,84 +1,39 @@
-# Pi 文档
+# Pi
 
-Pi 是一个极简的终端编码运行框架。它设计为保持核心小巧，同时通过 TypeScript 扩展、技能、提示词模板、主题和 Pi 包进行扩展。
+Pi 是一个可扩展的 AI 代理，可在你的终端中工作。给它一个目标和一个工作文件夹，它就能检查文件、运行命令、编辑内容，并完成 multi-step 任务。
 
-## 快速开始
+将 Pi 用于软件开发、研究笔记、写作项目、数据文件或业余工作。你可以按原样使用 Pi，提示它适应你的工作流，或使用 SDK 构建由 Pi 驱动的其他应用程序。
 
-使用 npm 安装 Pi：
+## 开始使用 Pi｜ Start using Pi
 
-```bash
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
-```
+初次使用 Pi？请按照 [Quickstart](quickstart.md) 安装 Pi、连接模型并完成你的第一个任务。
 
-`--ignore-scripts` 在安装时禁用依赖生命周期脚本。Pi 正常运行 npm installs. 不需要安装脚本。
+如果 Pi 已安装，请选择你想做的事情：
 
-在 Linux 或 macOS 上，你也可以使用安装程序：
+- [以交互方式使用 Pi](usage.md) 来添加文件、运行命令、指导正在进行的工作并导出结果。
+- [选择模型](models.md)，或连接订阅、API 密钥、本地模型或兼容端点。
+- [继续或分支会话](sessions.md)，以恢复工作或探索另一种方法而不丢失历史记录。
+- [配置 Pi](configuration.md)，以设置你的偏好、工作文件夹、指令和可复用资源。
+- [了解 Pi 的工作原理](how-pi-works.md)，包括工具、上下文、会话和代理循环。
 
-```bash
-curl -fsSL https://pi.dev/install.sh | sh
-```
+## 自定义 Pi｜ Customize 
 
-要卸载 pi 本身，请使用 npm for curl and npm installs：
+Pi 可以复用提示词、加载专用指令、添加可执行集成、更改其终端界面、连接模型服务，并将这些资源作为包分发。
+使用 [快速入门自定义选择器](quickstart.md#choose-how-to-customize-pi) 来选择满足你需求的最小机制。
 
-```bash
-npm uninstall -g @earendil-works/pi-coding-agent
-```
+## 自动化或嵌入 Pi｜ Automate or embed 
 
-对于 pnpm、Yarn 或 Bun 安装，请使用相应的全局删除命令：`pnpm remove -g @earendil-works/pi-coding-agent`、`yarn global remove @earendil-works/pi-coding-agent` 或 `bun uninstall -g @earendil-works/pi-coding-agent`。
+- 使用 [打印模式](cli.md#invocation-and-output) 进行 one-off 和脚本化任务。
+- 使用 [JSON 事件流模式](json.md) 来消费单次运行的结构化事件。
+- 使用 [RPC 模式](rpc.md) 来控制单独的 Pi 进程。
+- 使用 [TypeScript SDK](sdk.md) 在应用程序内运行 Pi。
 
-然后在项目目录中运行它：
+## 查找参考和设置信息｜ Find reference and setup information
 
-```bash
-pi
-```
+使用参考页面查阅 [CLI 选项](cli.md)、[设置](settings.md)、[模型提供商身份验证](providers.md)、[按键绑定](keybindings.md) 和 [环境变量](environment-variables.md)。
 
-对于订阅制模型提供商，使用 `/login` 进行身份验证，或在启动 pi 前设置 API 密钥，例如 `ANTHROPIC_API_KEY`。
+如需 platform-specific 帮助，请参阅 [终端设置](terminal-setup.md)、[Windows](windows.md)、[tmux](tmux.md)、[Android 上的 Termux](termux.md) 或 [容器化](containerization.md)。
 
-完整的 first-run 流程，请参见 [快速开始](quickstart.md)。
+## 安全地工作｜ Work safely
 
-## 从这里开始
-
-- [快速开始](quickstart.md)——安装、身份验证并运行第一个会话。
-- [使用 Pi](usage.md)——交互模式、斜杠命令、上下文文件和 CLI 参考。
-- [模型提供商](providers.md)——订阅制以及 API 密钥方式设置 built-in 提供商。
-- [llama.cpp](llama-cpp.md)——使用 `/llama` 运行本地路由并管理模型。
-- [安全](security.md)——项目信任、沙箱边界和漏洞报告。
-- [容器化](containerization.md)——使用 Gondolin、Docker 或 OpenShell 对 pi 进行沙箱化。
-- [设置｜ Settings](settings.md) - 全局和项目配置。
-- [快捷键｜ Keybindings](keybindings.md) - 默认快捷键和自定义快捷键。
-- [会话｜ Sessions](sessions.md) - 会话管理、分支和树导航。
-- [上下文压缩｜上下文压缩](compaction.md) - 上下文压缩和分支摘要。
-
-## 自定义｜ Customization
-
-- [扩展｜ Extensions](extensions.md) - TypeScript 模块，用于工具、命令、事件和自定义 UI。
-- [技能｜ Skills](skills.md) - 代理 技能，用于可复用的 on-demand 能力。
-- [提示词模板｜ Prompt templates](prompt-templates.md) - 可从斜杠命令展开的可复用提示词。
-- [主题｜ Themes](themes.md) - built-in 和自定义终端主题。
-- [Pi packages](packages.md) - 打包和共享扩展、技能、提示词和主题。
-- [自定义模型｜ Custom models](models.md) - 为受支持的模型提供商 API 添加模型条目。
-- [自定义提供商｜ Custom providers](custom-provider.md) - 实现自定义 API 和 OAuth 流程。
-
-## 编程使用｜ Programmatic usage
-
-- [SDK](sdk.md) - 将 pi 嵌入 Node.js 应用程序。
-- [RPC mode](rpc.md) - 通过标准输入/输出集成 JSONL。
-- [JSON event stream mode](json.md) - 带有结构化事件的打印模式。
-- [TUI components](tui.md) - 为扩展构建自定义终端 UI。
-
-## 参考｜ Reference
-
-- [环境变量｜ Environment variables](environment-variables.md) - 可供 bash 工具使用的 Pi 进程配置和会话元数据。
-- [会话格式｜会话 format](session-format.md) - JSONL 会话文件格式、条目类型和 SessionManager API。
-
-## 平台设置｜ Platform setup
-
-- [Windows](windows.md)
-- [Android 上的 Termux](termux.md)
-- [tmux](tmux.md)
-- [终端设置](terminal-setup.md)
-- [Shell 别名](shell-aliases.md)
-
-## 开发｜ Development
-
-- [开发](development.md) - 本地设置、项目结构和调试。
+Pi 的工具和扩展以 Pi 进程的权限运行。项目信任控制 Pi 加载哪些项目资源，但它不会对工具调用进行沙箱隔离。在使用不受信任的文件、仓库、扩展或无人值守自动化之前，请查看 [安全](security.md)。

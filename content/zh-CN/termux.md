@@ -1,127 +1,117 @@
-# Termux (Android) 设置｜Termux (Android) Setup
+# 在 Android 上通过 Termux 运行 Pi｜ Run on Android with Termux
 
-Pi 通过 [Termux](https://termux.dev/)（ Android 的终端模拟器和 Linux 环境）在 Android 上运行。
+Pi 通过 [Termux](https://termux.dev/) 在 Android 上运行， Termux 是一个终端模拟器和 Linux 环境。支持文本输入、文件工具和 shell 命令。Pi 可以通过 Termux:API 使用 Android 剪贴板复制和粘贴文本。不支持粘贴剪贴板图像。
 
-## 前提条件
+## 开始之前｜ Before you begin
 
-1. 从 GitHub 或 F-Droid 安装 [Termux](https://github.com/termux/termux-app#installation)（(不要使用 Google Play ，该版本已废弃)）
-2. 从 GitHub 或 F-Droid 安装 [Termux:API](https://github.com/termux/termux-api#installation) 以支持剪贴板和其他设备集成
+从 [GitHub 或 F-Droid](https://github.com/termux/termux-app#installation) 安装 Termux。不要使用已弃用的 Google Play 版本。
 
-## 安装
+[Termux:API](https://github.com/termux/termux-api#installation) 是可选的。仅当你希望 Pi 复制或粘贴 Android 剪贴板文本，或 shell 命令需要 Android 设备 API 时才安装它。
 
-```bash
-# Update packages
-pkg update && pkg upgrade
+## 安装 Pi｜ Install 
 
-# Install dependencies
-pkg install nodejs termux-api git
+1. 更新 Termux 软件包：
 
-# Install pi
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+ ```bash
+   pkg update && pkg upgrade
+   ```
 
-# Create config directory
-mkdir -p ~/.pi/agent
+2. 安装 Node.js 和 Git ：
 
-# Run pi
-pi
-```
+ ```bash
+   pkg install nodejs git
+   ```
 
-## 剪贴板支持
+3. 安装 Pi：
 
-在 Termux 中运行时，剪贴板操作使用 `termux-clipboard-set` 和 `termux-clipboard-get`。必须安装 Termux:API 应用才能使用这些功能。
+ ```bash
+   npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+   ```
 
-Termux 不支持图像剪贴板（(`ctrl+v` 图像粘贴功能将无法使用)）。
+4. 验证安装：
 
-## Termux 的 AGENTS.md 示例
+ ```bash
+   pi --version
+   ```
 
-创建 `~/.pi/agent/AGENTS.md` 以帮助代理理解 Termux 环境：
+5. 打开你想要在其中工作的文件夹并启动 Pi：
 
-````markdown
-# Agent Environment: Termux on Android
+ ```bash
+   cd /path/to/working-folder
+   pi
+   ```
 
-## Location
-- **OS**: Android (Termux terminal emulator)
-- **Home**: `/data/data/com.termux/files/home`
-- **Prefix**: `/data/data/com.termux/files/usr`
-- **Shared storage**: `/storage/emulated/0` (Downloads, Documents, etc.)
+继续阅读主 [Quickstart](quickstart.md#3-choose-a-model) 以连接模型并运行你的第一个任务。
 
-## Opening URLs
-```bash
-termux-open-url "https://example.com"
-```
+## 访问 Android 共享存储｜ Access Android shared storage
 
-## Opening Files
-```bash
-termux-open file.pdf          # Opens with default app
-termux-open --chooser image.jpg      # Choose app
-```
+在你授予权限之前， Termux 无法访问共享的 Android 存储。运行一次以下命令：
 
-## Clipboard
-```bash
-termux-clipboard-set "text"   # Copy
-termux-clipboard-get          # Paste
-```
-
-## Notifications
-```bash
-termux-notification -t "Title" -c "Content"
-```
-
-## Device Info
-```bash
-termux-battery-status         # Battery info
-termux-wifi-connectioninfo    # WiFi info
-termux-telephony-deviceinfo   # Device info
-```
-
-## Sharing
-```bash
-termux-share -a send file.txt # Share file
-```
-
-## Other Useful Commands
-```bash
-termux-toast "message"        # Quick toast popup
-termux-vibrate                # Vibrate device
-termux-tts-speak "hello"      # Text to speech
-termux-camera-photo out.jpg   # Take photo
-```
-
-## Notes
-- Termux:API app must be installed for `termux-*` commands
-- Use `pkg install termux-api` for the command-line tools
-- Storage permission needed for `/storage/emulated/0` access
-````
-
-## 限制
-
-- **无图像剪贴板**： Termux 剪贴板 API 仅支持文本
-- **无原生二进制文件**：某些可选的本地依赖项（(如剪贴板模块)）在 Android ARM64 上不可用，安装时会被跳过。
-- **存储访问**：如需访问 `/storage/emulated/0`（(下载等)）中的文件，请运行 `termux-setup-storage` 一次以授予权限。
-
-## 故障排除
-
-### 剪贴板无法工作
-
-请确保已安装两个应用：
-1. Termux （(从 GitHub 或 F-Droid 安装)）
-2. Termux:API（(从 GitHub 或 F-Droid 安装)）
-
-然后安装 CLI 工具：
-```bash
-pkg install termux-api
-```
-
-### 共享存储权限被拒绝
-
-运行一次以授予存储权限：
 ```bash
 termux-setup-storage
 ```
 
-### Node.js 安装问题
+批准后， Android 共享存储可在 `/storage/emulated/0` 下访问，也可通过 Termux 在 `~/storage/` 下创建的链接访问。
 
-如果 npm fails，请尝试清除缓存：
+仅当 Pi 应能够访问这些文件时才授予此权限。在 Termux 中运行的命令和工具使用与 Termux 进程相同的存储权限。
+
+## 使用剪贴板命令｜ Use clipboard commands
+
+Pi 使用 `termux-clipboard-set` 复制文本，并使用 `termux-clipboard-get` 作为其 clipboard-paste 快捷键。Shell 命令可以直接使用这两个命令。安装 Termux:API 应用及其 command-line 软件包：
+
 ```bash
-npm cache clean --force
+pkg install termux-api
 ```
+
+验证集成：
+
+```bash
+printf 'Pi clipboard test' | termux-clipboard-set
+termux-clipboard-get
+```
+
+第二条命令应输出 `Pi clipboard test`。
+
+Termux 剪贴板 API 仅支持文本。Pi 的 clipboard-paste 快捷键会将该文本插入编辑器，但无法附加剪贴板中的图片。
+
+## 添加 Termux 专用指令
+
+Pi 会检测到自身运行在 Termux 中，但无法推断你希望它如何与 Android 交互。请仅将与你工作相关的环境细节添加到 `~/.pi/agent/AGENTS.md`：
+
+````markdown
+# Termux environment
+
+- Pi runs in Termux on Android.
+- Shared Android storage is under `/storage/emulated/0`.
+- Open URLs with `termux-open-url "https://example.com"`.
+- Open files with `termux-open <path>`.
+- Do not access shared storage unless the task requires it.
+````
+
+在活动会话期间更改文件后，运行 `/reload`。
+
+## 故障排除
+
+### 剪贴板集成失败
+
+确认你已安装两个组件：
+
+1. 来自同一 source as Termux 的 Termux:API Android 应用
+2. `termux-api` command-line 包
+
+然后在 Pi 之外运行上面的剪贴板验证命令。如果在那里失败，请先修复 Termux:API 安装，再重试 Pi 的复制命令。
+
+### 共享存储报告权限被拒绝
+
+运行 `termux-setup-storage`，批准 Android 权限请求，然后重试 `~/storage/` 或 `/storage/emulated/0` 下的路径。
+
+### 安装后找不到 Pi
+
+打开一个新的 Termux shell 并运行：
+
+```bash
+npm prefix -g
+command -v pi
+```
+
+确认全局 npm binary 目录位于 `PATH` 上，如果包缺失，则重新安装 Pi。

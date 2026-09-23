@@ -1,320 +1,110 @@
-> pi 可以创建主题。让它为您的环境构建一个主题。
+# 使用主题自定义 Pi｜ Customize with themes
 
-# 主题｜ Themes
+主题控制 Pi 在交互模式和 HTML 导出中使用的颜色。Pi 包含 `dark` 和 `light` 主题。你可以选择一个主题、跟随终端的浅色或深色外观，或创建自己的调色板。
 
-主题是定义 TUI 颜色的 JSON 文件。
+<a id="selecting-a-theme"></a>
 
-## 目录｜ Table of Contents
+## 选择主题｜ Choose a theme
 
-- [位置](#locations)
-- [选择主题](#selecting-a-theme)
-- [创建自定义主题](#creating-a-custom-theme)
-- [主题格式](#theme-format)
-- [颜色令牌](#color-tokens)
-- [颜色值](#color-values)
-- [提示](#tips)
+打开 `/settings` 并选择 **Theme**。你可以为所有终端外观使用一个主题，或为浅色和深色终端分别选择主题。
 
-## 位置｜ Locations
-
-Pi 从以下位置加载主题：
-
-- 内置：`dark`、`light`
-- 全局：`~/.pi/agent/themes/*.json`
-- 项目：`.pi/themes/*.json` (仅在项目受信任后)
-- 包：`themes/`目录或`package.json`中的`pi.themes`条目
-- 设置：`themes`数组，包含文件或目录
-- CLI：`--theme <path>` (可重复)
-
-使用`--no-themes`禁用发现。
-
-## 选择主题｜ Selecting a Theme
-
-通过`/settings`或在`settings.json`中选择主题：
+该选择会保存为 `theme` [setting](settings.md#terminal-and-display)：
 
 ```json
 {
-  "theme": "my-theme"
+  "theme": "dark"
 }
 ```
 
-首次运行时， pi 会检测终端背景，并默认使用`dark`或`light`。
+自动模式先存储浅色主题，再存储深色主题：
 
-### 初始主题｜ Initial Theme
+```json
+{
+  "theme": "light/dark"
+}
+```
 
-在不更改已保存设置的情况下，以某个主题启动交互式运行：
+当自动模式处于活动状态时，Pi 会在终端报告外观变化时切换主题。主题名称不能包含 `/`，因为 Pi 将其保留用于此设置格式。
+
+使用 `--use-theme` 为单次调用选择初始主题，而不更改已保存的设置：
 
 ```bash
 pi --use-theme light
-```
-
-要跟随终端外观，请使用`lightTheme/darkTheme`语法：
-
-```bash
 pi --use-theme light/dark
 ```
 
-CLI值是该次运行的初始主题。之后在`/settings`中选择其他主题会立即应用
-并正常保存。
+有关 command-line 选项，请参阅 [CLI 资源](cli.md#resources)。
 
-## 创建自定义主题｜ Creating a Custom Theme
+## 创建自定义主题｜ Create a custom theme
 
-1. 创建主题文件：
+复制一个 [built-in 主题](https://github.com/earendil-works/pi/tree/main/packages/coding-agent/src/modes/interactive/theme)，或创建一个符合 [schema](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json) 的新 JSON 文件。
 
-```bash
-mkdir -p ~/.pi/agent/themes
-vim ~/.pi/agent/themes/my-theme.json
-```
+1. 将文件保存为 `<agent-dir>/themes/my-theme.json`。代理目录默认为 `~/.pi/agent`。
+2. 将其 `name` 设置为 `my-theme`。
+3. 更改 `vars` 和 `colors` 中的值。
+4. 选择 `my-theme` 到 `/settings`。
 
-2. 使用所有必需颜色定义主题(参见[颜色令牌](#color-tokens))：
+使用主题名称作为文件名。Pi hot-reloads 仅从 `<agent-dir>/themes/<name>.json` 加载当前用户主题。从任何其他来源添加或更改主题后，请运行 `/reload`。
 
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
-  "name": "my-theme",
-  "vars": {
-    "primary": "#00aaff",
-    "secondary": 242
-  },
-  "colors": {
-    "accent": "primary",
-    "border": "primary",
-    "borderAccent": "#00ffff",
-    "borderMuted": "secondary",
-    "success": "#00ff00",
-    "error": "#ff0000",
-    "warning": "#ffff00",
-    "muted": "secondary",
-    "dim": 240,
-    "text": "",
-    "thinkingText": "secondary",
-    "selectedBg": "#2d2d30",
-    "scrollbarThumb": "#555566",
-    "searchMatchBg": "#2d2d30",
-    "searchMatchText": "",
-    "userMessageBg": "#2d2d30",
-    "userMessageText": "",
-    "customMessageBg": "#2d2d30",
-    "customMessageText": "",
-    "customMessageLabel": "primary",
-    "toolPendingBg": "#1e1e2e",
-    "toolSuccessBg": "#1e2e1e",
-    "toolErrorBg": "#2e1e1e",
-    "toolTitle": "primary",
-    "toolOutput": "",
-    "mdHeading": "#ffaa00",
-    "mdLink": "primary",
-    "mdLinkUrl": "secondary",
-    "mdCode": "#00ffff",
-    "mdCodeBlock": "",
-    "mdCodeBlockBorder": "secondary",
-    "mdQuote": "secondary",
-    "mdQuoteBorder": "secondary",
-    "mdHr": "secondary",
-    "mdListBullet": "#00ffff",
-    "toolDiffAdded": "#00ff00",
-    "toolDiffRemoved": "#ff0000",
-    "toolDiffContext": "secondary",
-    "syntaxComment": "secondary",
-    "syntaxKeyword": "primary",
-    "syntaxFunction": "#00aaff",
-    "syntaxVariable": "#ffaa00",
-    "syntaxString": "#00ff00",
-    "syntaxNumber": "#ff00ff",
-    "syntaxType": "#00aaff",
-    "syntaxOperator": "primary",
-    "syntaxPunctuation": "secondary",
-    "thinkingOff": "secondary",
-    "thinkingMinimal": "primary",
-    "thinkingLow": "#00aaff",
-    "thinkingMedium": "#00ffff",
-    "thinkingHigh": "#ff00ff",
-    "thinkingXhigh": "#ff0000",
-    "thinkingMax": "#ff0088",
-    "bashMode": "#ffaa00"
-  }
-}
-```
+## 了解主题文件｜ Understand the theme file
 
-3. 通过`/settings`选择主题。
+| 属性 | 必需 | 作用 |
+|---|---|---|
+| `$schema` | 否 | 启用针对 Pi 已发布 schema 的编辑器验证和补全。 |
+| `name` | 是 | 在选择器和设置中标识主题。它必须唯一，且不能包含 `/`。 |
+| `vars` | 否 | 定义可复用的颜色值。变量可以引用其他变量。 |
+| `colors` | 是 | 将颜色分配给终端 UI 角色。schema 标识必需和可选角色。 |
+| `export` | 否 | 覆盖 HTML 导出中的页面和面板背景。 |
 
-**热重载：** 当你编辑当前激活的自定义主题文件时， pi 会自动重新加载它，以便立即获得视觉反馈。
+颜色可以用四种形式表示：
 
-## 主题格式｜ Theme Format
+| 形式 | 示例 | 含义 |
+|---|---|---|
+| RGB 十六进制 | `"#00aaff"` | 一个 six-digit RGB 颜色。 |
+| 256 色索引 | `39` | 从 `0` 到 `255` 的 ANSI 调色板索引。 |
+| 变量引用 | `"primary"` | `vars` 中某个条目的值。 |
+| 终端默认值 | `""` | 终端的默认前景色或背景色。 |
 
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
-  "name": "my-theme",
-  "vars": {
-    "blue": "#0066cc",
-    "gray": 242
-  },
-  "colors": {
-    "accent": "blue",
-    "muted": "gray",
-    "text": "",
-    ...
-  }
-}
-```
+Pi 会解析链式变量引用。缺失的变量或循环引用会使主题无效。十六进制颜色在支持时使用真彩色，在仅限 256 色的终端中会被近似处理。如果颜色与其十六进制值不同，请检查终端的真彩色检测和对比度设置。参见 [Configure Your 终端](terminal-setup.md#override-detected-capabilities)。
 
-- `name`是必需的，必须唯一，且不得包含`/`。
-- `vars`是可选的。在此定义可复用的颜色，然后在`colors`中引用它们。
-- `colors`必须定义全部 51 个必需令牌。`thinkingMax`、`scrollbarThumb`以及两个搜索高亮令牌是可选的，并使用下面列出的回退值。
+使用 [theme JSON schema](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json) 了解确切的属性、必需的颜色以及可接受的值类型。
 
-`$schema`字段启用编辑器auto-completion和验证。
+Pi 会在启动期间和 `/reload` 时报告无效的主题文件。
 
-## 颜色令牌
+## 找到要更改的颜色
 
-每个主题都必须定义全部 51 个必需的颜色令牌。可选令牌用于保持与现有主题的兼容性：`thinkingMax` 回退到 `thinkingXhigh`，`scrollbarThumb` 和 `searchMatchBg` 回退到 `selectedBg`，`searchMatchText` 回退到 `text`。其他搜索匹配项在 `searchMatchBg` 上使用 `searchMatchText` 并带下划线；当前匹配项反转该前景/背景对并使用粗体文本。
+主题颜色描述的是界面角色，而不是单个组件。使用这些分组来 find the schema 的相关部分：
 
-### 核心 UI (11 种颜色)
+| 区域 | 颜色名称 |
+|---|---|
+| 通用界面 | `accent`, `border*`, `text`, `muted`, `dim`, `success`, `error`, `warning` |
+| 选择与全屏 | `selectedBg`, `searchMatch*`, `scrollbar*` |
+| 消息 | `userMessage*`, `customMessage*`, `thinkingText` |
+| 工具执行 | `toolPendingBg`, `toolSuccessBg`, `toolErrorBg`, `toolTitle`, `toolOutput` |
+| Markdown | `md*` |
+| 工具差异 | `toolDiff*` |
+| 语法高亮 | `syntax*` |
+| 编辑器模式 | `thinking*`, `bashMode` |
+| HTML 导出 | `export.pageBg`, `export.cardBg`, `export.infoBg` |
 
-| 令牌 | 用途 |
-|-------|---------|
-| `accent` | 主要强调色 (徽标、选中项、光标) |
-| `border` | 普通边框 |
-| `borderAccent` | 高亮边框 |
-| `borderMuted` | 细微边框 (编辑器) |
-| `success` | 成功状态 |
-| `error` | 错误状态 |
-| `warning` | 警告状态 |
-| `muted` | 次要文本 |
-| `dim` | 三级文本 |
-| `text` | 默认文本 (通常为 `""`) |
-| `thinkingText` | 思考块文本 |
+该 schema 是格式参考。built-in 主题提供了完整的值，你可以复制并调整。
 
-### 背景与内容 (11 个必需， 3 个可选)
+有五种颜色是可选的，省略时会继承另一种颜色：
 
-| 令牌 | 用途 |
-|-------|---------|
-| `selectedBg` | 选中行背景 |
-| `scrollbarThumb` | 全屏滚动条滑块背景；可选，回退到 `selectedBg` |
-| `searchMatchBg` | 转录搜索匹配背景和 current-match 文本；可选，回退到 `selectedBg` |
-| `searchMatchText` | 转录搜索匹配文本和 current-match 背景；可选，回退到 `text` |
-| `userMessageBg` | 用户消息背景 |
-| `userMessageText` | 用户消息文本 |
-| `customMessageBg` | 扩展消息背景 |
-| `customMessageText` | 扩展消息文本 |
-| `customMessageLabel` | 扩展消息标签 |
-| `toolPendingBg` | 工具箱 (待处理) |
-| `toolSuccessBg` | 工具箱 (成功) |
-| `toolErrorBg` | 工具箱 (错误) |
-| `toolTitle` | 工具标题 |
-| `toolOutput` | 工具输出文本 |
+| 可选颜色 | 回退 |
+|---|---|
+| `scrollbarTrack` | `muted` |
+| `scrollbarThumb` | `text` |
+| `searchMatchBg` | `selectedBg` |
+| `searchMatchText` | `text` |
+| `thinkingMax` | `thinkingXhigh` |
 
-### Markdown (10 种颜色)
+如果省略 `export` 颜色，Pi 会根据 `userMessageBg` 推导出 HTML 页面和面板背景。
 
-| 令牌 | 用途 |
-|-------|---------|
-| `mdHeading` | 标题 |
-| `mdLink` | 链接文本 |
-| `mdLinkUrl` | 链接 URL |
-| `mdCode` | 行内代码 |
-| `mdCodeBlock` | 代码块内容 |
-| `mdCodeBlockBorder` | 代码块围栏 |
-| `mdQuote` | 引用文本 |
-| `mdQuoteBorder` | 引用边框 |
-| `mdHr` | 水平分割线 |
-| `mdListBullet` | 列表项目符号 |
+## 从项目或包加载主题｜ Load a theme from a project or package
 
-### 工具差异 (3 种颜色)
+将项目主题放在 `.pi/themes/` 中。只有在授予 [项目信任](security.md#understand-project-trust) 后，项目主题才会加载。
 
-| 标记 | 用途 |
-|-------|---------|
-| `toolDiffAdded` | 添加的行 |
-| `toolDiffRemoved` | 删除的行 |
-| `toolDiffContext` | 上下文行 |
+你也可以通过 `themes` 设置加载主题文件和目录，或将它们分发到 Pi 包中。请参阅 [配置](configuration.md)、[设置](settings.md#resources) 和 [Pi 包](packages.md)。
 
-### 语法高亮 (9 种颜色)
-
-| 标记 | 用途 |
-|-------|---------|
-| `syntaxComment` | 注释 |
-| `syntaxKeyword` | 关键词 |
-| `syntaxFunction` | 函数名 |
-| `syntaxVariable` | 变量 |
-| `syntaxString` | 字符串 |
-| `syntaxNumber` | 数字 |
-| `syntaxType` | 类型 |
-| `syntaxOperator` | 运算符 |
-| `syntaxPunctuation` | 标点 |
-
-### 思考级别边框 (6 个必需， 1 个可选)
-
-用于指示思考级别的编辑器边框颜色 (从细微到突出的视觉层次)：
-
-| 令牌 | 用途 |
-|-------|---------|
-| `thinkingOff` | 思考关闭 |
-| `thinkingMinimal` | 最小思考 |
-| `thinkingLow` | 低思考 |
-| `thinkingMedium` | 中思考 |
-| `thinkingHigh` | 高思考 |
-| `thinkingXhigh` | 超高思考 |
-| `thinkingMax` | 最大思考；可选，回退到 `thinkingXhigh` |
-
-### Bash 模式 (1 种颜色)
-
-| 令牌 | 用途 |
-|-------|---------|
-| `bashMode` | Bash 模式下的编辑器边框 (`!` 前缀) |
-
-### HTML 导出 (可选)
-
-`export` 部分控制 `/export` HTML 输出的颜色。如果省略，颜色将从 `userMessageBg` 派生。
-
-```json
-{
-  "export": {
-    "pageBg": "#18181e",
-    "cardBg": "#1e1e24",
-    "infoBg": "#3c3728"
-  }
-}
-```
-
-## 颜色值
-
-支持四种格式：
-
-| 格式 | 示例 | 描述 |
-|--------|---------|-------------|
-| 十六进制 | `"#ff0000"` | 6 位十六进制 RGB |
-| 256 色 | `39` | xterm 256 色调色板索引 (0-255) |
-| 变量 | `"primary"` | 引用 `vars` 条目 |
-| 默认 | `""` | 终端的默认颜色 |
-
-### 256 色调色板｜ 256-Color Palette
-
-- `0-15`：基本 ANSI 颜色 (terminal-dependent)
-- `16-231`： 6×6×6 RGB 立方体 (`16 + 36×R + 6×G + B`，其中 R、G、B 为 0-5)
-- `232-255`：灰度渐变
-
-### 终端兼容性｜终端 Compatibility
-
-Pi 使用 24 位 RGB 颜色。大多数现代终端支持此功能 (iTerm2、Kitty、WezTerm、Windows 终端、VS Code)。对于仅支持 256 色的旧终端， pi 会回退到最接近的近似值。
-
-检查真彩色支持：
-
-```bash
-echo $COLORTERM  # Should output "truecolor" or "24bit"
-```
-
-## 提示｜ Tips
-
-**深色终端：** 使用高对比度的明亮、饱和颜色。
-
-**浅色终端：** 使用低对比度的较暗、柔和颜色。
-
-**色彩和谐：** 从基础调色板开始 (Nord、Gruvbox、Tokyo Night)，在 `vars` 中定义，并保持一致引用。
-
-**测试：** 使用不同的消息类型、工具状态、Markdown 内容和长换行文本检查您的主题。
-
-**VS Code ：** 将 `terminal.integrated.minimumContrastRatio` 设置为 `1` 以获得准确的颜色。
-
-## 示例｜ Examples
-
-查看 built-in 主题：
-- [dark.json](../src/modes/interactive/theme/dark.json)
-- [light.json](../src/modes/interactive/theme/light.json)
+每个加载的主题都必须具有唯一的名称。Pi 会将重复名称报告为资源冲突。

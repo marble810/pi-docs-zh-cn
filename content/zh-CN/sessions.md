@@ -1,145 +1,66 @@
-# 会话｜Sessions
+# 会话与上下文｜ Sessions and Context
 
-Pi 将会话保存为会话，以便您可以继续工作、从早期轮次分支并重新访问之前的路径。
+Pi 将对话保存为会话。该会话的活动分支为下一次模型请求提供对话历史。使用会话命令可以继续工作、探索另一个分支，或减少发送给模型的历史记录量。
 
-## 会话存储
+## 继续或切换会话｜ Continue or switch sessions
 
-会话 auto-save 至 `~/.pi/agent/sessions/`，按工作目录组织。每个会话是一个具有树结构的 JSONL 文件。
-
-```bash
-pi -c                  # Continue most recent session
-pi -r                  # Browse and select from past sessions
-pi --no-session        # Ephemeral mode; do not save
-pi --name "my task"    # Set session display name at startup
-pi --session <path|id> # Use a specific session file or partial session ID
-pi --fork <path|id>    # Fork a session file or partial session ID into a new session
-```
-
-在交互模式下使用 `/session` 查看当前会话文件、会话 ID、消息数、令牌数和成本。
-
-关于 JSONL 文件格式及 SessionManager API，请参阅 [会话格式](session-format.md)。
-
-## 会话命令
-
-| 命令 | 描述 |
-|---------|-------------|
-| `/resume` | 浏览并选择先前的会话 |
-| `/new` | 开始新会话 |
-| `/name <name>` | 设置当前会话显示名称 |
-| `/session` | 显示会话信息 |
-| `/tree` | 浏览当前会话树 |
-| `/fork` | 从之前的用户消息创建新会话 |
-| `/clone` | 将当前活动分支复制到新会话中 |
-| `/compact [prompt]` | 总结较早的上下文；参见 [上下文压缩](compaction.md) |
-| `/export [file]` | 将会话导出到 HTML |
-| `/share` | 以私有 GitHub gist 形式上传，附带可分享的 HTML 链接 |
-
-## 恢复和删除会话
-
-`/resume` 为当前项目打开交互式会话选择器。`pi -r` 在启动时打开相同的选择器。
-
-在选择器中，您可以：
-
-- 通过输入进行搜索
-- 按 Ctrl+P 切换路径显示
-- 按 Ctrl+S 切换排序模式
-- 按 Ctrl+N 筛选命名会话
-- 按 Ctrl+R 重命名
-- 按 Ctrl+D 删除，然后确认
-
-可用时， pi 使用 `trash` CLI 进行删除，而非永久删除文件。
-
-## 命名会话
-
-使用 `/name <name>` 设置 human-readable 会话名称：
-
-```text
-/name Refactor auth module
-```
-
-启动时通过 `--name` 或 `-n` 设置名称：
+除非使用 `--no-session` 启动，否则 Pi 会自动保存会话。
 
 ```bash
-pi --name "Refactor auth module"
-pi --name "CI audit" -p "Review this build failure"
+pi --continue
+pi --resume
 ```
 
-命名后的会话更易于 find in `/resume` 和 `pi -r`。
+`--continue` 打开当前工作目录的最近会话。`--resume` 打开会话选择器。在交互模式下，`/resume` 打开同一个选择器，`/new` 启动一个新会话。
 
-## 使用 `/tree` 进行分支
+使用 `/name` 或 `--name` 指定一个易于识别的会话名称。运行 `/session` 可查看当前会话文件、ID、消息数量、token 用量和费用。
 
-会话以树形结构存储。每个条目都有 `id` 和 `parentId`，当前位置是活动叶节点。`/tree` 允许跳转到任意历史节点并从该处继续，而无需创建新文件。
+会话选择器支持搜索、重命名和删除会话。它还可以显示路径、更改排序方式，以及将结果限制为已命名的会话。其快捷键请参见 [Keybindings](keybindings.md#sessions)。
 
-<p align="center"><img src="images/tree-view.png" alt="Tree View" width="600"></p>
+## 选择分支方式｜ Choose how to branch
 
-示例结构：
+Pi 将条目存储为树结构，因此返回到较早的位置不会删除你离开的分支。
 
-```text
-├─ user: "Hello, can you help..."
-│  └─ assistant: "Of course! I can..."
-│     ├─ user: "Let's try approach A..."
-│     │  └─ assistant: "For approach A..."
-│     │     └─ user: "That worked..."  ← active
-│     └─ user: "Actually, approach B..."
-│        └─ assistant: "For approach B..."
-```
+| 操作 | 结果 | 适用场景 |
+|---|---|---|
+| `/tree` | 在当前会话文件内移动 | 相关备选方案应保持在一起 |
+| `/fork` | 从较早的用户消息创建新会话 | 备选方案应成为独立的工作 |
+| `/clone` | 将活动分支复制到新会话 | 你想要当前状态的独立副本 |
 
-### 树控件
+在 `/tree` 中，选择一条用户消息可将其文本放回编辑器。编辑并提交即可创建另一个分支。选择助手回复或其他条目，则会在该条目之后以空编辑器继续。
 
-| 按键 | 操作 |
-|-----|--------|
-| ↑/↓ | 导航可见条目 |
-| ←/→ | 上/下翻页 |
-| Ctrl+←/Ctrl+→ 或 Alt+←/Alt+→ | 折叠/展开或跳转分支段 |
-| Shift+L | 为选中条目设置或清除标签 |
-| Shift+T | 切换标签时间戳显示 |
-| 回车 | 选择条目 |
-| Esc/Ctrl+C | 取消 |
-| Ctrl+O | 循环筛选模式 |
+当你离开一个分支时，Pi 可以对其进行总结，并将该总结附加到你进入的分支。这样既能保留被放弃路径中的相关工作，又无需包含其中的每条消息。
 
-筛选模式有： default、no-tools、user-only、labeled-only和 all。通过在[设置](settings.md)中的`treeFilterMode`配置默认值。
+关于持久化树和条目类型，请参阅 [会话 Format](session-format.md)。
 
-### 选择行为
+## 管理对话上下文｜ Manage conversation context
 
-选择用户或自定义消息：
+模型接收的是活动分支，而不是会话文件中的每个分支。Pi 将该历史记录与系统提示词、发现的上下文文件、可用工具以及已加载的技能描述组合在一起。[How Pi Works](how-pi-works.md#context) 描述了这些输入是如何组装的。
 
-1. 将叶子节点移动到所选消息的父节点。
-2. 将所选消息文本放入编辑器。
-3. 允许编辑并重新提交，创建新分支。
+页脚显示当前上下文使用情况。当活动上下文接近模型限制时，Pi 通常会自动压缩较旧的历史记录。上下文压缩会添加摘要并保留最近的消息。它不会删除原始会话条目。
 
-选择助手、工具、压缩或其他non-user条目：
+运行 `/compact` 以手动压缩。当摘要需要保留特定主题或决策时，你可以添加指令。通过 [Settings](settings.md# 上下文压缩) 配置自动压缩和保留的历史记录。
 
-1. 将叶子节点移动到该条目。
-2. 使编辑器保持为空。
-3. 允许从该点继续。
+如果模型提供商不可用或无法接受摘要请求，上下文压缩可能会失败。请解决模型提供商问题并再次运行 `/compact`。禁用自动压缩不会禁用该手动命令。
 
-选择根用户消息会将叶子节点重置为空会话，并将原始提示词放入编辑器。
+有关阈值、保留边界、branch-summary 行为和扩展钩子，请参阅 [上下文压缩 Reference](compaction.md)。
 
-## `/tree`、`/fork`和`/clone`
+## 控制会话存储｜ Control 会话 storage
 
-| 功能 | `/tree` | `/fork` | `/clone` |
-|---------|---------|---------|----------|
-| 输出 | 相同会话文件 | 新会话文件 | 新会话文件 |
-| 视图 | 完整树 | 用户消息选择器 | 当前活动分支 |
-| 典型用途 | 原地探索替代方案 | 从之前的提示开始新会话 | 继续前复制当前工作 |
-| 摘要 | 可选分支摘要 | 无 | 无 |
+默认情况下，Pi 将会话存储在 `~/.pi/agent/sessions/` 下，并按工作目录分组。使用 `--session-dir`、`PI_CODING_AGENT_SESSION_DIR` 或 `sessionDir` 设置来选择其他位置。CLI 选项具有最高优先级。
 
-当您希望将替代方案保持在一起时，使用 `/tree`。当您希望有单独的会话文件时，使用 `/fork` 或 `/clone`。
+使用 `--no-session` 进行临时运行。临时会话在 Pi 退出后无法恢复。
 
-## 分支摘要
+当你已经知道会话路径或 ID 时，使用 `--session`。使用 `--fork` 在交互模式启动前从现有会话创建新会话。
 
-当 `/tree` 从一个分支切换到另一个分支时， pi 可以汇总被放弃的分支并将该摘要附加到新位置。这保留了您离开路径中的重要上下文，而无需重播整个分支。
+## 导出或共享会话｜ Export or share a 会话
 
-提示时，选择以下之一：
+使用 `/export` 将当前会话写为 HTML 或 JSONL。使用 `/share` 上传它并获取查看器链接。当配置了 Radius 身份验证时，Pi 使用 Radius 工件；否则，它使用私有 GitHub gist。
 
-1. 无摘要
-2. 使用默认提示进行摘要
-3. 使用自定义关注指令进行摘要
+请先审查导出或共享的会话。它们可能包含提示词、模型响应、工具参数、命令输出、文件内容和扩展消息。
 
-有关分支汇总的内部实现和扩展挂钩，请参阅 [上下文压缩](compaction.md)。
+## 报告缺陷｜ Report a bug
 
-## 会话格式
+运行 `/bug [description]` 为 Pi 开发者准备一份私有报告。你可以包含会话记录、省略它，或让当前模型总结问题。请审查任何记录或生成的摘要，因为它可能包含敏感的对话数据。
 
-会话文件是 JSONL 格式，包含消息条目、模型更改、thinking-level 更改、标签、上下文压缩、分支摘要和扩展条目。
-
-有关解析器、扩展、SDK 使用以及完整的 SessionManager API，请参阅 [会话格式](session-format.md)。
+报告包含环境和模型提供商配置（不含凭据值），以及记录的错误诊断信息。通过 `radius.pi.dev` 上传它，或将同一报告导出为 zip 以便自行检查并分享。上传不需要登录； Radius 身份验证会将报告归属到你的账户，以便开发者跟进。如果上传失败，Pi 会提供导出 zip 的选项。

@@ -1,96 +1,59 @@
-> pi 可以创建提示词模板。请让它为你的工作流构建一个。
-
 # 提示词模板｜ Prompt Templates
 
-提示词模板是 Markdown 片段，可扩展为完整的提示词。在编辑器中输入 `/name` 来调用模板，其中 `name` 是不含 `.md` 的文件名。
+提示词模板将 Markdown 文件转换为可复用的 `/` 命令。当你希望复用同一个提示词，而不添加可执行行为或更大的一组辅助指令时，可以使用它。
 
-## 位置｜ Locations
+模板可以接受参数并出现在命令补全中。Pi 可以从个人配置、项目配置、显式路径或 Pi 包中加载模板。项目配置仅在授予项目信任后才会加载。
 
-Pi 从以下位置加载提示词模板：
+## 创建模板
 
-- 全局：`~/.pi/agent/prompts/*.md`
-- 项目：`.pi/prompts/*.md` (仅当项目被信任后)
-- 包：`prompts/` 目录或 `package.json` 中的 `pi.prompts` 条目
-- 设置：`prompts` 数组，包含文件或目录
-- CLI：`--prompt-template <path>` (可重复)
-
-通过 `--no-prompt-templates` 禁用发现功能。
-
-## 格式｜ Format
+创建 `~/.pi/agent/prompts/review.md`：
 
 ```markdown
 ---
 description: Review staged git changes
+argument-hint: "[focus]"
 ---
-Review the staged changes (`git diff --cached`). Focus on:
-- Bugs and logic errors
-- Security issues
-- Error handling gaps
+Review the staged changes. Focus on ${1:-correctness, security, and error handling}.
 ```
 
-- 文件名即命令名。`review.md` 变为 `/review`。
-- `description` 是可选的。如果缺失，则使用第一行 non-empty。
-- `argument-hint` 是可选的。设置后，提示会在自动补全下拉菜单中显示在描述之前。
+文件名会成为命令名，因此此模板可作为 `/review` 使用。`description` 会出现在命令补全中。如果省略它，Pi 会使用第一行 non-empty。
 
-### 参数提示｜ Argument Hints
+`argument-hint` 是可选的。使用 `<angle brackets>` 表示必需参数，使用 `[square brackets]` 表示可选参数。
 
-在 frontmatter 中使用 `argument-hint` 来显示自动补全中的预期参数。使用 `<angle brackets>` 表示必需参数，`[square brackets]` 表示可选参数：
+在活动会话中添加或更改模板后，运行 `/reload`。
 
-```markdown
----
-description: Review PRs from URLs with structured issue and code analysis
-argument-hint: "<PR-URL>"
----
+<a id="invoke-a-template"></a>
+
+## 使用模板
+
+在编辑器中输入模板命令：
+
+```text
+/review
+/review concurrency
 ```
 
-在自动补全下拉菜单中呈现为：
+Pi 会在生成的文本进入代理之前展开模板。除非有同名扩展命令处理它，否则扩展会先通过 `input` 事件接收原始输入。
 
-```
-→ pr   <PR-URL>       — Review PRs from URLs with structured issue and code analysis
-  is   <issue>        — Analyze GitHub issues (bugs or feature requests)
-  wr   [instructions] — Finish the current task end-to-end
-  cl   — Audit changelog entries before release
-```
+模板支持以下替换：
 
-## 用法｜ Usage
+| 语法 | 结果 |
+|---|---|
+| `$1`、`$2`、… | 一个位置参数 |
+| `$@` 或 `$ARGUMENTS` | 所有参数以空格连接 |
+| `${1:-default}` | 第一个参数，或默认值 |
+| `${@:-default}` | 所有参数，或默认值 |
+| `${@:N}` | 从位置 `N` 开始的参数 |
+| `${@:N:L}` | 从位置 `N` 开始的 `L` 个参数 |
 
-在编辑器中输入 `/` 后跟模板名称。自动补全会显示可用模板及其描述。
+参数遵循 shell-like 的引号规则，因此 `/review "API compatibility"` 提供一个包含空格的参数。
 
-```
-/review                           # Expands review.md
-/component Button                 # Expands with argument
-/component Button "click handler" # Multiple arguments
-```
+<a id="choose-where-it-loads"></a>
 
-## 参数｜ Arguments
+## 将其添加到 Pi
 
-模板支持位置参数、默认值和简单的切片操作：
+将模板放入你的用户或项目提示词目录。常规提示词目录仅加载直接的 `.md` 子项。
 
-- `$1`、`$2`…位置参数
-- `$@` 或 `$ARGUMENTS` 用于所有参数连接在一起
-- 当存在参数 1 时，`${1:-default}` 使用它/non-empty，否则使用 `default`
-- 当存在所有参数时，`${@:-default}` 或 `${ARGUMENTS:-default}` 使用它们/non-empty，否则使用 `default`
-- `${@:N}` 用于从第 N 个位置开始的参数（(从 1 开始索引)）
-- `${@:N:L}` 用于从 N 开始的 `L` 个参数
+设置和包可以选择嵌套的 Markdown 文件；包清单可以通过显式路径和 glob 缩小发现范围。有关这些选项，请参阅 [Settings](settings.md#resources) 和 [Pi Packages](packages.md)。
 
-示例：
-
-```markdown
----
-description: Create a component
----
-Create a React component named $1 with features: $@
-```
-
-默认值对于可选参数很有用：
-
-```markdown
-Summarize the current state in ${1:-7} bullet points.
-```
-
-用法：`/component Button "onClick handler" "disabled support"`
-
-## 加载规则
-
-- `prompts/` 中的模板发现是 non-recursive。
-- 如果需要在子目录中使用模板，请通过 `prompts` 设置或包清单显式添加它们。
+授予信任后，项目模板会成为编辑器中的命令。在信任不熟悉的项目之前，请审查其内容。请参阅 [Security](security.md#understand-project-trust)。
