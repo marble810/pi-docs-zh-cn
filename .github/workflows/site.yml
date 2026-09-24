@@ -3,8 +3,8 @@ name: Site
 on:
   push:
     branches: ["main"]
-  schedule:
-    - cron: "17 3 * * *"
+  # Automatic upstream translation/API sync is intentionally disabled.
+  # Use workflow_dispatch to run a sync manually when needed.
   workflow_dispatch:
     inputs:
       force_sync:
